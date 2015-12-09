@@ -51,9 +51,7 @@ public protocol Connection {
     
     func withTransaction(block: Void throws -> Void) throws
     
-    func execute(string: String, arguments: CVarArgType...) throws -> ResultType
-    
-    func execute(string: String, arguments: [CVarArgType]) throws -> ResultType
+    func execute(string: String) throws -> ResultType
     
     init(_ connectionInfo: ConnectionInfoType)
 }
