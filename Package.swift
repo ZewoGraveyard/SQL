@@ -1,7 +1,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftFoundation",
+    name: "SwiftSQL",
     dependencies: [
         .Package(url: "https://github.com/Zewo/URI.git", majorVersion: 1)
     ]
