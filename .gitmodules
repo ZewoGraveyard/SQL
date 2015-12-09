@@ -1,3 +1,6 @@
 [submodule "OSX Development/SwiftFoundation"]
 	path = OSX Development/SwiftFoundation
 	url = https://github.com/PureSwift/SwiftFoundation.git
+[submodule "OSX Development/URI"]
+	path = OSX Development/URI
+	url = https://github.com/Zewo/URI.git

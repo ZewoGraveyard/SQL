@@ -14,57 +14,11 @@
 		B7DDB9D71C178AAE00E16DAD /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DDB9D61C178AAE00E16DAD /* Row.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		B7DDB99C1C16EF2E00E16DAD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B7DDB9941C16EF2E00E16DAD /* SwiftFoundation.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 6E30BA0D1B40F543009B1B49;
-			remoteInfo = "SwiftFoundation OS X";
-		};
-		B7DDB99E1C16EF2E00E16DAD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B7DDB9941C16EF2E00E16DAD /* SwiftFoundation.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 6E30BA171B40F543009B1B49;
-			remoteInfo = "SwiftFoundationTests OS X";
-		};
-		B7DDB9A01C16EF2E00E16DAD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B7DDB9941C16EF2E00E16DAD /* SwiftFoundation.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 1AE78F6C1B96774100CDEF17;
-			remoteInfo = "SwiftFoundation iOS";
-		};
-		B7DDB9A21C16EF2E00E16DAD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B7DDB9941C16EF2E00E16DAD /* SwiftFoundation.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 6E08F8571BBE7B8800548B1E;
-			remoteInfo = "SwiftFoundationTests iOS";
-		};
-		B7DDB9A41C16EF2E00E16DAD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B7DDB9941C16EF2E00E16DAD /* SwiftFoundation.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 1AE78FC41B96774300CDEF17;
-			remoteInfo = "SwiftFoundation WatchOS";
-		};
-		B7DDB9A61C16EF4000E16DAD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B7DDB9941C16EF2E00E16DAD /* SwiftFoundation.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 6E30BA0C1B40F543009B1B49;
-			remoteInfo = "SwiftFoundation OS X";
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
 		B7DDB9841C16EE2200E16DAD /* SwiftSQL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftSQL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7DDB9871C16EE2200E16DAD /* SwiftSQL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwiftSQL.h; sourceTree = "<group>"; };
 		B7DDB9891C16EE2200E16DAD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B7DDB9901C16EE7600E16DAD /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
-		B7DDB9941C16EF2E00E16DAD /* SwiftFoundation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftFoundation.xcodeproj; path = SwiftFoundation/SwiftFoundation/SwiftFoundation.xcodeproj; sourceTree = "<group>"; };
 		B7DDB9C51C17221300E16DAD /* Query.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Query.swift; sourceTree = "<group>"; };
 		B7DDB9D01C1723D000E16DAD /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		B7DDB9D61C178AAE00E16DAD /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
@@ -84,7 +38,6 @@
 		B7DDB97A1C16EE2200E16DAD = {
 			isa = PBXGroup;
 			children = (
-				B7DDB9941C16EF2E00E16DAD /* SwiftFoundation.xcodeproj */,
 				B7DDB98F1C16EE4900E16DAD /* Sources */,
 				B7DDB9861C16EE2200E16DAD /* SwiftSQL */,
 				B7DDB9851C16EE2200E16DAD /* Products */,
@@ -120,18 +73,6 @@
 			path = ../Sources;
 			sourceTree = "<group>";
 		};
-		B7DDB9951C16EF2E00E16DAD /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				B7DDB99D1C16EF2E00E16DAD /* SwiftFoundation.framework */,
-				B7DDB99F1C16EF2E00E16DAD /* SwiftFoundationTests.xctest */,
-				B7DDB9A11C16EF2E00E16DAD /* SwiftFoundation.framework */,
-				B7DDB9A31C16EF2E00E16DAD /* SwiftFoundationTests.xctest */,
-				B7DDB9A51C16EF2E00E16DAD /* SwiftFoundation.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -158,7 +99,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				B7DDB9A71C16EF4000E16DAD /* PBXTargetDependency */,
 			);
 			name = SwiftSQL;
 			productName = SwiftSQL;
@@ -189,56 +129,12 @@
 			mainGroup = B7DDB97A1C16EE2200E16DAD;
 			productRefGroup = B7DDB9851C16EE2200E16DAD /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = B7DDB9951C16EF2E00E16DAD /* Products */;
-					ProjectRef = B7DDB9941C16EF2E00E16DAD /* SwiftFoundation.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				B7DDB9831C16EE2200E16DAD /* SwiftSQL */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		B7DDB99D1C16EF2E00E16DAD /* SwiftFoundation.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = SwiftFoundation.framework;
-			remoteRef = B7DDB99C1C16EF2E00E16DAD /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B7DDB99F1C16EF2E00E16DAD /* SwiftFoundationTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = SwiftFoundationTests.xctest;
-			remoteRef = B7DDB99E1C16EF2E00E16DAD /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B7DDB9A11C16EF2E00E16DAD /* SwiftFoundation.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = SwiftFoundation.framework;
-			remoteRef = B7DDB9A01C16EF2E00E16DAD /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B7DDB9A31C16EF2E00E16DAD /* SwiftFoundationTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = SwiftFoundationTests.xctest;
-			remoteRef = B7DDB9A21C16EF2E00E16DAD /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B7DDB9A51C16EF2E00E16DAD /* SwiftFoundation.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = SwiftFoundation.framework;
-			remoteRef = B7DDB9A41C16EF2E00E16DAD /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		B7DDB9821C16EE2200E16DAD /* Resources */ = {
@@ -263,14 +159,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		B7DDB9A71C16EF4000E16DAD /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "SwiftFoundation OS X";
-			targetProxy = B7DDB9A61C16EF4000E16DAD /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B7DDB98A1C16EE2200E16DAD /* Debug */ = {

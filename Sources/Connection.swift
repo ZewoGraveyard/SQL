@@ -8,73 +8,30 @@
 
 import SwiftFoundation
 
-public protocol ConnectionInfoStringConvertible {
+public protocol ConnectionStringConvertible {
     var connectionString: String { get }
 }
 
-public class ConnectionInfo {
+public protocol ConnectionInfo : ConnectionStringConvertible, StringLiteralConvertible {
+    var user: String? { get }
+    var password: String? { get }
+    var host: String { get }
+    var port: UInt { get }
+    var database: String { get }
     
-    public struct Credentials {
-        public var username: String
-        public var password: String?
-        
-        public init(username: String, password: String?) {
-            self.username = username
-            self.password = password
-        }
-    }
-    
-    public enum Error : ErrorType {
-        case MissingHost
-        case MissingPort
-    }
-    
-    public var host: String
-    public var port: UInt
-    public var databaseName: String?
-    public var credentials: Credentials?
-    
-    public init(host: String, port: UInt, databaseName: String?, credentials: Credentials? = nil) {
-        self.host = host
-        self.port = port
-        self.databaseName = databaseName
-        self.credentials = credentials
-    }
-    
-    public convenience init(url: URL) throws {
-        
-        var credentials: Credentials?
-        
-        if let username = url.user {
-            credentials = Credentials(username: username, password: url.password)
-        }
-        
-        guard let host = url.host else {
-            throw Error.MissingHost
-        }
-        
-        guard let port = url.port else {
-            throw Error.MissingPort
-        }
-        
-        self.init(
-            host: host,
-            port: port,
-            databaseName: url.path,
-            credentials: credentials
-        )
-    }
+    init(url: URL)
 }
 
-public typealias ConnectionBlock = (connection: Connection) throws -> Void
 
 public protocol Connection {
     
-    typealias ConnectionInfoType : ConnectionInfo, ConnectionInfoStringConvertible
+    typealias ConnectionInfoType : ConnectionInfo
     typealias ResultType : Result
     typealias StatusType
     
-    func open(connectionInfo: ConnectionInfoType) throws
+    var connectionInfo: ConnectionInfoType { get }
+    
+    func open() throws
     
     func close()
     
@@ -88,11 +45,13 @@ public protocol Connection {
     
     func closeCursor(name: String) throws
     
-    func withCursor(name: String, query: Query, block: ConnectionBlock) throws
+    func withCursor(name: String, query: Query, block: Void throws -> Void) throws
     
-    func withTransaction(block: ConnectionBlock) throws
+    func withTransaction(block: Void throws -> Void) throws
     
     func execute(query: Query) throws -> ResultType
+    
+    init(_ connectionInfo: ConnectionInfoType)
 }
 
 
@@ -109,11 +68,11 @@ public extension Connection {
         try self.execute("ROLLBACK")
     }
     
-    public func withTransaction(block: ConnectionBlock) throws {
+    public func withTransaction(block: Void throws -> Void) throws {
         try begin()
         
         do {
-            try block(connection: self)
+            try block()
             try commit()
         }
         catch {
@@ -122,11 +81,11 @@ public extension Connection {
         }
     }
     
-    public func withCursor(name: String, query: Query, block: ConnectionBlock) throws {
+    public func withCursor(name: String, query: Query, block: Void throws -> Void) throws {
         try openCursor(name, query: query)
         
         do {
-            try block(connection: self)
+            try block()
         }
         catch {
             try closeCursor(name)
