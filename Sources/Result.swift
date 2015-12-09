@@ -11,18 +11,15 @@ public protocol ResultStatus {
     var successful: Bool { get }
 }
 
-public protocol Result : GeneratorType {
+public protocol Result : SequenceType {
     typealias ResultStatusType : ResultStatus
+    typealias FieldType : Field
     
     var status: ResultStatusType { get }
     
     func clear()
     
-    var numberOfRows: Int { get }
+    var countAffected: Int { get }
     
-    var numberOfRowsAffected: Int { get }
-    
-    var numberOfFields: Int { get }
-    
-    var fieldNames: [String] { get }
+    var fields: [FieldType] { get }
 }
