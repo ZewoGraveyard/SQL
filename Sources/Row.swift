@@ -7,12 +7,27 @@
 //
 
 
-public protocol RowSet : CollectionType {
+
+public protocol RowValue : CustomStringConvertible {
+    var stringValue: String? { get }
     
+    var integerValue: Int? { get }
+    
+    var doubleValue: Double? { get }
 }
 
-public protocol Row {
-    typealias ValueType
+public extension RowValue {
+    public var description: String {
+        guard let string = stringValue else {
+            return "<<non-string representable>>"
+        }
+        
+        return string
+    }
+}
+
+public protocol Row : CustomStringConvertible {
+    typealias RowValueType : RowValue
     
-    subscript(fieldName: String) -> ValueType { get }
+    subscript(fieldName: String) -> RowValueType? { get }
 }

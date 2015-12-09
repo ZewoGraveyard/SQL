@@ -6,13 +6,12 @@
 //  Copyright © 2015 Formbound. All rights reserved.
 //
 
-import SwiftFoundation
 
 public protocol ResultStatus {
     var successful: Bool { get }
 }
 
-public protocol Result{
+public protocol Result : GeneratorType {
     typealias ResultStatusType : ResultStatus
     
     var status: ResultStatusType { get }
@@ -21,5 +20,9 @@ public protocol Result{
     
     var numberOfRows: Int { get }
     
+    var numberOfFields: Int { get }
+    
     var fieldNames: [String] { get }
+    
+    var numberOfAffectedRows: Int { get }
 }

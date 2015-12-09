@@ -6,9 +6,8 @@
 //  Copyright © 2015 Formbound. All rights reserved.
 //
 
-import SwiftFoundation
 
-public struct Query : StringLiteralConvertible {
+public struct Query : StringLiteralConvertible, CustomStringConvertible {
     public var string: String
     
     public init(string: String) {
@@ -25,5 +24,9 @@ public struct Query : StringLiteralConvertible {
     
     public init(extendedGraphemeClusterLiteral value: String) {
         self.init(string: value)
+    }
+    
+    public var description: String {
+        return string
     }
 }

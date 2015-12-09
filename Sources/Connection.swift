@@ -6,20 +6,22 @@
 //  Copyright © 2015 Formbound. All rights reserved.
 //
 
-import SwiftFoundation
+
 
 public protocol ConnectionStringConvertible {
     var connectionString: String { get }
 }
 
-public protocol ConnectionInfo : ConnectionStringConvertible, StringLiteralConvertible {
+public protocol ConnectionStringLiteralConvertible : StringLiteralConvertible {
+    init(connectionString: String)
+}
+
+public protocol ConnectionInfo : ConnectionStringConvertible, ConnectionStringLiteralConvertible {
     var user: String? { get }
     var password: String? { get }
     var host: String { get }
     var port: UInt { get }
     var database: String { get }
-    
-    init(url: URL)
 }
 
 
