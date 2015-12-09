@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		B7DDB9881C16EE2200E16DAD /* SwiftSQL.h in Headers */ = {isa = PBXBuildFile; fileRef = B7DDB9871C16EE2200E16DAD /* SwiftSQL.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B7DDB9911C16EE7600E16DAD /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DDB9901C16EE7600E16DAD /* Connection.swift */; };
-		B7DDB9C61C17221300E16DAD /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DDB9C51C17221300E16DAD /* Query.swift */; };
 		B7DDB9D11C1723D000E16DAD /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DDB9D01C1723D000E16DAD /* Result.swift */; };
 		B7DDB9D71C178AAE00E16DAD /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DDB9D61C178AAE00E16DAD /* Row.swift */; };
 /* End PBXBuildFile section */
@@ -19,7 +18,6 @@
 		B7DDB9871C16EE2200E16DAD /* SwiftSQL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwiftSQL.h; sourceTree = "<group>"; };
 		B7DDB9891C16EE2200E16DAD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B7DDB9901C16EE7600E16DAD /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
-		B7DDB9C51C17221300E16DAD /* Query.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Query.swift; sourceTree = "<group>"; };
 		B7DDB9D01C1723D000E16DAD /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		B7DDB9D61C178AAE00E16DAD /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -65,7 +63,6 @@
 			isa = PBXGroup;
 			children = (
 				B7DDB9901C16EE7600E16DAD /* Connection.swift */,
-				B7DDB9C51C17221300E16DAD /* Query.swift */,
 				B7DDB9D01C1723D000E16DAD /* Result.swift */,
 				B7DDB9D61C178AAE00E16DAD /* Row.swift */,
 			);
@@ -152,7 +149,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B7DDB9D11C1723D000E16DAD /* Result.swift in Sources */,
-				B7DDB9C61C17221300E16DAD /* Query.swift in Sources */,
 				B7DDB9D71C178AAE00E16DAD /* Row.swift in Sources */,
 				B7DDB9911C16EE7600E16DAD /* Connection.swift in Sources */,
 			);

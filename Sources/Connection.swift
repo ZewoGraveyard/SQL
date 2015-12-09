@@ -43,15 +43,17 @@ public protocol Connection {
     
     var status: StatusType { get }
     
-    func openCursor(name: String, query: Query) throws
+    func openCursor(name: String) throws
     
     func closeCursor(name: String) throws
     
-    func withCursor(name: String, query: Query, block: Void throws -> Void) throws
+    func withCursor(name: String, block: Void throws -> Void) throws
     
     func withTransaction(block: Void throws -> Void) throws
     
-    func execute(query: Query) throws -> ResultType
+    func execute(string: String, arguments: CVarArgType...) throws -> ResultType
+    
+    func execute(string: String, arguments: [CVarArgType]) throws -> ResultType
     
     init(_ connectionInfo: ConnectionInfoType)
 }
@@ -83,8 +85,8 @@ public extension Connection {
         }
     }
     
-    public func withCursor(name: String, query: Query, block: Void throws -> Void) throws {
-        try openCursor(name, query: query)
+    public func withCursor(name: String, block: Void throws -> Void) throws {
+        try openCursor(name)
         
         do {
             try block()
