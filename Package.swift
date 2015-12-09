@@ -3,6 +3,6 @@ import PackageDescription
 let package = Package(
     name: "SwiftFoundation",
     dependencies: [
-        .Package(url: "://github.com/Zewo/URI.git", majorVersion: 1)
+        .Package(url: "https://github.com/Zewo/URI.git", majorVersion: 1)
     ]
 )
