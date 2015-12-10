@@ -1,6 +1,6 @@
 //
 //  Field.swift
-//  SwiftSQL
+//  SQL
 //
 //  Created by David Ask on 09/12/15.
 //  Copyright © 2015 Formbound. All rights reserved.

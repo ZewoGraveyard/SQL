@@ -1,6 +1,6 @@
 //
 //  Connection.swift
-//  SwiftSQL
+//  SQL
 //
 //  Created by David Ask on 08/12/15.
 //  Copyright © 2015 Formbound. All rights reserved.
@@ -16,18 +16,41 @@ public protocol ConnectionStringLiteralConvertible : StringLiteralConvertible {
     init(connectionString: String)
 }
 
-public protocol ConnectionInfo : ConnectionStringConvertible, ConnectionStringLiteralConvertible {
-    var user: String? { get }
-    var password: String? { get }
-    var host: String { get }
-    var port: UInt { get }
-    var database: String { get }
+public class ConnectionInfo : ConnectionStringLiteralConvertible {
+    public var user: String?
+    public var password: String?
+    public var host: String
+    public var port: UInt
+    public var database: String
+    
+    public init(host: String, database: String, port: UInt, user: String? = nil, password: String? = nil) {
+        self.host = host
+        self.database = database
+        self.port = port
+        self.user = user
+        self.password = password
+    }
+    
+    public convenience required init(connectionString: String) {
+        fatalError("Sorry, URL parsing is not available at the moment")
+    }
+    
+    public convenience required init(stringLiteral: String) {
+        self.init(connectionString: stringLiteral)
+    }
+    
+    public convenience required init(unicodeScalarLiteral value: String) {
+        self.init(stringLiteral: value)
+    }
+    
+    public convenience required init(extendedGraphemeClusterLiteral value: String) {
+        self.init(stringLiteral: value)
+    }
 }
-
 
 public protocol Connection {
     
-    typealias ConnectionInfoType : ConnectionInfo
+    typealias ConnectionInfoType : ConnectionInfo, ConnectionStringConvertible
     typealias ResultType : Result
     typealias StatusType
     
@@ -37,63 +60,49 @@ public protocol Connection {
     
     func close()
     
-    func begin() throws
-    func commit() throws
-    func rollback() throws
-    
     var status: StatusType { get }
     
     func openCursor(name: String) throws
     
     func closeCursor(name: String) throws
     
-    func withCursor(name: String, block: Void throws -> Void) throws
-    
-    func withTransaction(block: Void throws -> Void) throws
-    
     func execute(string: String) throws -> ResultType
+    
+    func begin() throws
+    
+    func commit() throws
+    
+    func rollback() throws
+    
+    func createSavePointNamed(name: String) throws
+    
+    func releaseSavePointNamed(name: String) throws
+    
+    func rollbackToSavePointNamed(name: String) throws
     
     init(_ connectionInfo: ConnectionInfoType)
 }
 
-
 public extension Connection {
+    
     public func begin() throws {
-        try self.execute("BEGIN")
+        try execute("BEGIN")
     }
     
     public func commit() throws {
-        try self.execute("COMMIT")
+        try execute("COMMIT")
     }
     
     public func rollback() throws {
-        try self.execute("ROLLBACK")
+        try execute("ROLLBACK")
     }
     
-    public func withTransaction(block: Void throws -> Void) throws {
-        try begin()
-        
+    public subscript(string: String) -> (ErrorType?, ResultType?) {
         do {
-            try block()
-            try commit()
+            return (nil, try execute(string))
         }
         catch {
-            try rollback()
-            throw error
+            return (error, nil)
         }
-    }
-    
-    public func withCursor(name: String, block: Void throws -> Void) throws {
-        try openCursor(name)
-        
-        do {
-            try block()
-        }
-        catch {
-            try closeCursor(name)
-            throw error
-        }
-        
-        try closeCursor(name)
     }
 }
