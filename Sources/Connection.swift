@@ -9,6 +9,12 @@
 
 import Foundation
 
+public protocol ConnectionStringConvertible : StringLiteralConvertible, CustomStringConvertible {
+    init(connectionString: String)
+    
+    var connectionString: String { get }
+}
+
 public class ConnectionInfo {
 
     public var user: String?
@@ -29,7 +35,7 @@ public class ConnectionInfo {
 
 public protocol Connection {
     
-    typealias ConnectionInfoType: ConnectionInfo, StringLiteralConvertible
+    typealias ConnectionInfoType: ConnectionInfo, StringLiteralConvertible, CustomStringConvertible
     typealias ResultType: Result
     typealias StatusType
     
