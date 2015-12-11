@@ -9,18 +9,8 @@
 
 import Foundation
 
-
-public protocol ConnectionInfoURLConvertible {
-    var URL: NSURL { get }
-    
-    init(_ URL: NSURL) throws
-}
-
 public class ConnectionInfo {
-    public enum Error: ErrorType {
-        case MissingComponent(String)
-    }
-    
+
     public var user: String?
     public var password: String?
     public var host: String
@@ -39,7 +29,7 @@ public class ConnectionInfo {
 
 public protocol Connection {
     
-    typealias ConnectionInfoType: ConnectionInfo, ConnectionInfoURLConvertible
+    typealias ConnectionInfoType: ConnectionInfo, StringLiteralConvertible
     typealias ResultType: Result
     typealias StatusType
     
