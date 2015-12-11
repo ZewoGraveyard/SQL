@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B70F250D1C18D9B60000A63E /* Field.swift in Sources */ = {isa = PBXBuildFile; fileRef = B70F250C1C18D9B60000A63E /* Field.swift */; };
+		B71B1B271C1A10770016A76E /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = B71B1B261C1A10770016A76E /* Value.swift */; };
 		B7DDB9881C16EE2200E16DAD /* SQL.h in Headers */ = {isa = PBXBuildFile; fileRef = B7DDB9871C16EE2200E16DAD /* SQL.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B7DDB9911C16EE7600E16DAD /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DDB9901C16EE7600E16DAD /* Connection.swift */; };
 		B7DDB9D11C1723D000E16DAD /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DDB9D01C1723D000E16DAD /* Result.swift */; };
@@ -16,6 +17,7 @@
 
 /* Begin PBXFileReference section */
 		B70F250C1C18D9B60000A63E /* Field.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Field.swift; sourceTree = "<group>"; };
+		B71B1B261C1A10770016A76E /* Value.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Value.swift; sourceTree = "<group>"; };
 		B7DDB9841C16EE2200E16DAD /* SQL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SQL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7DDB9871C16EE2200E16DAD /* SQL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SQL.h; sourceTree = "<group>"; };
 		B7DDB9891C16EE2200E16DAD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -67,6 +69,7 @@
 				B7DDB9901C16EE7600E16DAD /* Connection.swift */,
 				B7DDB9D01C1723D000E16DAD /* Result.swift */,
 				B7DDB9D61C178AAE00E16DAD /* Row.swift */,
+				B71B1B261C1A10770016A76E /* Value.swift */,
 				B70F250C1C18D9B60000A63E /* Field.swift */,
 			);
 			name = Sources;
@@ -153,6 +156,7 @@
 			files = (
 				B7DDB9D11C1723D000E16DAD /* Result.swift in Sources */,
 				B7DDB9D71C178AAE00E16DAD /* Row.swift in Sources */,
+				B71B1B271C1A10770016A76E /* Value.swift in Sources */,
 				B70F250D1C18D9B60000A63E /* Field.swift in Sources */,
 				B7DDB9911C16EE7600E16DAD /* Connection.swift in Sources */,
 			);

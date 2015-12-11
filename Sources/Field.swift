@@ -6,7 +6,7 @@
 //  Copyright © 2015 Formbound. All rights reserved.
 //
 
-public protocol Field : CustomStringConvertible {
+public protocol Field: CustomStringConvertible {
     var name: String { get }
 }
 

@@ -11,20 +11,15 @@ public protocol ResultStatus {
     var successful: Bool { get }
 }
 
-public protocol Result : CollectionType {
-    typealias ResultStatusType : ResultStatus
-    typealias FieldType : Field
-    typealias RowType : Row
-    
-    var status: ResultStatusType { get }
+public protocol Result: CollectionType {
+    typealias FieldType: Field
+    typealias RowType: Row
     
     func clear()
     
-    var countAffected: Int { get }
-    
     var fields: [FieldType] { get }
     
-    subscript(index: Index) -> RowType { get }
+    subscript(position: Index) -> RowType { get }
 }
 
 public extension Result {

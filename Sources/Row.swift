@@ -7,30 +7,18 @@
 //
 
 
-
-public protocol RowValue : CustomStringConvertible {
-    var string: String? { get }
-    
-    var integer: Int? { get }
-    
-    var double: Double? { get }
-    
-    var float: Float? { get }
-}
-
-public extension RowValue {
-    public var description: String {
-        guard let string = string else {
-            return "<<non-string representable>>"
-        }
-
-        
-        return string
-    }
-}
-
 public protocol Row {
-    typealias RowValueType : RowValue
+    typealias ValueType: Value
     
-    subscript(fieldName: String) -> RowValueType? { get }
+    init(valuesByName: [String: ValueType])
+    
+    var valuesByName: [String: ValueType] { get }
+    
+    subscript(fieldName: String) -> ValueType? { get }
+}
+
+public extension Row {
+    public subscript(fieldName: String) -> ValueType? {
+        return valuesByName[fieldName]
+    }
 }

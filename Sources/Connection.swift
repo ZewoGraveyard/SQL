@@ -12,11 +12,11 @@ public protocol ConnectionStringConvertible {
     var connectionString: String { get }
 }
 
-public protocol ConnectionStringLiteralConvertible : StringLiteralConvertible {
+public protocol ConnectionStringLiteralConvertible: StringLiteralConvertible {
     init(connectionString: String)
 }
 
-public class ConnectionInfo : ConnectionStringLiteralConvertible {
+public class ConnectionInfo: ConnectionStringLiteralConvertible {
     public var user: String?
     public var password: String?
     public var host: String
@@ -50,8 +50,8 @@ public class ConnectionInfo : ConnectionStringLiteralConvertible {
 
 public protocol Connection {
     
-    typealias ConnectionInfoType : ConnectionInfo, ConnectionStringConvertible
-    typealias ResultType : Result
+    typealias ConnectionInfoType: ConnectionInfo, ConnectionStringConvertible
+    typealias ResultType: Result
     typealias StatusType
     
     var connectionInfo: ConnectionInfoType { get }
@@ -61,10 +61,6 @@ public protocol Connection {
     func close()
     
     var status: StatusType { get }
-    
-    func openCursor(name: String) throws
-    
-    func closeCursor(name: String) throws
     
     func execute(string: String) throws -> ResultType
     
@@ -84,6 +80,10 @@ public protocol Connection {
 }
 
 public extension Connection {
+    
+    public func query(string: String) throws {
+        try execute(string)
+    }
     
     public func begin() throws {
         try execute("BEGIN")
