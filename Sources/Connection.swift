@@ -7,21 +7,26 @@
 //
 
 
+import Foundation
 
-public protocol ConnectionStringConvertible {
-    var connectionString: String { get }
+
+public protocol ConnectionInfoURLConvertible {
+    var URL: NSURL { get }
+    
+    init(_ URL: NSURL) throws
 }
 
-public protocol ConnectionStringLiteralConvertible: StringLiteralConvertible {
-    init(connectionString: String)
-}
-
-public class ConnectionInfo: ConnectionStringLiteralConvertible {
+public class ConnectionInfo {
+    public enum Error: ErrorType {
+        case MissingComponent(String)
+    }
+    
     public var user: String?
     public var password: String?
     public var host: String
     public var port: UInt
     public var database: String
+    
     
     public init(host: String, database: String, port: UInt, user: String? = nil, password: String? = nil) {
         self.host = host
@@ -30,27 +35,11 @@ public class ConnectionInfo: ConnectionStringLiteralConvertible {
         self.user = user
         self.password = password
     }
-    
-    public convenience required init(connectionString: String) {
-        fatalError("Sorry, URL parsing is not available at the moment")
-    }
-    
-    public convenience required init(stringLiteral: String) {
-        self.init(connectionString: stringLiteral)
-    }
-    
-    public convenience required init(unicodeScalarLiteral value: String) {
-        self.init(stringLiteral: value)
-    }
-    
-    public convenience required init(extendedGraphemeClusterLiteral value: String) {
-        self.init(stringLiteral: value)
-    }
 }
 
 public protocol Connection {
     
-    typealias ConnectionInfoType: ConnectionInfo, ConnectionStringConvertible
+    typealias ConnectionInfoType: ConnectionInfo, ConnectionInfoURLConvertible
     typealias ResultType: Result
     typealias StatusType
     
