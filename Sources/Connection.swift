@@ -7,8 +7,6 @@
 //
 
 
-import Foundation
-
 public protocol ConnectionStringConvertible : StringLiteralConvertible, CustomStringConvertible {
     init(connectionString: String)
     
