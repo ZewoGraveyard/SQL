@@ -15,16 +15,28 @@ public protocol Value: CustomStringConvertible {
 }
 
 extension Value {
-    public var float: Float {
-        return UnsafePointer<Float>(data).memory
+    public var float: Float? {
+        guard let string = string else {
+            return nil
+        }
+        
+        return Float(string)
     }
     
-    public var double: Double {
-        return UnsafePointer<Double>(data).memory
+    public var double: Double? {
+        guard let string = string else {
+            return nil
+        }
+        
+        return Double(string)
     }
     
-    public var integer: Int {
-        return UnsafePointer<Int>(data).memory
+    public var integer: Int? {
+        guard let string = string else {
+            return nil
+        }
+        
+        return Int(string)
     }
     
     public var string: String? {
