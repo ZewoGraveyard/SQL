@@ -36,7 +36,14 @@ extension Value {
             return nil
         }
         
-        return Bool(string)
+        switch string {
+        case "TRUE", "True", "true", "yes", "1", "t", "y":
+            return true
+        case "FALSE", "False", "false", "no", "0", "f", "n":
+            return false
+        default:
+            return nil
+        }
     }
     
     public var integer: Int? {
