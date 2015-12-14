@@ -30,6 +30,14 @@ extension Value {
         
         return Double(string)
     }
+
+    public var boolean: Bool? {
+        guard let string = string else {
+            return nil
+        }
+        
+        return Bool(string)
+    }
     
     public var integer: Int? {
         guard let string = string else {
