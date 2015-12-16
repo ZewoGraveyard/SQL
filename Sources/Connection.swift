@@ -47,6 +47,8 @@ public protocol Connection {
     
     func execute(string: String) throws -> ResultType
     
+    func execute(string: String, parameters: [String: CustomStringConvertible]) throws -> ResultType
+    
     func begin() throws
     
     func commit() throws
@@ -64,8 +66,8 @@ public protocol Connection {
 
 public extension Connection {
     
-    public func query(string: String) throws {
-        try execute(string)
+    public func execute(string: String) throws -> ResultType {
+        return try self.execute(string, parameters: [:])
     }
     
     public func begin() throws {
