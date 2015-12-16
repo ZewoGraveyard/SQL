@@ -31,6 +31,7 @@ public class ConnectionInfo {
     }
 }
 
+
 public protocol Connection {
     
     typealias ConnectionInfoType: ConnectionInfo, StringLiteralConvertible, CustomStringConvertible
@@ -44,10 +45,10 @@ public protocol Connection {
     func close()
     
     var status: StatusType { get }
+
+    func execute(statement: String, parameters: SQLParameterConvertible...) throws -> ResultType
     
-    func execute(string: String) throws -> ResultType
-    
-    func execute(string: String, parameters: [String: CustomStringConvertible]) throws -> ResultType
+    func execute(statement: String, parameters: [SQLParameterConvertible]) throws -> ResultType
     
     func begin() throws
     
@@ -66,8 +67,8 @@ public protocol Connection {
 
 public extension Connection {
     
-    public func execute(string: String) throws -> ResultType {
-        return try self.execute(string, parameters: [:])
+    public func execute(statement: String, parameters: SQLParameterConvertible...) throws -> ResultType {
+        return try execute(statement, parameters: parameters)
     }
     
     public func begin() throws {

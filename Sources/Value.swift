@@ -7,11 +7,13 @@
 //
 
 
+import Core
+
 public protocol Value: CustomStringConvertible {
     
-    var data: [UInt8] { get }
+    var data: Data { get }
     
-    init(data: [UInt8])
+    init(data: Data)
 }
 
 extension Value {
@@ -55,27 +57,7 @@ extension Value {
     }
     
     public var string: String? {
-        
-        var encoding = UTF8()
-        
-        var str = ""
-        
-        var generator = data.generate()
-        
-        repeat {
-            switch encoding.decode(&generator) {
-            case .Result(let scalar):
-                str.append(scalar)
-                break
-                
-            case .EmptyInput:
-                return str
-                
-            case .Error:
-                return nil
-            }
-        } while true
-        
+        return data.string
     }
     
     public var description: String {
