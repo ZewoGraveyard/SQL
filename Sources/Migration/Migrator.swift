@@ -1,4 +1,4 @@
-// Result.swift
+//  Migrator.swift
 //
 // The MIT License (MIT)
 //
@@ -22,37 +22,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public enum SQLParameterConvertibleType {
-    case Binary([UInt8])
-    case Text(String)
-}
+import Core
 
-public protocol SQLParameterConvertible {
-    var SQLParameterData: SQLParameterConvertibleType { get }
-}
+public class Migrator {
+	public struct Configuration {
+		let directory: String
+		let infoTableName: String
+		let targetVersion: UInt
+	}
 
-extension Int: SQLParameterConvertible {}
-extension Double: SQLParameterConvertible {}
-extension Float: SQLParameterConvertible {}
+	public init(configuration: Configuration) {
+		
+	}
 
-extension String: SQLParameterConvertible {
-    public var SQLParameterData: SQLParameterConvertibleType {
-        return .Text(self)
-    }
-}
+    public func migrate<T:Connection>(connection: T) throws {
 
-public extension SQLParameterConvertible where Self: CustomStringConvertible {
-    public var SQLParameterData: SQLParameterConvertibleType {
-        return .Text(self.description)
-    }
-}
-
-extension NSData: SQLParameterConvertible {
-    public var SQLParameterData: SQLParameterConvertibleType {
-        
-        var a = [UInt8](count: length / sizeof(UInt8), repeatedValue: 0)
-        getBytes(&a, length: length)
-        
-        return .Binary(a)
-    }
+	}
 }
