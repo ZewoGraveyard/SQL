@@ -22,6 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import Core
+
 public enum SQLParameterConvertibleType {
     case Binary([UInt8])
     case Text(String)
@@ -31,19 +33,25 @@ public protocol SQLParameterConvertible {
     var SQLParameterData: SQLParameterConvertibleType { get }
 }
 
-extension Int: SQLParameterConvertible {}
-extension Double: SQLParameterConvertible {}
-extension Float: SQLParameterConvertible {}
+extension Int: SQLParameterConvertible {
+    public var SQLParameterData: SQLParameterConvertibleType {
+        return .Text(String(self))
+    }
+}
+extension Double: SQLParameterConvertible {
+    public var SQLParameterData: SQLParameterConvertibleType {
+        return .Text(String(self))
+    }
+}
+extension Float: SQLParameterConvertible {
+    public var SQLParameterData: SQLParameterConvertibleType {
+        return .Text(String(self))
+    }
+}
 
 extension String: SQLParameterConvertible {
     public var SQLParameterData: SQLParameterConvertibleType {
         return .Text(self)
-    }
-}
-
-public extension SQLParameterConvertible where Self: CustomStringConvertible {
-    public var SQLParameterData: SQLParameterConvertibleType {
-        return .Text(self.description)
     }
 }
 
@@ -54,5 +62,11 @@ extension NSData: SQLParameterConvertible {
         getBytes(&a, length: length)
         
         return .Binary(a)
+    }
+}
+
+extension Data: SQLParameterConvertible {
+    public var SQLParameterData: SQLParameterConvertibleType {
+        return .Binary(uBytes)
     }
 }

@@ -24,8 +24,17 @@ class SQLTests: XCTestCase {
     }
     
     func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        
+        let q = SelectQuery(["name", "id"], from: "people")
+            .condition("id") {
+                id in
+                
+                id == 100
+        }
+        
+        
+        print(q.SQLQuery)
+        print("!")
     }
     
     func testPerformanceExample() {

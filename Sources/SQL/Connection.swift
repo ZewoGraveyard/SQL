@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public protocol ConnectionStringConvertible : StringLiteralConvertible, CustomStringConvertible {
+public protocol ConnectionStringConvertible : StringLiteralConvertible {
     init(connectionString: String)
     
     var connectionString: String { get }
@@ -49,7 +49,7 @@ public class ConnectionInfo {
 
 public protocol Connection {
     
-    typealias ConnectionInfoType: ConnectionInfo, StringLiteralConvertible, CustomStringConvertible
+    typealias ConnectionInfoType: ConnectionInfo, ConnectionStringConvertible
     typealias ResultType: Result
     typealias StatusType
     
@@ -98,6 +98,7 @@ public extension Connection {
         try execute("ROLLBACK")
     }
     
+    @available(*, deprecated=0.1.0)
     public subscript(string: String) -> (ErrorType?, ResultType?) {
         do {
             return (nil, try execute(string))
