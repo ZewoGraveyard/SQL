@@ -23,6 +23,7 @@
 // SOFTWARE.
 
 import Core
+import NSData
 
 public enum SQLParameterConvertibleType {
     case Binary([UInt8])
