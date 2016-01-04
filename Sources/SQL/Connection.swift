@@ -60,6 +60,8 @@ public protocol Connection {
     func close()
     
     var status: StatusType { get }
+    
+    var mostRecentErrorMessage: String?
 
     func execute(statement: String, parameters: SQLParameterConvertible...) throws -> ResultType
     
