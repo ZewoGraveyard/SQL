@@ -22,52 +22,65 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import Core
-import Foundation
-
-public enum SQLParameterConvertibleType {
-    case Binary([UInt8])
-    case Text(String)
+public protocol ResultStatus {
+    var successful: Bool { get }
 }
 
-public protocol SQLParameterConvertible {
-    var SQLParameterData: SQLParameterConvertibleType { get }
+public protocol Result: CollectionType {
+    associatedtype FieldType: Field
+    associatedtype Generator: RowGeneratorType = RowGenerator
+
+
+    func clear()
+
+    var fields: [FieldType] { get }
+
+    subscript(index: Int) -> Row { get }
+
+    var count: Int { get }
 }
 
-extension Int: SQLParameterConvertible {
-    public var SQLParameterData: SQLParameterConvertibleType {
-        return .Text(String(self))
+public protocol RowGeneratorType: GeneratorType {
+    associatedtype Element: RowType
+
+    func next() -> Row?
+}
+
+public struct RowGenerator: RowGeneratorType {
+    public typealias Element = Row
+
+    let block: Void -> Element?
+    var index: Int = 0
+
+    init(block: Void -> Element?) {
+        self.block = block
     }
-}
-extension Double: SQLParameterConvertible {
-    public var SQLParameterData: SQLParameterConvertibleType {
-        return .Text(String(self))
-    }
-}
-extension Float: SQLParameterConvertible {
-    public var SQLParameterData: SQLParameterConvertibleType {
-        return .Text(String(self))
-    }
-}
 
-extension String: SQLParameterConvertible {
-    public var SQLParameterData: SQLParameterConvertibleType {
-        return .Text(self)
-    }
-}
-
-extension NSData: SQLParameterConvertible {
-    public var SQLParameterData: SQLParameterConvertibleType {
-        
-        var a = [UInt8](count: length / sizeof(UInt8), repeatedValue: 0)
-        getBytes(&a, length: length)
-        
-        return .Binary(a)
+    public func next() -> Element? {
+        return block()
     }
 }
 
-extension Data: SQLParameterConvertible {
-    public var SQLParameterData: SQLParameterConvertibleType {
-        return .Binary(uBytes)
+extension Result {
+
+    public func generate() -> RowGenerator {
+        var index = 0
+        return RowGenerator {
+            if index < 0 || index >= self.count {
+                return nil
+            }
+
+            let row = self[index]
+            index += 1
+            return row
+        }
+    }
+
+    public var startIndex: Int {
+        return 0
+    }
+
+    public var endIndex: Int {
+        return count
     }
 }

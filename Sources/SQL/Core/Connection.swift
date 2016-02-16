@@ -1,4 +1,4 @@
-//  Connection.swift
+// Connection.swift
 //
 // The MIT License (MIT)
 //
@@ -22,9 +22,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+@_exported import File
+@_exported import Log
+@_exported import URI
+
 public protocol ConnectionStringConvertible : StringLiteralConvertible {
     init(connectionString: String)
-    
+
     var connectionString: String { get }
 }
 
@@ -35,8 +39,8 @@ public class ConnectionInfo {
     public var host: String
     public var port: UInt
     public var database: String
-    
-    
+
+
     public init(host: String, database: String, port: UInt, user: String? = nil, password: String? = nil) {
         self.host = host
         self.database = database
@@ -48,63 +52,93 @@ public class ConnectionInfo {
 
 
 public protocol Connection {
-    
-    typealias ConnectionInfoType: ConnectionInfo, ConnectionStringConvertible
-    typealias ResultType: Result
-    typealias StatusType
-    
+    associatedtype ConnectionInfoType: ConnectionInfo, ConnectionStringConvertible
+    associatedtype ResultType: Result
+    associatedtype StatusType
+
     var connectionInfo: ConnectionInfoType { get }
-    
+
     func open() throws
-    
+
     func close()
-    
+
     var status: StatusType { get }
 
-    func execute(statement: String, parameters: SQLParameterConvertible...) throws -> ResultType
-    
-    func execute(statement: String, parameters: [SQLParameterConvertible]) throws -> ResultType
-    
+    var log: Log? { get set }
+
+    func execute(statement: Statement) throws -> ResultType
+
     func begin() throws
-    
+
     func commit() throws
-    
+
     func rollback() throws
-    
+
     func createSavePointNamed(name: String) throws
-    
+
     func releaseSavePointNamed(name: String) throws
-    
+
     func rollbackToSavePointNamed(name: String) throws
-    
+
     init(_ connectionInfo: ConnectionInfoType)
 }
 
 public extension Connection {
-    
-    public func execute(statement: String, parameters: SQLParameterConvertible...) throws -> ResultType {
+
+    public func transaction(block: Void throws -> Void) throws {
+        try begin()
+
+        do {
+            try block()
+            try commit()
+        }
+        catch {
+            try rollback()
+            throw error
+        }
+    }
+
+    public func withSavePointNamed(name: String, block: Void throws -> Void) throws {
+        try createSavePointNamed(name)
+
+        do {
+            try block()
+            try releaseSavePointNamed(name)
+        }
+        catch {
+            try rollbackToSavePointNamed(name)
+            try releaseSavePointNamed(name)
+            throw error
+        }
+    }
+
+    public func execute(convertible: StatementConvertible) throws -> ResultType {
+        return try execute(convertible.statement)
+    }
+
+    public func execute(statement: String, parameters: [ValueConvertible?]) throws -> ResultType {
+        return try execute(Statement(string: statement, parameters: parameters))
+    }
+
+    public func execute(statement: String, parameters: ValueConvertible?...) throws -> ResultType {
         return try execute(statement, parameters: parameters)
     }
-    
+
+    public func executeFromFile(atPath path: String) throws -> ResultType {
+        return try execute(
+            try String(data: File(path: path).read())
+        )
+    }
+
     public func begin() throws {
         try execute("BEGIN")
     }
-    
+
     public func commit() throws {
         try execute("COMMIT")
     }
-    
+
     public func rollback() throws {
         try execute("ROLLBACK")
-    }
-    
-    @available(*, deprecated=0.1.0)
-    public subscript(string: String) -> (ErrorType?, ResultType?) {
-        do {
-            return (nil, try execute(string))
-        }
-        catch {
-            return (error, nil)
-        }
     }
 }

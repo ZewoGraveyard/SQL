@@ -1,4 +1,4 @@
-//  Value.swift
+// Entity.swift
 //
 // The MIT License (MIT)
 //
@@ -22,61 +22,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+public protocol Entity: Model {
+    associatedtype PrimaryKeyType: ValueConvertible
 
-import Core
-
-public protocol Value: CustomStringConvertible {
-    
-    var data: Data { get }
-    
-    init(data: Data)
+    var primaryKey: PrimaryKeyType? { get }
+    static var fieldForPrimaryKey: Field { get }
 }
 
-extension Value {
-    public var float: Float? {
-        guard let string = string else {
-            return nil
-        }
-        
-        return Float(string)
-    }
-    
-    public var double: Double? {
-        guard let string = string else {
-            return nil
-        }
-        
-        return Double(string)
-    }
-
-    public var boolean: Bool? {
-        guard let string = string else {
-            return nil
-        }
-        
-        switch string {
-        case "TRUE", "True", "true", "yes", "1", "t", "y":
-            return true
-        case "FALSE", "False", "false", "no", "0", "f", "n":
-            return false
-        default:
-            return nil
-        }
-    }
-    
-    public var integer: Int? {
-        guard let string = string else {
-            return nil
-        }
-        
-        return Int(string)
-    }
-    
-    public var string: String? {
-        return data.string
-    }
-    
-    public var description: String {
-        return string ?? "Not representable"
+public extension Entity {
+    var isPersisted: Bool {
+        return primaryKey != nil
     }
 }

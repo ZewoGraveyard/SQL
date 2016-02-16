@@ -2,14 +2,12 @@
 //  SQLTests.swift
 //  SQLTests
 //
-//  Created by David Ask on 23/12/15.
-//  Copyright © 2015 Zewo. All rights reserved.
+//  Created by David Ask on 15/02/16.
+//  Copyright © 2016 Zewo. All rights reserved.
 //
 
 import XCTest
-import SQL
-import Core
-import CURIParser
+@testable import SQL
 
 class SQLTests: XCTestCase {
     
@@ -24,17 +22,8 @@ class SQLTests: XCTestCase {
     }
     
     func testExample() {
-        
-        let q = SelectQuery(["name", "id"], from: "people")
-            .condition("id") {
-                id in
-                
-                id == 100
-        }
-        
-        
-        print(q.SQLQuery)
-        print("!")
+        // This is an example of a functional test case.
+        // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
     
     func testPerformanceExample() {

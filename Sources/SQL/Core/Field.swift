@@ -1,4 +1,4 @@
-//  Row.swift
+// Field.swift
 //
 // The MIT License (MIT)
 //
@@ -22,19 +22,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-
-public protocol Row {
-    typealias ValueType: Value
-    
-    init(valuesByName: [String: ValueType])
-    
-    var valuesByName: [String: ValueType] { get }
-    
-    subscript(fieldName: String) -> ValueType? { get }
+public protocol Field: CustomStringConvertible {
+    var name: String { get }
 }
 
-public extension Row {
-    public subscript(fieldName: String) -> ValueType? {
-        return valuesByName[fieldName]
+public extension Field {
+    public var description: String {
+        return name
     }
 }
