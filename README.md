@@ -13,8 +13,8 @@ SQL
 
 The SQL module is bundled with the SQL adapters of Zewo
 
-* [Postgres](https://www.github.com/zewo/Postgres)
-* [MySQL](https://www.github.com/zewo/MySQL)
+* [Postgres](https://github.com/Zewo/PostgreSQL)
+* [MySQL](https://github.com/zewo/MySQL)
 
 ## Community
 
