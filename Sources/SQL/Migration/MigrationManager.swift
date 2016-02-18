@@ -159,7 +159,7 @@ public class MigrationManager<T: Connection> {
 
                 if upDirection {
 
-                    try self.connection.execute(migration.upStatement)
+                    try self.connection.execute(Statement(migration.upStatement))
                 }
                 else {
                     guard let downStatement = migration.downStatement else {
@@ -168,12 +168,12 @@ public class MigrationManager<T: Connection> {
                         )
                     }
 
-                    try self.connection.execute(downStatement)
+                    try self.connection.execute(Statement(downStatement))
                 }
 
                 try self.connection.execute(
-                    "INSERT INTO schema_migrations (timestamp, from_version, to_version) VALUES(CURRENT_TIMESTAMP(6), $1, $2)",
-                    parameters: fromVersion, nextVersion
+                    Statement("INSERT INTO schema_migrations (timestamp, from_version, to_version) VALUES(CURRENT_TIMESTAMP(6), $1, $2)",
+                    parameters: [fromVersion, nextVersion])
                 )
 
                 guard let currentVersion = self.currentVersion else {

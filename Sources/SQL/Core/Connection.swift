@@ -55,6 +55,7 @@ public protocol Connection {
     associatedtype ConnectionInfoType: ConnectionInfo, ConnectionStringConvertible
     associatedtype ResultType: Result
     associatedtype StatusType
+    associatedtype Error: ErrorType
 
     var connectionInfo: ConnectionInfoType { get }
 
@@ -81,6 +82,8 @@ public protocol Connection {
     func rollbackToSavePointNamed(name: String) throws
 
     init(_ connectionInfo: ConnectionInfoType)
+    
+    var mostRecentError: Error? { get }
 }
 
 public extension Connection {
@@ -116,17 +119,9 @@ public extension Connection {
         return try execute(convertible.statement)
     }
 
-    public func execute(statement: String, parameters: [ValueConvertible?]) throws -> ResultType {
-        return try execute(Statement(string: statement, parameters: parameters))
-    }
-
-    public func execute(statement: String, parameters: ValueConvertible?...) throws -> ResultType {
-        return try execute(statement, parameters: parameters)
-    }
-
     public func executeFromFile(atPath path: String) throws -> ResultType {
         return try execute(
-            try String(data: File(path: path).read())
+            Statement(try String(data: File(path: path).read()))
         )
     }
 

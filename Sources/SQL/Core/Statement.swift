@@ -35,7 +35,7 @@ public struct Statement {
         parameters = []
     }
 
-    public init(string: String, parameters: [ValueConvertible?] = []) {
+    public init(_ string: String, parameters: [ValueConvertible?] = []) {
         stringComponents = [string]
         self.parameters = parameters
     }
@@ -66,6 +66,20 @@ public struct Statement {
         stringComponents += otherStatement.stringComponents
     }
 
+}
+
+extension Statement: StringLiteralConvertible {
+    public init(stringLiteral value: String) {
+        self.init(value)
+    }
+    
+    public init(unicodeScalarLiteral value: String) {
+        self.init(stringLiteral: value)
+    }
+    
+    public init(extendedGraphemeClusterLiteral value: String) {
+        self.init(stringLiteral: value)
+    }
 }
 
 public protocol StatementConvertible {
