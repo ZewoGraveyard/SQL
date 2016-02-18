@@ -64,6 +64,7 @@ public struct Statement {
         }
 
         stringComponents += otherStatement.stringComponents
+        parameters += otherStatement.parameters
     }
 
 }

@@ -50,8 +50,8 @@ public indirect enum Condition: StatementConvertible {
 
         func statementWithKeyValue(key: String, _ op: String, _ value: Value) -> Statement {
             switch value {
-            case .Value(let Value):
-                let result = Statement("\(key) \(op) $\(parameterOffset)", parameters: [Value])
+            case .Value(let value):
+                let result = Statement("\(key) \(op) $\(parameterOffset)", parameters: [value])
                 parameterOffset += 1
                 return result
             case .Property(let name):
