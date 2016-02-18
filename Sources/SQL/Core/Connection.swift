@@ -67,7 +67,7 @@ public protocol Connection {
 
     var log: Log? { get set }
 
-    func execute(statement: Statement) throws -> ResultType
+    func execute(statement: Statement, deadline: Deadline) throws -> ResultType
 
     func begin() throws
 
@@ -114,14 +114,19 @@ public extension Connection {
             throw error
         }
     }
-
-    public func execute(convertible: StatementConvertible) throws -> ResultType {
-        return try execute(convertible.statement)
+    
+    public func execute(statement: Statement, deadline: Deadline = noDeadline) throws -> ResultType {
+        return try execute(statement, deadline: deadline)
     }
 
-    public func executeFromFile(atPath path: String) throws -> ResultType {
+    public func execute(convertible: StatementConvertible, deadline: Deadline = noDeadline) throws -> ResultType {
+        return try execute(convertible.statement, deadline: deadline)
+    }
+
+    public func executeFromFile(atPath path: String, deadline: Deadline = noDeadline) throws -> ResultType {
         return try execute(
-            Statement(try String(data: File(path: path).read()))
+            Statement(try String(data: File(path: path).read())),
+            deadline: deadline
         )
     }
 
