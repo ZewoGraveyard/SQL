@@ -115,15 +115,15 @@ public extension Connection {
         }
     }
     
-    public func execute(statement: Statement, deadline: Deadline = noDeadline) throws -> ResultType {
+    public func execute(statement: Statement, deadline: Deadline = never) throws -> ResultType {
         return try execute(statement, deadline: deadline)
     }
 
-    public func execute(convertible: StatementConvertible, deadline: Deadline = noDeadline) throws -> ResultType {
+    public func execute(convertible: StatementConvertible, deadline: Deadline = never) throws -> ResultType {
         return try execute(convertible.statement, deadline: deadline)
     }
 
-    public func executeFromFile(atPath path: String, deadline: Deadline = noDeadline) throws -> ResultType {
+    public func executeFromFile(atPath path: String, deadline: Deadline = never) throws -> ResultType {
         return try execute(
             Statement(try String(data: File(path: path).read())),
             deadline: deadline
