@@ -43,19 +43,20 @@ public struct Migration {
         let upPath = path + "/up.sql"
         let downPath = path + "/down.sql"
 
-        var isDirectory: Bool = false
+        var (fileExists, isDirectory) = File.fileExistsAt(upPath)
 
-        guard File.fileExistsAtPath(upPath, isDirectory: &isDirectory) && !isDirectory else {
+        guard fileExists && !isDirectory else {
             throw MigrationError(description: "up.sql not found at \(upPath)")
         }
 
 
         self.upStatement = try String(data: File(path: upPath).read())
 
-        if File.fileExistsAtPath(downPath, isDirectory: &isDirectory) && !isDirectory {
+        (fileExists, isDirectory) = File.fileExistsAt(downPath)
+
+        if fileExists && !isDirectory {
             self.downStatement = try String(data: File(path: downPath).read())
-        }
-        else {
+        } else {
             self.downStatement = nil
         }
     }
@@ -80,16 +81,14 @@ public class MigrationManager<T: Connection> {
 			path = String(path.characters.dropLast())
         }
 
-        var isDirectory: Bool = false
+        let (fileExists, isDirectory) = File.fileExistsAt(path)
 
-        guard File.fileExistsAtPath(path, isDirectory: &isDirectory) && isDirectory else {
+        guard fileExists && isDirectory else {
             throw MigrationError(description: "Unable to open find migrations directory at \(path)")
         }
 
-        let directories = try File.contentsOfDirectoryAtPath(path).filter {
-            path in
-
-            return path.split(".").last == "migration"
+        let directories = try File.contentsOfDirectoryAt(path).filter { path in
+            path.split(".").last == "migration"
 		}.sort()
 
         guard !directories.isEmpty else {
