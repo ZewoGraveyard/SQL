@@ -67,10 +67,14 @@ public extension ModelFieldset {
     public func notContainedIn(values: ValueConvertible?...) -> Condition {
         return .NotIn(qualifiedName, values)
     }
+    
+    public func equals(value: ValueConvertible?) -> Condition {
+        return .Equals(qualifiedName, .Value(value))
+    }
 }
 
 public func == <T: ModelFieldset>(lhs: T, rhs: ValueConvertible?) -> Condition {
-    return .Equals(lhs.qualifiedName, .Value(rhs))
+    return lhs.equals(rhs)
 }
 
 public func == <L: ModelFieldset, R: ModelFieldset>(lhs: L, rhs: R) -> Condition {
@@ -118,16 +122,13 @@ public func == <L: ModelFieldset, R: ModelFieldset>(lhs: L, rhs: R) -> JoinKey<L
 
 public protocol Model {
     associatedtype Field: ModelFieldset, Hashable
-
+   
     init(row: Row) throws
 }
 
 public extension Model {
-    public static func select(fields: ModelFieldset...) -> Select<Self> {
-        return Select(fields: fields)
-    }
-
-    public static func insert(valuesByFieldName: [Field: ValueConvertible?]) -> Insert<Self> {
-        return Insert(valuesByFieldName)
+    public static func select() -> Select<Self> {
+        return Select()
     }
 }
+

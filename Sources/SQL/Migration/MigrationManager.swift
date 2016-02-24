@@ -22,13 +22,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-@_exported import File
 
-public struct MigrationError: ErrorType {
-    public let description: String
-}
+import File
+
 
 public struct Migration {
+    public struct Error: ErrorType {
+        public let description: String
+    }
+    
     public let upStatement: String
     public let downStatement: String?
 
@@ -43,16 +45,18 @@ public struct Migration {
         let upPath = path + "/up.sql"
         let downPath = path + "/down.sql"
 
-        var isDirectory: Bool = false
 
-        guard File.fileExistsAtPath(upPath, isDirectory: &isDirectory) && !isDirectory else {
-            throw MigrationError(description: "up.sql not found at \(upPath)")
+        let checkUpFile = File.fileExistsAt(upPath)
+        
+        guard checkUpFile.fileExists && checkUpFile.isDirectory else {
+            throw Error(description: "up.sql not found at \(upPath)")
         }
 
-
         self.upStatement = try String(data: File(path: upPath).read())
+        
+        let checkDownFile = File.fileExistsAt(downPath)
 
-        if File.fileExistsAtPath(downPath, isDirectory: &isDirectory) && !isDirectory {
+        if checkDownFile.fileExists && checkDownFile.isDirectory {
             self.downStatement = try String(data: File(path: downPath).read())
         }
         else {
@@ -80,20 +84,20 @@ public class MigrationManager<T: Connection> {
 			path = String(path.characters.dropLast())
         }
 
-        var isDirectory: Bool = false
-
-        guard File.fileExistsAtPath(path, isDirectory: &isDirectory) && isDirectory else {
-            throw MigrationError(description: "Unable to open find migrations directory at \(path)")
+        let checkFile = File.fileExistsAt(path)
+        
+        guard checkFile.fileExists && checkFile.isDirectory else {
+            throw Migration.Error(description: "Unable to open find migrations directory at \(path)")
         }
 
-        let directories = try File.contentsOfDirectoryAtPath(path).filter {
+        let directories = try File.contentsOfDirectoryAt(path).filter {
             path in
 
             return path.split(".").last == "migration"
 		}.sort()
 
         guard !directories.isEmpty else {
-            throw MigrationError(
+            throw Migration.Error(
                 description: "No migrations found at \(path). Create folders named 'xx.migration' containing an 'up.sql' file, and optionally a 'down.sql' file \(path)"
             )
         }
@@ -119,11 +123,11 @@ public class MigrationManager<T: Connection> {
     public func migrate(to targetVersion: Int) throws {
 
         guard let latestVersion = latestVersion else {
-            throw MigrationError(description: "No migrations defined")
+            throw Migration.Error(description: "No migrations defined")
         }
 
         guard targetVersion >= 0 && targetVersion <= latestVersion else {
-            throw MigrationError(description: "Target version out of range")
+            throw Migration.Error(description: "Target version out of range")
         }
 
         let currentVersion = self.currentVersion
@@ -152,7 +156,7 @@ public class MigrationManager<T: Connection> {
                 let migrationNumber = upDirection ? nextVersion : nextVersion + 1
 
                 guard let migration = self.migrationsByNumber[migrationNumber] else {
-                    throw MigrationError(
+                    throw Migration.Error(
                         description: "Cannot migrate to version \(nextVersion). The migration with number \(migrationNumber) does not exist."
                     )
                 }
@@ -163,7 +167,7 @@ public class MigrationManager<T: Connection> {
                 }
                 else {
                     guard let downStatement = migration.downStatement else {
-                        throw MigrationError(
+                        throw Migration.Error(
                             description: "Cannot migrate to version \(nextVersion). The migration with number \(migrationNumber) has no down statement."
                         )
                     }
@@ -177,13 +181,13 @@ public class MigrationManager<T: Connection> {
                 )
 
                 guard let currentVersion = self.currentVersion else {
-                    throw MigrationError(
+                    throw Migration.Error(
                         description: "Failed to get current version of migration."
                     )
                 }
 
                 guard nextVersion == currentVersion else {
-                    throw MigrationError(
+                    throw Migration.Error(
                         description: "The predicted next version(\(nextVersion)) does not match the current version (\(currentVersion)). Semething is wrong, possibly a bug!"
                     )
                 }

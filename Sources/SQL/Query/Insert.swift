@@ -1,8 +1,8 @@
-// Result.swift
+// Insert.swift
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 Formbound
+// Copyright (c) 2016 Formbound
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,62 +22,40 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public protocol ResultStatus {
-    var successful: Bool { get }
-}
-
-public protocol Result: CollectionType {
-    associatedtype FieldType: Field
-    associatedtype Generator: RowGeneratorType = RowGenerator
-
-    func clear()
-
-    var fields: [FieldType] { get }
-
-    subscript(index: Int) -> Row { get }
-
-    var count: Int { get }
-}
-
-public protocol RowGeneratorType: GeneratorType {
-    associatedtype Element: RowType
-}
-
-public struct RowGenerator: RowGeneratorType {
-    public typealias Element = Row
-
-    let block: Void -> Element?
-    var index: Int = 0
-
-    init(block: Void -> Element?) {
-        self.block = block
+public struct Insert<M: Model>: ModelQuery {
+    public typealias ModelType = M
+    
+    internal var valuesByField: [M.Field: ValueConvertible?] = [:]
+    
+    public func set(field: M.Field, value: ValueConvertible?) -> Insert {
+        var new = self
+        new.valuesByField[field] = value
+        return new
     }
-
-    public func next() -> Element? {
-        return block()
+    
+    public init(_ valuesByFieldName: [M.Field: ValueConvertible?]) {
+        self.valuesByField = valuesByFieldName
     }
 }
 
-extension Result {
-
-    public func generate() -> RowGenerator {
-        var index = 0
-        return RowGenerator {
-            if index < 0 || index >= self.count {
-                return nil
-            }
-
-            let row = self[index]
-            index += 1
-            return row
+extension Insert: StatementConvertible {
+    public var statement: Statement {
+        var statement = Statement(components: ["INSERT INTO", M.Field.tableName], parameters: Array(valuesByField.values))
+        
+        statement.appendComponent(
+            "(\(valuesByField.keys.map { $0.unqualifiedName }.joinWithSeparator(", ")))"
+        )
+        
+        statement.appendComponent("VALUES")
+        
+        var strings = [String]()
+        for _ in valuesByField {
+            strings.append("%@")
         }
-    }
-
-    public var startIndex: Int {
-        return 0
-    }
-
-    public var endIndex: Int {
-        return count
+        
+        
+        statement.appendComponent("(\(strings.joinWithSeparator(",")))")
+        
+        return statement
     }
 }

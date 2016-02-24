@@ -27,10 +27,43 @@ public protocol Entity: Model {
 
     var primaryKey: PrimaryKeyType? { get }
     static var fieldForPrimaryKey: Field { get }
+    
+    func serialize() throws -> [Field: ValueConvertible?]
 }
 
 public extension Entity {
     var isPersisted: Bool {
         return primaryKey != nil
     }
+    
+    public static func delete() -> Delete<Self> {
+        return Delete()
+    }
+    
+    public func updateQuery(values: [Field: ValueConvertible?]) -> Update<Self> {
+        return Update(values).filter(Self.fieldForPrimaryKey == primaryKey)
+    }
+    
+    public mutating func update<T: Connection where T.ResultType.Generator.Element == Row>(values: [Field: ValueConvertible?], connection: T) throws -> Self {
+        try updateQuery(values).run(connection)
+        try refresh(connection)
+        return self
+    }
+    
+    public static func find<T: Connection where T.ResultType.Generator.Element == Row>(pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
+        return try select().filter(fieldForPrimaryKey == pk).first(connection)
+    }
+    
+    public mutating func refresh<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+        guard let pk = primaryKey else {
+            fatalError()
+        }
+        
+        guard let newSelf = try Self.find(pk, connection: connection) else {
+            fatalError()
+        }
+        
+        self = newSelf
+    }
+
 }

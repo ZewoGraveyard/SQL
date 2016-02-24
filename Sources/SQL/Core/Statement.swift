@@ -22,27 +22,80 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public struct Statement {
+
+public struct Statement: CustomStringConvertible {
+    
+    internal static let parameterPlaceholder = "%@"
+    
+    public struct Error: ErrorType {
+        public let description: String
+    }
+    
     public var stringComponents: [String]
     public var parameters: [ValueConvertible?]
 
     public var string: String {
-        return stringComponents.filter { !$0.isEmpty }.joinWithSeparator(" ")
+        return stringComponents.filter { !$0.isEmpty }.map { $0.trim() }.joinWithSeparator(" ")
+    }
+    
+    public func stringWithNumberedParametersUsingPrefix(prefix: String, suffix: String? = nil) throws -> String {
+        var strings = string.splitBy(Statement.parameterPlaceholder)
+        
+        if strings.count == 1 {
+            return string
+        }
+        
+        guard strings.count == parameters.count + 1 else {
+            throw Error(description: "Parameter count mismatch")
+        }
+        
+        var newStrings = [String]()
+        
+        for i in 0..<parameters.count {
+            newStrings.append(strings[i])
+            newStrings.append("\(prefix)\(i + 1)\(suffix ?? "")")
+        }
+        
+        newStrings.append(strings.last!)
+
+        return newStrings.joinWithSeparator("")
     }
 
     public init() {
         stringComponents = []
         parameters = []
     }
+    
+    public init(substatements: [Statement], mergedByString string: String? = nil) {
+        var stringComponents = [String]()
+        for (i, statement) in substatements.enumerate() {
+            stringComponents += statement.stringComponents
+            
+            if i < substatements.count - 1, let mergeString = string {
+                stringComponents.append(mergeString)
+            }
+        }
+        
+        self.stringComponents = stringComponents
+        self.parameters = substatements.flatMap { $0.parameters }
+    }
 
     public init(_ string: String, parameters: [ValueConvertible?] = []) {
         stringComponents = [string]
         self.parameters = parameters
     }
+    
+    public init(_ string: String, parameters: ValueConvertible?...) {
+        self.init(string, parameters: parameters)
+    }
 
     public init(components: [String], parameters: [ValueConvertible?] = []) {
         self.stringComponents = components
         self.parameters = parameters
+    }
+    
+    public init(components: [String], parameters: ValueConvertible?...) {
+        self.init(components: components, parameters: parameters)
     }
 
     public func isolate() -> Statement {
@@ -56,17 +109,15 @@ public struct Statement {
     public mutating func appendComponent(string: String)  {
         stringComponents.append(string)
     }
-
-    public mutating func merge(otherStatement: Statement, joinBy joinString: String? = nil) {
-
-        if let joinString = joinString where !joinString.isEmpty {
-            stringComponents.append(joinString)
-        }
-
-        stringComponents += otherStatement.stringComponents
-        parameters += otherStatement.parameters
+    
+    public mutating func append(statement: Statement) {
+        stringComponents += statement.stringComponents
+        parameters += statement.parameters
     }
-
+    
+    public var description: String {
+        return "<Statement string: \"\(string)\", parameters: \(parameters)"
+    }
 }
 
 extension Statement: StringLiteralConvertible {
@@ -83,27 +134,25 @@ extension Statement: StringLiteralConvertible {
     }
 }
 
+extension Statement: StringInterpolationConvertible {
+    public init<T>(stringInterpolationSegment expr: T) {
+        self.init("\(expr)")
+    }
+    
+    public init<T: ValueConvertible>(stringInterpolationSegment expr: T) {
+        self.init(Statement.parameterPlaceholder, parameters: [expr])
+    }
+    
+    public init(stringInterpolationSegment expr: String) {
+        self.init(expr)
+    }
+    
+    public init(stringInterpolation strings: Statement...) {
+        self.init(substatements: strings)
+    }
+}
+
+
 public protocol StatementConvertible {
-    func statementWithParameterOffset(inout parameterOffset: Int) -> Statement
-}
-
-public extension StatementConvertible {
-    public var statement: Statement {
-        var offset = 1
-        return statementWithParameterOffset(&offset)
-    }
-}
-
-
-public extension SequenceType where Generator.Element: StatementConvertible {
-    public func statementWithParameterOffset(inout parameterOffset: Int, joinBy joinString: String? = nil) -> Statement {
-
-        var statement = Statement()
-
-        for convertible in self {
-            statement.merge(convertible.statementWithParameterOffset(&parameterOffset), joinBy: joinString)
-        }
-
-        return statement
-    }
+    var statement: Statement { get }
 }

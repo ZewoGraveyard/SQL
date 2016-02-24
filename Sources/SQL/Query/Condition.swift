@@ -46,14 +46,12 @@ public indirect enum Condition: StatementConvertible {
     case Not(Condition)
 
 
-    public func statementWithParameterOffset(inout parameterOffset: Int) -> Statement {
+    public var statement: Statement {
 
         func statementWithKeyValue(key: String, _ op: String, _ value: Value) -> Statement {
             switch value {
             case .Value(let value):
-                let result = Statement("\(key) \(op) $\(parameterOffset)", parameters: [value])
-                parameterOffset += 1
-                return result
+                return Statement("\(key) \(op) \(Statement.parameterPlaceholder)", parameters: [value])
             case .Property(let name):
                 return Statement("\(key) \(op) \(name)", parameters: [])
             }
@@ -77,24 +75,26 @@ public indirect enum Condition: StatementConvertible {
 
 
         case .In(let key, let values):
+            
+            var strings = [String]()
+            
+            for _ in values {
+                strings.append(Statement.parameterPlaceholder)
+            }
 
-            let parameterString = (parameterOffset..<parameterOffset + values.count).map {
-                return "$\($0)"
-            }.joinWithSeparator(", ")
-
-            return Statement("\(key) IN(\(parameterString))", parameters: values)
+            return Statement("\(key) IN(\(strings.joinWithSeparator(", ")))", parameters: values)
 
         case .NotIn(let key, let values):
-            return (!Condition.In(key, values)).statementWithParameterOffset(&parameterOffset)
+            return (!Condition.In(key, values)).statement
 
         case .And(let conditions):
-            return conditions.statementWithParameterOffset(&parameterOffset, joinBy: "AND").isolate()
+            return Statement(substatements: conditions.map { $0.statement }, mergedByString: "AND").isolate()
 
         case .Or(let conditions):
-            return conditions.statementWithParameterOffset(&parameterOffset, joinBy: "OR").isolate()
+            return Statement(substatements: conditions.map { $0.statement }, mergedByString: "OR").isolate()
 
         case .Not(let condition):
-            var statement = condition.statementWithParameterOffset(&parameterOffset).isolate()
+            var statement = condition.statement.isolate()
             statement.prependComponent("NOT")
             return statement
         }

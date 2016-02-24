@@ -22,9 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-@_exported import File
-@_exported import Log
 @_exported import URI
+@_exported import Log
 
 public protocol ConnectionStringConvertible : StringLiteralConvertible {
     init(connectionString: String)
@@ -32,21 +31,56 @@ public protocol ConnectionStringConvertible : StringLiteralConvertible {
     var connectionString: String { get }
 }
 
-public class ConnectionInfo {
+public extension ConnectionStringConvertible {
+    public init(stringLiteral: String) {
+        self.init(connectionString: stringLiteral)
+    }
+    
+    public init(extendedGraphemeClusterLiteral value: String) {
+        self.init(connectionString: value)
+    }
+    
+    public init(unicodeScalarLiteral value: String) {
+        self.init(connectionString: value)
+    }
+    
+    public var description: String {
+        return connectionString
+    }
+}
 
-    public var user: String?
-    public var password: String?
-    public var host: String
-    public var port: UInt
-    public var database: String
+public protocol ConnectionInfo: ConnectionStringConvertible {
+    var user: String? { get set }
+    var password: String? { get set }
+    var host: String { get set }
+    var port: Int { get set }
+    var database: String { get set }
+    
+    init(host: String, database: String, port: Int?, user: String?, password: String?)
+}
 
-
-    public init(host: String, database: String, port: UInt, user: String? = nil, password: String? = nil) {
-        self.host = host
-        self.database = database
-        self.port = port
-        self.user = user
-        self.password = password
+public extension ConnectionInfo {
+    
+    public init(connectionString: String) {
+        guard let uri = try? URI(string: connectionString) else {
+            fatalError("Failed to construct URI from \(connectionString)")
+        }
+        
+        guard let host = uri.host else {
+            fatalError("Missing host in connection string")
+        }
+        
+        guard let database = uri.path?.split("/").last else {
+            fatalError("Missing database in connection string")
+        }
+        
+        self.init(
+            host: host,
+            database: database,
+            port: uri.port,
+            user: uri.userInfo?.username,
+            password: uri.userInfo?.password
+        )
     }
 }
 
@@ -67,7 +101,7 @@ public protocol Connection {
 
     var log: Log? { get set }
 
-    func execute(statement: Statement, deadline: Deadline) throws -> ResultType
+    func execute(statement: Statement) throws -> ResultType
 
     func begin() throws
 
@@ -115,18 +149,17 @@ public extension Connection {
         }
     }
     
-    public func execute(statement: Statement, deadline: Deadline = noDeadline) throws -> ResultType {
-        return try execute(statement, deadline: deadline)
+    public func execute(statement: Statement) throws -> ResultType {
+        return try execute(statement)
     }
 
-    public func execute(convertible: StatementConvertible, deadline: Deadline = noDeadline) throws -> ResultType {
-        return try execute(convertible.statement, deadline: deadline)
+    public func execute(convertible: StatementConvertible) throws -> ResultType {
+        return try execute(convertible.statement)
     }
 
-    public func executeFromFile(atPath path: String, deadline: Deadline = noDeadline) throws -> ResultType {
+    public func executeFromFile(atPath path: String) throws -> ResultType {
         return try execute(
-            Statement(try String(data: File(path: path).read())),
-            deadline: deadline
+            Statement(try String(data: File(path: path).read()))
         )
     }
 

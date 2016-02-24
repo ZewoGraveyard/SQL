@@ -33,6 +33,21 @@ public enum Value {
     case Binary(Data)
 }
 
+extension Value: Hashable {
+    public var hashValue: Int {
+        switch self {
+        case .Text(let text):
+            return text.data.hashValue
+        case .Binary(let data):
+            return data.hashValue
+        }
+    }
+}
+
+public func == (lhs: Value, rhs: Value) -> Bool {
+    return lhs.hashValue == rhs.hashValue
+}
+
 public protocol ValueConvertible {
     var SQLValue: Value { get }
 
@@ -50,6 +65,7 @@ public extension ValueConvertible {
         }
     }
 }
+
 
 extension Int: ValueConvertible {
     public init(rawSQLValue data: Data) throws {
