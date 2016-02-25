@@ -27,12 +27,12 @@ public protocol ResultStatus {
 }
 
 public protocol Result: CollectionType {
-    associatedtype FieldType: Field
+    associatedtype FieldInfoType: FieldInfo
     associatedtype Generator: RowGeneratorType = RowGenerator
 
     func clear()
 
-    var fields: [FieldType] { get }
+    var fields: [FieldInfoType] { get }
 
     subscript(index: Int) -> Row { get }
 

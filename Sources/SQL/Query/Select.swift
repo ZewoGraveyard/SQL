@@ -22,46 +22,52 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public struct Select<M: Model>: FetchableModelQuery, FilteredQuery {
+public class Select<M: Model>: FetchableModelQuery, FilteredQuery {
     public typealias ModelType = M
-    public let fields: [ModelFieldset]
+    public let fields: [DeclaredField]
     
     public var offset: Int?
     public var limit: Int?
     
     var joins: [Join] = []
     
-    public func join<T: Model>(type: JoinType<T>, on key: JoinKey<M.Field, T.Field>) -> Select {
-        var new = self
-        new.joins.append(Join(type: type, key: key))
-        return new
+    
+    
+    public func join<M: Model>(type: JoinType<M>, key: ModelType.Field, on: M.Field) -> Select {
+        joins.append(Join(type: type, key: ModelType.field(key), on: on))
+        return self
     }
     
     public var condition: Condition?
     
+    public convenience init(_ fields: [M.Field]) {
+        self.init(fields.map { M.field($0) })
+    }
     
-    public init(fields: [ModelFieldset]) {
+    public convenience init(_ fields: M.Field...) {
+        self.init(fields)
+    }
+    
+    public init(_ fields: [DeclaredField]) {
         self.fields = fields
     }
     
-    public init(_ fields: ModelFieldset...) {
-        self.init(fields: fields)
+    public convenience init(_ fields: DeclaredField...) {
+        self.init(fields)
     }
     
-    public init() {
-        self.init(fields: [])
+    public convenience init() {
+        self.init([DeclaredField]())
     }
     
     public func offset(value: Int?) -> Select {
-        var new = self
-        new.offset = value
-        return new
+        offset = value
+        return self
     }
     
     public func limit(value: Int?) -> Select {
-        var new = self
-        new.limit = value
-        return new
+        limit = value
+        return self
     }
 }
 
@@ -70,7 +76,7 @@ extension Select: StatementConvertible {
         
         let fieldString = fields.isEmpty ? "*" : fields.map { "\($0.qualifiedName) AS \($0.alias)" }.joinWithSeparator(", ")
         
-        var statement = Statement(components: ["SELECT", fieldString, "FROM", ModelType.Field.tableName])
+        var statement = Statement(components: ["SELECT", fieldString, "FROM", ModelType.tableName])
         
         
         for join in joins {

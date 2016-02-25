@@ -23,22 +23,22 @@
 // SOFTWARE.
 
 public indirect enum Condition: StatementConvertible {
-    public enum Value {
-        case Value(ValueConvertible?)
+    public enum Key {
+        case Value(SQL.Value?)
         case Property(String)
     }
 
-    case Equals(String, Value)
+    case Equals(String, Key)
 
-    case GreaterThan(String, Value)
-    case GreaterThanOrEquals(String, Value)
+    case GreaterThan(String, Key)
+    case GreaterThanOrEquals(String, Key)
 
-    case LessThan(String, Value)
-    case LessThanOrEquals(String, Value)
+    case LessThan(String, Key)
+    case LessThanOrEquals(String, Key)
 
 
-    case In(String, [ValueConvertible?])
-    case NotIn(String, [ValueConvertible?])
+    case In(String, [SQL.Value?])
+    case NotIn(String, [SQL.Value?])
 
     case And([Condition])
     case Or([Condition])
@@ -48,7 +48,7 @@ public indirect enum Condition: StatementConvertible {
 
     public var statement: Statement {
 
-        func statementWithKeyValue(key: String, _ op: String, _ value: Value) -> Statement {
+        func statementWithKeyValue(key: String, _ op: String, _ value: Key) -> Statement {
             switch value {
             case .Value(let value):
                 return Statement("\(key) \(op) \(Statement.parameterPlaceholder)", parameters: [value])

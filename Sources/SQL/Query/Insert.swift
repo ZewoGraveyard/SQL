@@ -25,22 +25,22 @@
 public struct Insert<M: Model>: ModelQuery {
     public typealias ModelType = M
     
-    internal var valuesByField: [M.Field: ValueConvertible?] = [:]
+    internal var valuesByField: [DeclaredField: SQL.Value?] = [:]
     
-    public func set(field: M.Field, value: ValueConvertible?) -> Insert {
+    public func set(field: DeclaredField, value: ValueConvertible?) -> Insert {
         var new = self
-        new.valuesByField[field] = value
+        new.valuesByField[field] = value?.SQLValue
         return new
     }
     
-    public init(_ valuesByFieldName: [M.Field: ValueConvertible?]) {
+    public init(_ valuesByFieldName: [DeclaredField: ValueConvertible?]) {
         self.valuesByField = valuesByFieldName
     }
 }
 
 extension Insert: StatementConvertible {
     public var statement: Statement {
-        var statement = Statement(components: ["INSERT INTO", M.Field.tableName], parameters: Array(valuesByField.values))
+        var statement = Statement(components: ["INSERT INTO", M.tableName], parameters: Array(valuesByField.values))
         
         statement.appendComponent(
             "(\(valuesByField.keys.map { $0.unqualifiedName }.joinWithSeparator(", ")))"

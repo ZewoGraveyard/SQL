@@ -28,7 +28,7 @@ public protocol Query: StatementConvertible {
 }
 
 public extension Query {
-    public func run<T: Connection>(connection: T) throws -> T.ResultType {
+    public func execute<T: Connection>(connection: T) throws -> T.ResultType {
         return try connection.execute(self)
     }
 }
@@ -112,10 +112,6 @@ extension FilteredQuery {
     }
 }
 
-public struct JoinKey<L: ModelFieldset, R: ModelFieldset> {
-    let left: L
-    let right: R
-}
 
 public enum JoinType<T: Model>: StatementConvertible {
     case Inner(T.Type)
@@ -126,23 +122,24 @@ public enum JoinType<T: Model>: StatementConvertible {
     public var statement: Statement {
         switch self {
         case .Left:
-            return "LEFT JOIN \(T.Field.tableName)"
+            return "LEFT JOIN \(T.tableName)"
         case .Right:
-            return "RIGHT JOIN \(T.Field.tableName)"
+            return "RIGHT JOIN \(T.tableName)"
         case .Inner:
-            return "INNER JOIN \(T.Field.tableName)"
+            return "INNER JOIN \(T.tableName)"
         case .Outer:
-            return "OUTER JOIN \(T.Field.tableName)"
+            return "OUTER JOIN \(T.tableName)"
         }
     }
 }
 
 internal struct Join: StatementConvertible {
-    internal let typeStatement: Statement
-    internal let leftKey: String
-    internal let rightKey: String
+    
+    let typeStatement: Statement
+    let leftKey: String
+    let rightKey: String
 
-    internal var statement: Statement {
+    var statement: Statement {
         return Statement(substatements: [
             typeStatement,
             Statement(components: ["ON", leftKey, "=" ,rightKey])
@@ -150,9 +147,9 @@ internal struct Join: StatementConvertible {
         )
     }
 
-    internal init<L: ModelFieldset, R: Model>(type: JoinType<R>, key: JoinKey<L, R.Field>) {
+    init<R: Model>(type: JoinType<R>, key: DeclaredField, on: R.Field) {
         self.typeStatement = type.statement
-        self.leftKey = key.left.qualifiedName
-        self.rightKey = key.right.qualifiedName
+        self.leftKey = key.qualifiedName
+        self.rightKey = R.field(on).qualifiedName
     }
 }

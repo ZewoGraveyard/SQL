@@ -27,16 +27,20 @@ public struct Update<M: Model>: ModelQuery, FilteredQuery {
     
     public var condition: Condition?
     
-    internal var valuesByField: [M.Field: ValueConvertible?] = [:]
+    internal var valuesByField: [DeclaredField: ValueConvertible?] = [:]
     
-    public func set(field: M.Field, value: ValueConvertible?) -> Update {
+    public func set(field: DeclaredField, value: ValueConvertible?) -> Update {
         var new = self
         new.valuesByField[field] = value
         return new
     }
     
-    public init(_ valuesByFieldName: [M.Field: ValueConvertible?]) {
+    public init(_ valuesByFieldName: [DeclaredField: ValueConvertible?]) {
         self.valuesByField = valuesByFieldName
+    }
+    
+    public init(_ valuesByFieldName: [M.Field: ValueConvertible?]) {
+        self.init(valuesByFieldName.SQLValueDictionary)
     }
     
 }
@@ -44,7 +48,7 @@ public struct Update<M: Model>: ModelQuery, FilteredQuery {
 extension Update: StatementConvertible {
     public var statement: Statement {
         
-        var statement = Statement(components: ["UPDATE", ModelType.Field.tableName, "SET"], parameters: Array(valuesByField.values))
+        var statement = Statement(components: ["UPDATE", ModelType.tableName, "SET"], parameters: Array(valuesByField.values))
         
         var strings = [String]()
         for (field, _) in valuesByField {

@@ -31,7 +31,7 @@ public struct Delete<M: Model>: ModelQuery, FilteredQuery {
 extension Delete: StatementConvertible {
     public var statement: Statement {
         
-        var statement = Statement(components: ["DELETE", "FROM", ModelType.Field.tableName])
+        var statement = Statement(components: ["DELETE", "FROM", ModelType.tableName])
         
         if let condition = condition {
             statement.appendComponent("WHERE")

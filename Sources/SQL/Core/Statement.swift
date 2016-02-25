@@ -32,7 +32,7 @@ public struct Statement: CustomStringConvertible {
     }
     
     public var stringComponents: [String]
-    public var parameters: [ValueConvertible?]
+    public var parameters: [Value?]
 
     public var string: String {
         return stringComponents.filter { !$0.isEmpty }.map { $0.trim() }.joinWithSeparator(" ")
@@ -79,24 +79,17 @@ public struct Statement: CustomStringConvertible {
         self.stringComponents = stringComponents
         self.parameters = substatements.flatMap { $0.parameters }
     }
-
-    public init(_ string: String, parameters: [ValueConvertible?] = []) {
-        stringComponents = [string]
+    
+    public init(_ string: String, parameters: [Value?] = []) {
+        self.stringComponents = [string]
         self.parameters = parameters
     }
     
-    public init(_ string: String, parameters: ValueConvertible?...) {
-        self.init(string, parameters: parameters)
-    }
-
-    public init(components: [String], parameters: [ValueConvertible?] = []) {
+    public init(components: [String], parameters: [Value?] = []) {
         self.stringComponents = components
         self.parameters = parameters
     }
     
-    public init(components: [String], parameters: ValueConvertible?...) {
-        self.init(components: components, parameters: parameters)
-    }
 
     public func isolate() -> Statement {
         return Statement(components: ["(\(stringComponents.joinWithSeparator(" ")))"], parameters: parameters)
@@ -140,7 +133,7 @@ extension Statement: StringInterpolationConvertible {
     }
     
     public init<T: ValueConvertible>(stringInterpolationSegment expr: T) {
-        self.init(Statement.parameterPlaceholder, parameters: [expr])
+        self.init(Statement.parameterPlaceholder, parameters: [expr.SQLValue])
     }
     
     public init(stringInterpolationSegment expr: String) {

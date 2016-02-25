@@ -123,19 +123,19 @@ public extension RowType {
     
     // MARK: - Model field support
     
-    public func data<F: ModelFieldset>(field: F) throws -> Data? {
+    public func dataDeclaredField(field: DeclaredField) throws -> Data? {
         return try data(field.qualifiedName)
     }
     
-    public func data<F: ModelFieldset>(field: F) throws -> Data {
+    public func data(field: DeclaredField) throws -> Data {
         return try data(field.qualifiedName)
     }
     
-    public func value<T: ValueConvertible, F: ModelFieldset>(field: F) throws -> T? {
+    public func value<T: ValueConvertible>(field: DeclaredField) throws -> T? {
         return try value(field.qualifiedName)
     }
     
-    public func value<T: ValueConvertible, F: ModelFieldset>(field: F) throws -> T {
+    public func value<T: ValueConvertible>(field: DeclaredField) throws -> T {
         return try value(field.qualifiedName)
     }
     

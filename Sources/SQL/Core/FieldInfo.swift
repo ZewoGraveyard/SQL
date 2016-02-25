@@ -22,11 +22,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public protocol Field: CustomStringConvertible {
+public protocol FieldInfo: CustomStringConvertible {
     var name: String { get }
 }
 
-public extension Field {
+public extension FieldInfo {
     public var description: String {
         return name
     }

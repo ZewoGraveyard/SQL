@@ -54,19 +54,6 @@ public protocol ValueConvertible {
     init(rawSQLValue data: Data) throws
 }
 
-public extension ValueConvertible {
-
-    public var SQLString: String? {
-        switch self.SQLValue {
-        case .Binary(let data):
-            return try? String(data: data)
-        case .Text(let text):
-            return text
-        }
-    }
-}
-
-
 extension Int: ValueConvertible {
     public init(rawSQLValue data: Data) throws {
         guard let value = Int(try String(data: data)) else {
