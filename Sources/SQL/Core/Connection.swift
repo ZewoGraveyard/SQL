@@ -26,11 +26,12 @@
 
 
 public protocol Connection {
+    associatedtype ConnectionInfo
     associatedtype ResultType: Result
     associatedtype StatusType
     associatedtype Error: ErrorType
 
-    var connectionString: String { get }
+    var connectionInfo: ConnectionInfo { get }
 
     func open() throws
 
@@ -54,7 +55,7 @@ public protocol Connection {
 
     func rollbackToSavePointNamed(name: String) throws
 
-    init(_ connectionString: String)
+    init(_ info: ConnectionInfo)
     
     var mostRecentError: Error? { get }
 }
