@@ -22,23 +22,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public indirect enum Condition: StatementConvertible {
+public indirect enum Condition: QueryComponentsConvertible {
     public enum Key {
-        case Value(SQL.Value?)
-        case Property(String)
+        case Value(SQLData?)
+        case Property(DeclaredField)
     }
 
-    case Equals(String, Key)
+    case Equals(DeclaredField, Key)
 
-    case GreaterThan(String, Key)
-    case GreaterThanOrEquals(String, Key)
+    case GreaterThan(DeclaredField, Key)
+    case GreaterThanOrEquals(DeclaredField, Key)
 
-    case LessThan(String, Key)
-    case LessThanOrEquals(String, Key)
+    case LessThan(DeclaredField, Key)
+    case LessThanOrEquals(DeclaredField, Key)
 
 
-    case In(String, [SQL.Value?])
-    case NotIn(String, [SQL.Value?])
+    case In(DeclaredField, [SQLData?])
+    case NotIn(DeclaredField, [SQLData?])
 
     case And([Condition])
     case Or([Condition])
@@ -46,32 +46,32 @@ public indirect enum Condition: StatementConvertible {
     case Not(Condition)
 
 
-    public var statement: Statement {
+    public var queryComponents: QueryComponents {
 
-        func statementWithKeyValue(key: String, _ op: String, _ value: Key) -> Statement {
+        func statementWithKeyValue(key: String, _ op: String, _ value: Key) -> QueryComponents {
             switch value {
             case .Value(let value):
-                return Statement("\(key) \(op) \(Statement.parameterPlaceholder)", parameters: [value])
+                return QueryComponents("\(key) \(op) \(QueryComponents.valuePlaceholder)", values: [value])
             case .Property(let name):
-                return Statement("\(key) \(op) \(name)", parameters: [])
+                return QueryComponents("\(key) \(op) \(name)", values: [])
             }
         }
 
         switch self {
         case .Equals(let key, let value):
-            return statementWithKeyValue(key, "=", value)
+            return statementWithKeyValue(key.qualifiedName, "=", value)
 
         case .GreaterThan(let key, let value):
-            return statementWithKeyValue(key, ">", value)
+            return statementWithKeyValue(key.qualifiedName, ">", value)
 
         case .GreaterThanOrEquals(let key, let value):
-            return statementWithKeyValue(key, ">=", value)
+            return statementWithKeyValue(key.qualifiedName, ">=", value)
 
         case .LessThan(let key, let value):
-            return statementWithKeyValue(key, "<", value)
+            return statementWithKeyValue(key.qualifiedName, "<", value)
 
         case .LessThanOrEquals(let key, let value):
-            return statementWithKeyValue(key, "<=", value)
+            return statementWithKeyValue(key.qualifiedName, "<=", value)
 
 
         case .In(let key, let values):
@@ -79,24 +79,24 @@ public indirect enum Condition: StatementConvertible {
             var strings = [String]()
             
             for _ in values {
-                strings.append(Statement.parameterPlaceholder)
+                strings.append(QueryComponents.valuePlaceholder)
             }
 
-            return Statement("\(key) IN(\(strings.joinWithSeparator(", ")))", parameters: values)
+            return QueryComponents("\(key) IN(\(strings.joinWithSeparator(", ")))", values: values)
 
         case .NotIn(let key, let values):
-            return (!Condition.In(key, values)).statement
+            return (!Condition.In(key, values)).queryComponents
 
         case .And(let conditions):
-            return Statement(substatements: conditions.map { $0.statement }, mergedByString: "AND").isolate()
+            return QueryComponents(components: conditions.map { $0.queryComponents }, mergedByString: "AND").isolate()
 
         case .Or(let conditions):
-            return Statement(substatements: conditions.map { $0.statement }, mergedByString: "OR").isolate()
+            return QueryComponents(components: conditions.map { $0.queryComponents }, mergedByString: "OR").isolate()
 
         case .Not(let condition):
-            var statement = condition.statement.isolate()
-            statement.prependComponent("NOT")
-            return statement
+            var queryComponents = condition.queryComponents.isolate()
+            queryComponents.prepend("NOT")
+            return queryComponents
         }
     }
 }

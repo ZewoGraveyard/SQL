@@ -28,100 +28,85 @@ public struct ValueConversionError: ErrorType {
     let description: String
 }
 
-public enum Value {
+public enum SQLData {
     case Text(String)
     case Binary(Data)
 }
 
-extension Value: Hashable {
-    public var hashValue: Int {
-        switch self {
-        case .Text(let text):
-            return text.data.hashValue
-        case .Binary(let data):
-            return data.hashValue
-        }
-    }
+public protocol SQLDataConvertible {
+    var sqlData: SQLData { get }
+
+    init(rawSQLData: Data) throws
 }
 
-public func == (lhs: Value, rhs: Value) -> Bool {
-    return lhs.hashValue == rhs.hashValue
-}
-
-public protocol ValueConvertible {
-    var SQLValue: Value { get }
-
-    init(rawSQLValue data: Data) throws
-}
-
-extension Int: ValueConvertible {
-    public init(rawSQLValue data: Data) throws {
+extension Int: SQLDataConvertible {
+    public init(rawSQLData data: Data) throws {
         guard let value = Int(try String(data: data)) else {
             throw ValueConversionError(description: "Failed to convert data to Int")
         }
         self = value
     }
 
-    public var SQLValue: Value {
+    public var sqlData: SQLData {
         return .Text(String(self))
     }
 }
 
-extension UInt: ValueConvertible {
-    public init(rawSQLValue data: Data) throws {
+extension UInt: SQLDataConvertible {
+    public init(rawSQLData data: Data) throws {
         guard let value = UInt(try String(data: data)) else {
             throw ValueConversionError(description: "Failed to convert data to UInt")
         }
         self = value
     }
 
-    public var SQLValue: Value {
+    public var sqlData: SQLData {
         return .Text(String(self))
     }
 }
 
-extension Float: ValueConvertible {
-    public init(rawSQLValue data: Data) throws {
+extension Float: SQLDataConvertible {
+    public init(rawSQLData data: Data) throws {
         guard let value = Float(try String(data: data)) else {
             throw ValueConversionError(description: "Failed to convert data to Float")
         }
         self = value
     }
 
-    public var SQLValue: Value {
+    public var sqlData: SQLData {
         return .Text(String(self))
     }
 }
 
-extension Double: ValueConvertible {
-    public init(rawSQLValue data: Data) throws {
+extension Double: SQLDataConvertible {
+    public init(rawSQLData data: Data) throws {
         guard let value = Double(try String(data: data)) else {
             throw ValueConversionError(description: "Failed to convert data to Double")
         }
         self = value
     }
 
-    public var SQLValue: Value {
+    public var sqlData: SQLData {
         return .Text(String(self))
     }
 }
 
-extension String: ValueConvertible {
-    public init(rawSQLValue data: Data) throws {
+extension String: SQLDataConvertible {
+    public init(rawSQLData data: Data) throws {
         try self.init(data: data)
     }
 
-    public var SQLValue: Value {
+    public var sqlData: SQLData {
         return .Text(self)
     }
 }
 
-extension Data: ValueConvertible {
-    public init(rawSQLValue data: Data) throws {
+extension Data: SQLDataConvertible {
+    public init(rawSQLData data: Data) throws {
         self = data
     }
 
-    public var SQLValue: Value {
+    public var sqlData: SQLData {
         return .Binary(self)
     }
 }

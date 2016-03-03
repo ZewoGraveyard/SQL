@@ -22,81 +22,112 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public class Select<M: Model>: FetchableModelQuery, FilteredQuery {
-    public typealias ModelType = M
+
+public struct Select: SelectQuery {
     public let fields: [DeclaredField]
     
-    public var offset: Int?
-    public var limit: Int?
+    public let tableName: String
     
-    var joins: [Join] = []
+    public var condition: Condition? = nil
     
+    public var joins: [Join] = []
     
+    public var offset: Offset? = nil
     
-    public func join<M: Model>(type: JoinType<M>, key: ModelType.Field, on: M.Field) -> Select {
-        joins.append(Join(type: type, key: ModelType.field(key), on: on))
-        return self
-    }
+    public var limit: Limit? = nil
     
-    public var condition: Condition?
+    public var orderBy: [OrderBy] = []
     
-    public convenience init(_ fields: [M.Field]) {
-        self.init(fields.map { M.field($0) })
-    }
-    
-    public convenience init(_ fields: M.Field...) {
-        self.init(fields)
-    }
-    
-    public init(_ fields: [DeclaredField]) {
+    public init(from tableName: String, fields: [DeclaredField] = []) {
+        self.tableName = tableName
         self.fields = fields
     }
     
-    public convenience init(_ fields: DeclaredField...) {
-        self.init(fields)
+    public init(from tableName: String, fields: DeclaredField...) {
+        self.init(from: tableName, fields: fields)
     }
     
-    public convenience init() {
-        self.init([DeclaredField]())
-    }
-    
-    public func offset(value: Int?) -> Select {
-        offset = value
-        return self
-    }
-    
-    public func limit(value: Int?) -> Select {
-        limit = value
-        return self
+    public func join(tableName: String, using type: Join.JoinType..., leftKey: String, rightKey: String) -> Select {
+        var new = self
+        new.joins.append(
+            Join(tableName, type: type, leftKey: leftKey, rightKey: rightKey)
+        )
+        
+        return new
     }
 }
 
-extension Select: StatementConvertible {
-    public var statement: Statement {
+public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
+    public typealias ModelType = T
+    
+    public var tableName: String {
+        return T.tableName
+    }
+    
+    public var fields: [DeclaredField] {
+        return T.selectFields.map { T.field($0) }
+    }
+    
+    public var condition: Condition? = nil
+    
+    public var joins: [Join] = []
+    
+    public var offset: Offset? = nil
+    
+    public var limit: Limit? = nil
+    
+    public var orderBy: [OrderBy] = []
+    
+    public func join<R: Model>(model: R.Type, type: Join.JoinType..., leftKey: ModelType.Field, rightKey: R.Field) -> ModelSelect<T> {
+        var new = self
+        new.joins.append(
+            Join(R.tableName, type: type, leftKey: ModelType.field(leftKey).qualifiedName, rightKey: R.field(rightKey).qualifiedName)
+        )
         
-        let fieldString = fields.isEmpty ? "*" : fields.map { "\($0.qualifiedName) AS \($0.alias)" }.joinWithSeparator(", ")
+        return new
+    }
+
+}
+
+public protocol SelectQuery: FilteredQuery, FetchQuery {
+    var joins: [Join] { get set }
+    
+    var fields: [DeclaredField] { get }
+}
+
+public extension SelectQuery {
+    
+    public var queryComponents: QueryComponents {
+        var components = QueryComponents(components: [
+            "SELECT",
+            fields.isEmpty ? "*" : fields.queryComponentsForSelectingFields(useQualifiedNames: true, useAliasing: true, isolateQueryComponents: false),
+            "FROM",
+            QueryComponents(tableName)
+            ]
+        )
         
-        var statement = Statement(components: ["SELECT", fieldString, "FROM", ModelType.tableName])
-        
-        
-        for join in joins {
-            statement.append(join.statement)
+        if !joins.isEmpty {
+            components.append(joins.queryComponents)
         }
         
         if let condition = condition {
-            statement.appendComponent("WHERE")
-            
-            statement.append(condition.statement)
+            components.append("WHERE")
+            components.append(condition.queryComponents)
+        }
+        
+        if !orderBy.isEmpty {
+            components.append("ORDER BY")
+            components.append(orderBy.queryComponents(mergedByString: ","))
         }
         
         if let limit = limit {
-            statement.appendComponent("LIMIT \(limit)")
+            components.append(limit.queryComponents)
         }
         
         if let offset = offset {
-            statement.appendComponent("OFFSET \(offset)")
+            components.append(offset.queryComponents)
         }
         
-        return statement
+        return components
     }
 }

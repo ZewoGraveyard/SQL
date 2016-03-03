@@ -22,46 +22,86 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public struct Update<M: Model>: ModelQuery, FilteredQuery {
-    public typealias ModelType = M
+public struct Update: UpdateQuery {
+    public let tableName: String
+    
+    public var valuesByField: [DeclaredField: SQLData?]
     
     public var condition: Condition?
     
-    internal var valuesByField: [DeclaredField: ValueConvertible?] = [:]
-    
-    public func set(field: DeclaredField, value: ValueConvertible?) -> Update {
-        var new = self
-        new.valuesByField[field] = value
-        return new
+    public init(_ tableName: String, set valuesByField: [DeclaredField : SQLData?] = [:]) {
+        self.tableName = tableName
+        self.valuesByField = valuesByField
     }
-    
-    public init(_ valuesByFieldName: [DeclaredField: ValueConvertible?]) {
-        self.valuesByField = valuesByFieldName
-    }
-    
-    public init(_ valuesByFieldName: [M.Field: ValueConvertible?]) {
-        self.init(valuesByFieldName.SQLValueDictionary)
-    }
-    
 }
 
-extension Update: StatementConvertible {
-    public var statement: Statement {
+public struct ModelUpdate<T: Model>: UpdateQuery {
+    public typealias ModelType = T
+    
+    public var tableName: String {
+        return T.tableName
+    }
+    
+    public var valuesByField: [DeclaredField: SQLData?] = [:]
+    
+    public var condition: Condition?
+    
+    public init(_ values: [ModelType.Field: SQLData?]) {
+        var dict = [DeclaredField: SQLData?]()
         
-        var statement = Statement(components: ["UPDATE", ModelType.tableName, "SET"], parameters: Array(valuesByField.values))
-        
-        var strings = [String]()
-        for (field, _) in valuesByField {
-            strings.append("\(field.unqualifiedName) = %@")
+        for (key, value) in values {
+            dict[ModelType.field(key)] = value
         }
         
-        statement.appendComponent("\(strings.joinWithSeparator(","))")
+        self.valuesByField = dict
+    }
+    
+    public init(_ values: [ModelType.Field: SQLDataConvertible?]) {
+        var dict = [DeclaredField: SQLData?]()
+        
+        for (key, value) in values {
+            dict[ModelType.field(key)] = value?.sqlData
+        }
+        
+        self.valuesByField = dict
+    }
+    
+    public mutating func set(value: SQLData?, forField field: ModelType.Field) {
+        set(value, forField: ModelType.field(field))
+    }
+    
+    public mutating func set(value: SQLDataConvertible?, forField field: ModelType.Field) {
+        set(value?.sqlData, forField: field)
+    }
+}
+
+public protocol UpdateQuery: FilteredQuery, TableQuery {
+    var valuesByField: [DeclaredField: SQLData?] { get set }
+}
+
+public extension UpdateQuery {
+    
+    public mutating func set(value: SQLData?, forField field: DeclaredField) {
+        valuesByField[field] = value
+    }
+    
+    public mutating func set(value: SQLDataConvertible?, forField field: DeclaredField) {
+        self.set(value?.sqlData, forField: field)
+    }
+    
+    public var queryComponents: QueryComponents {
+        var components =  QueryComponents(components: [
+            "UPDATE",
+            QueryComponents(tableName),
+            "SET",
+            valuesByField.queryComponentsForSettingValues(useQualifiedNames: false)
+            ]
+        )
         
         if let condition = condition {
-            statement.appendComponent("WHERE")
-            statement.append(condition.statement)
+            components.append(condition.queryComponents)
         }
         
-        return statement
+        return components
     }
 }

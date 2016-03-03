@@ -31,8 +31,8 @@ public struct Migration {
         public let description: String
     }
     
-    public let upStatement: String
-    public let downStatement: String?
+    public let upQueryComponents: String
+    public let downQueryComponents: String?
 
     public init(path: String) throws {
 
@@ -52,15 +52,15 @@ public struct Migration {
             throw Error(description: "up.sql not found at \(upPath)")
         }
 
-        self.upStatement = try String(data: File(path: upPath).read())
+        self.upQueryComponents = try String(data: File(path: upPath).read())
         
         let checkDownFile = File.fileExistsAt(downPath)
 
         if checkDownFile.fileExists && checkDownFile.isDirectory {
-            self.downStatement = try String(data: File(path: downPath).read())
+            self.downQueryComponents = try String(data: File(path: downPath).read())
         }
         else {
-            self.downStatement = nil
+            self.downQueryComponents = nil
         }
     }
 }
@@ -163,21 +163,20 @@ public class MigrationManager<T: Connection> {
 
                 if upDirection {
 
-                    try self.connection.execute(Statement(migration.upStatement))
+                    try self.connection.execute(QueryComponents(migration.upQueryComponents))
                 }
                 else {
-                    guard let downStatement = migration.downStatement else {
+                    guard let downQueryComponents = migration.downQueryComponents else {
                         throw Migration.Error(
                             description: "Cannot migrate to version \(nextVersion). The migration with number \(migrationNumber) has no down statement."
                         )
                     }
 
-                    try self.connection.execute(Statement(downStatement))
+                    try self.connection.execute(QueryComponents(downQueryComponents))
                 }
 
                 try self.connection.execute(
-                    Statement("INSERT INTO schema_migrations (timestamp, from_version, to_version) VALUES(CURRENT_TIMESTAMP(6), $1, $2)",
-                    parameters: [fromVersion, nextVersion])
+                    "INSERT INTO schema_migrations (timestamp, from_version, to_version) VALUES(CURRENT_TIMESTAMP(6), \(fromVersion), \(nextVersion))"
                 )
 
                 guard let currentVersion = self.currentVersion else {

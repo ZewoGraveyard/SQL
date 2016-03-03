@@ -22,22 +22,42 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public struct Delete<M: Model>: ModelQuery, FilteredQuery {
-    public typealias ModelType = M
+public struct Delete: DeleteQuery {
     
-    public var condition: Condition?
+    public let tableName: String
+    public var condition: Condition? = nil
+    
+    init(from tableName: String) {
+        self.tableName = tableName
+    }
 }
 
-extension Delete: StatementConvertible {
-    public var statement: Statement {
+public struct ModelDelete<T: Model>: DeleteQuery {
+    public typealias ModelType = T
+    
+    public var tableName: String {
+        return ModelType.tableName
+    }
+    
+    public var condition: Condition? = nil
+}
+
+public protocol DeleteQuery: FilteredQuery, TableQuery {}
+
+extension DeleteQuery {
+    public init<T: Model>(from tableName: T.Type) {
+        self.init(from: tableName)
+    }
+    
+    public var queryComponents: QueryComponents {
         
-        var statement = Statement(components: ["DELETE", "FROM", ModelType.tableName])
+        var queryComponents = QueryComponents(strings: ["DELETE", "FROM", tableName])
         
         if let condition = condition {
-            statement.appendComponent("WHERE")
-            statement.append(condition.statement)
+            queryComponents.append("WHERE")
+            queryComponents.append(condition.queryComponents)
         }
         
-        return statement
+        return queryComponents
     }
 }

@@ -22,40 +22,63 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public struct Insert<M: Model>: ModelQuery {
-    public typealias ModelType = M
+public struct Insert: InsertQuery {
+    public let tableName: String
+    public let valuesByField: [DeclaredField: SQLData?]
     
-    internal var valuesByField: [DeclaredField: SQL.Value?] = [:]
-    
-    public func set(field: DeclaredField, value: ValueConvertible?) -> Insert {
-        var new = self
-        new.valuesByField[field] = value?.SQLValue
-        return new
-    }
-    
-    public init(_ valuesByFieldName: [DeclaredField: ValueConvertible?]) {
-        self.valuesByField = valuesByFieldName
+    public init(_ tableName: String, values valuesByDeclaredField: [DeclaredField : SQLData?]) {
+        self.tableName = tableName
+        self.valuesByField = valuesByDeclaredField
     }
 }
 
-extension Insert: StatementConvertible {
-    public var statement: Statement {
-        var statement = Statement(components: ["INSERT INTO", M.tableName], parameters: Array(valuesByField.values))
+public struct ModelInsert<T: Model>: InsertQuery {
+    public typealias ModelType = T
+    
+    public var tableName: String {
+        return ModelType.tableName
+    }
+    
+    public let valuesByField: [DeclaredField: SQLData?]
+    
+    public init(_ values: [ModelType.Field: SQLData?]) {
+        var dict = [DeclaredField: SQLData?]()
         
-        statement.appendComponent(
-            "(\(valuesByField.keys.map { $0.unqualifiedName }.joinWithSeparator(", ")))"
-        )
-        
-        statement.appendComponent("VALUES")
-        
-        var strings = [String]()
-        for _ in valuesByField {
-            strings.append("%@")
+        for (key, value) in values {
+            dict[ModelType.field(key)] = value
         }
         
+        self.valuesByField = dict
+    }
+    
+    public init(_ values: [ModelType.Field: SQLDataConvertible?]) {
+        var dict = [DeclaredField: SQLData?]()
         
-        statement.appendComponent("(\(strings.joinWithSeparator(",")))")
+        for (key, value) in values {
+            dict[ModelType.field(key)] = value?.sqlData
+        }
         
-        return statement
+        self.valuesByField = dict
+    }
+    
+}
+
+public protocol InsertQuery : TableQuery {
+    var valuesByField: [DeclaredField: SQLData?] { get }
+}
+
+extension InsertQuery {
+    public var queryComponents: QueryComponents {
+    
+        return QueryComponents(
+            components: [
+                "INSERT INTO",
+                QueryComponents(tableName),
+                valuesByField.keys.queryComponentsForSelectingFields(useQualifiedNames: false, useAliasing: false, isolateQueryComponents: true),
+                "VALUES",
+                valuesByField.queryComponentsForValuePlaceHolders(isolated: true)
+            ]
+        )
+        
     }
 }

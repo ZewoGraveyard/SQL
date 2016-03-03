@@ -28,35 +28,35 @@
 
 public struct Row: RowType {
     
-    public var dataByFieldName: [String: Data?]
+    public var dataByfield: [String: Data?]
     
-    public init(dataByFieldName: [String: Data?]) {
-        self.dataByFieldName = dataByFieldName
+    public init(dataByfield: [String: Data?]) {
+        self.dataByfield = dataByfield
     }
 }
 
 public protocol RowType: CustomStringConvertible {
-    init(dataByFieldName: [String: Data?])
+    init(dataByfield: [String: Data?])
     
-    var fieldNames: [String] { get }
+    var fields: [String] { get }
     
-    var dataByFieldName: [String: Data?] { get }
+    var dataByfield: [String: Data?] { get }
 }
 
 public enum RowTypeError: ErrorType {
-    case ExpectedField(String)
-    case UnexpectedNilValue(String)
+    case ExpectedField(DeclaredField)
+    case UnexpectedNilValue(DeclaredField)
 }
 
 public extension RowType {
     
-    public var fieldNames: [String] {
-        return Array(dataByFieldName.keys)
+    public var fields: [String] {
+        return Array(dataByfield.keys)
     }
     
     // MARK: - Data
     
-    public func data(fieldName: String) throws -> Data? {
+    public func data(field: DeclaredField) throws -> Data? {
         
         /*
          Supplying a fielName can done either
@@ -68,20 +68,16 @@ public extension RowType {
          Because of this, a given field name must be checked for three type of keys
          
          */
-        var fieldNameCandidates = [fieldName]
-        
-        let components = fieldName.split(".")
-        if components.count == 2 { // The field name is qualified
-            fieldNameCandidates += [
-                components.joinWithSeparator("__"), // Add candidate as 'users__id'
-                components[1] // Add candidate as 'id'
-            ]
-        }
+        let fieldCandidates = [
+            field.unqualifiedName,
+            field.alias,
+            field.qualifiedName
+        ]
         
         var data: Data??
         
-        for fielNameCandidate in fieldNameCandidates {
-            data = dataByFieldName[fielNameCandidate]
+        for fielNameCandidate in fieldCandidates {
+            data = dataByfield[fielNameCandidate]
             
             if data != nil {
                 break
@@ -89,54 +85,49 @@ public extension RowType {
         }
         
         guard let result = data else {
-            throw RowTypeError.ExpectedField(fieldNameCandidates.joinWithSeparator(", "))
+            throw RowTypeError.ExpectedField(field)
         }
         return result
     }
     
-    public func data(fieldName: String) throws -> Data {
-        guard let data: Data = try data(fieldName) else {
-            throw RowTypeError.UnexpectedNilValue(fieldName)
+    public func data(field: DeclaredField) throws -> Data {
+        guard let data: Data = try data(field) else {
+            throw RowTypeError.UnexpectedNilValue(field)
         }
         
         return data
     }
     
-    // MARK: - ValueConvertible
+    // MARK: - SQLDataConvertible
     
-    public func value<T: ValueConvertible>(fieldName: String) throws -> T? {
-        guard let data: Data = try data(fieldName) else {
+    public func value<T: SQLDataConvertible>(field: DeclaredField) throws -> T? {
+        guard let data: Data = try data(field) else {
             return nil
         }
         
-        return try T(rawSQLValue: data)
+        return try T(rawSQLData: data)
     }
     
-    public func value<T: ValueConvertible>(fieldName: String) throws -> T {
-        guard let data: Data = try data(fieldName) else {
-            throw RowTypeError.UnexpectedNilValue(fieldName)
+    public func value<T: SQLDataConvertible>(field: DeclaredField) throws -> T {
+        guard let data: Data = try data(field) else {
+            throw RowTypeError.UnexpectedNilValue(field)
         }
         
-        return try T(rawSQLValue: data)
+        return try T(rawSQLData: data)
     }
     
+    // MARK - String support
     
-    // MARK: - Model field support
-    
-    public func dataDeclaredField(field: DeclaredField) throws -> Data? {
-        return try data(field.qualifiedName)
+    public func data(field: String) throws -> Data? {
+        return try data(DeclaredField(name: field))
     }
     
-    public func data(field: DeclaredField) throws -> Data {
-        return try data(field.qualifiedName)
+    public func value<T: SQLDataConvertible>(field: String) throws -> T? {
+        return try value(DeclaredField(name: field))
     }
     
-    public func value<T: ValueConvertible>(field: DeclaredField) throws -> T? {
-        return try value(field.qualifiedName)
-    }
-    
-    public func value<T: ValueConvertible>(field: DeclaredField) throws -> T {
-        return try value(field.qualifiedName)
+    public func value<T: SQLDataConvertible>(field: String) throws -> T {
+        return try value(DeclaredField(name: field))
     }
     
     
@@ -145,9 +136,9 @@ public extension RowType {
         
         let tab = "\t\t"
         
-        string += dataByFieldName.keys.joinWithSeparator(tab)
+        string += dataByfield.keys.joinWithSeparator(tab)
         string += "\n---------\n"
-        string += dataByFieldName.values.map {
+        string += dataByfield.values.map {
             value in
             
             guard let value = value else {

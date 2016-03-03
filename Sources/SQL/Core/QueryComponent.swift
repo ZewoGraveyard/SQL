@@ -1,4 +1,4 @@
-// Statement.swift
+// QueryComponents.swift
 //
 // The MIT License (MIT)
 //
@@ -23,35 +23,35 @@
 // SOFTWARE.
 
 
-public struct Statement: CustomStringConvertible {
+public struct QueryComponents: CustomStringConvertible {
     
-    internal static let parameterPlaceholder = "%@"
+    internal static let valuePlaceholder = "%@"
     
     public struct Error: ErrorType {
         public let description: String
     }
     
     public var stringComponents: [String]
-    public var parameters: [Value?]
+    public var values: [SQLData?]
 
     public var string: String {
         return stringComponents.filter { !$0.isEmpty }.map { $0.trim() }.joinWithSeparator(" ")
     }
     
-    public func stringWithNumberedParametersUsingPrefix(prefix: String, suffix: String? = nil) throws -> String {
-        var strings = string.splitBy(Statement.parameterPlaceholder)
+    public func stringWithNumberedValuesUsingPrefix(prefix: String, suffix: String? = nil) throws -> String {
+        var strings = string.splitBy(QueryComponents.valuePlaceholder)
         
         if strings.count == 1 {
             return string
         }
         
-        guard strings.count == parameters.count + 1 else {
+        guard strings.count == values.count + 1 else {
             throw Error(description: "Parameter count mismatch")
         }
         
         var newStrings = [String]()
         
-        for i in 0..<parameters.count {
+        for i in 0..<values.count {
             newStrings.append(strings[i])
             newStrings.append("\(prefix)\(i + 1)\(suffix ?? "")")
         }
@@ -63,57 +63,53 @@ public struct Statement: CustomStringConvertible {
 
     public init() {
         stringComponents = []
-        parameters = []
+        values = []
     }
     
-    public init(substatements: [Statement], mergedByString string: String? = nil) {
+    public init(components: [QueryComponents], mergedByString string: String? = nil) {
         var stringComponents = [String]()
-        for (i, statement) in substatements.enumerate() {
-            stringComponents += statement.stringComponents
+        for (i, component) in components.enumerate() {
+            stringComponents += component.stringComponents
             
-            if i < substatements.count - 1, let mergeString = string {
+            if i < components.count - 1, let mergeString = string {
                 stringComponents.append(mergeString)
             }
         }
         
         self.stringComponents = stringComponents
-        self.parameters = substatements.flatMap { $0.parameters }
+        self.values = components.flatMap { $0.values }
+        
     }
     
-    public init(_ string: String, parameters: [Value?] = []) {
-        self.stringComponents = [string]
-        self.parameters = parameters
+    public init(strings: [String], values: [SQLData?] = []) {
+        self.stringComponents = strings
+        self.values = values
     }
     
-    public init(components: [String], parameters: [Value?] = []) {
-        self.stringComponents = components
-        self.parameters = parameters
-    }
-    
-
-    public func isolate() -> Statement {
-        return Statement(components: ["(\(stringComponents.joinWithSeparator(" ")))"], parameters: parameters)
+    public init(_ string: String, values: [SQLData?] = []) {
+        self.init(strings: [string], values: values)
     }
 
-    public mutating func prependComponent(string: String) {
-        stringComponents.insert(string, atIndex: 0)
+    public func isolate() -> QueryComponents {
+        return QueryComponents("(" + stringComponents.joinWithSeparator(" ") + ")", values: values)
     }
 
-    public mutating func appendComponent(string: String)  {
-        stringComponents.append(string)
+    public mutating func append(component: QueryComponents) {
+        stringComponents += component.stringComponents
+        values += component.values
     }
     
-    public mutating func append(statement: Statement) {
-        stringComponents += statement.stringComponents
-        parameters += statement.parameters
+    public mutating func prepend(component: QueryComponents) {
+        stringComponents = component.stringComponents + stringComponents
+        values = component.values + values
     }
     
     public var description: String {
-        return "<Statement string: \"\(string)\", parameters: \(parameters)"
+        return "<QueryComponents string: \"\(string)\", values: \(values)"
     }
 }
 
-extension Statement: StringLiteralConvertible {
+extension QueryComponents: StringLiteralConvertible {
     public init(stringLiteral value: String) {
         self.init(value)
     }
@@ -127,25 +123,35 @@ extension Statement: StringLiteralConvertible {
     }
 }
 
-extension Statement: StringInterpolationConvertible {
+extension QueryComponents: StringInterpolationConvertible {
     public init<T>(stringInterpolationSegment expr: T) {
         self.init("\(expr)")
     }
     
-    public init<T: ValueConvertible>(stringInterpolationSegment expr: T) {
-        self.init(Statement.parameterPlaceholder, parameters: [expr.SQLValue])
+    public init<T: SQLDataConvertible>(stringInterpolationSegment expr: T) {
+        self.init(QueryComponents.valuePlaceholder, values: [expr.sqlData])
     }
     
     public init(stringInterpolationSegment expr: String) {
         self.init(expr)
     }
     
-    public init(stringInterpolation strings: Statement...) {
-        self.init(substatements: strings)
+    public init(stringInterpolation strings: QueryComponents...) {
+        self.init(components: strings)
     }
 }
 
 
-public protocol StatementConvertible {
-    var statement: Statement { get }
+public protocol QueryComponentsConvertible {
+    var queryComponents: QueryComponents { get }
+}
+
+public extension SequenceType where Generator.Element: QueryComponentsConvertible {
+    public func queryComponents(mergedByString string: String? = nil) -> QueryComponents {
+        return QueryComponents(components: self.map { $0.queryComponents }, mergedByString: string)
+    }
+    
+    public var queryComponents: QueryComponents {
+        return queryComponents()
+    }
 }
