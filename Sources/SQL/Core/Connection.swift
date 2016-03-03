@@ -91,6 +91,10 @@ public extension Connection {
     public func execute(statement: QueryComponents) throws -> ResultType {
         return try execute(statement)
     }
+    
+    public func execute(statement: String) throws -> ResultType {
+        return try execute(QueryComponents(statement))
+    }
 
     public func execute(convertible: QueryComponentsConvertible) throws -> ResultType {
         return try execute(convertible.queryComponents)
