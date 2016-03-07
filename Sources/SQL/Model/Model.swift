@@ -205,10 +205,10 @@ public struct ModelError: ErrorType {
     }
 }
 
-public enum ModelDirtyStatus {
+public enum ModelChangeStatus {
     case Unknown
-    case Dirty
-    case Clean
+    case Changed
+    case Unchanged
 }
 
 public protocol Model {
@@ -222,7 +222,11 @@ public protocol Model {
     
     static var selectFields: [Field] { get }
     
-    var dirtyFields: [Field]? { get set }
+    
+    
+    
+    
+    var changedFields: [Field]? { get set }
    
     var persistedValuesByField: [Field: SQLDataConvertible?] { get }
     
@@ -230,59 +234,76 @@ public protocol Model {
     
     static func create<T: SQL.Connection where T.ResultType.Generator.Element == Row>(values: [Field: SQLDataConvertible?], connection: T) throws -> Self
     
+    func willSave()
+    func didSave()
+    
+    func willUpdate()
+    func didUpdate()
+    
+    func willCreate()
+    func didCreate()
+    
+    func willDelete()
+    func didDelete()
+    
+    func willRefresh()
+    func didRefresh()
+    
+    func validate() throws
+    
     init(row: Row) throws
 }
 
 public extension Model {
     
-    static var selectQuery: ModelSelect<Self> {
+    public static var selectFields: [Field] {
+        return []
+    }
+    
+    public static var selectQuery: ModelSelect<Self> {
         return ModelSelect()
     }
     
-    static func updateQuery(values: [Field: SQLDataConvertible?] = [:]) -> ModelUpdate<Self> {
+    public static func updateQuery(values: [Field: SQLDataConvertible?] = [:]) -> ModelUpdate<Self> {
         return ModelUpdate(values)
     }
     
-    static var deleteQuery: ModelDelete<Self> {
+    public static var deleteQuery: ModelDelete<Self> {
         return ModelDelete()
     }
     
-    static func insertQuery(values: [Field: SQLDataConvertible?]) -> ModelInsert<Self> {
+    public static func insertQuery(values: [Field: SQLDataConvertible?]) -> ModelInsert<Self> {
         return ModelInsert(values)
     }
     
-    mutating func setNeedsSaveForField(field: Field) throws {
-        guard var dirtyFields = dirtyFields else {
-            throw ModelError(description: "Cannot set dirty value, as property `dirtyFields` is nil")
+    public mutating func setNeedsSave(field: Field) throws {
+        guard var changedFields = changedFields else {
+            throw ModelError(description: "Cannot set changed value, as property `changedFields` is nil")
         }
         
-        guard !dirtyFields.contains(field) else {
+        guard !changedFields.contains(field) else {
             return
         }
         
-        dirtyFields.append(field)
-        self.dirtyFields = dirtyFields
+        changedFields.append(field)
+        self.changedFields = changedFields
     }
     
-    public var dirtyFields: [Self.Field]? {
-        get {
-            return nil
-        }
-        set {
-            return
-        }
+    public var changedFields: [Self.Field]? {
+        get { return nil }
+        set { return }
     }
     
-    public var isDirty: ModelDirtyStatus {
-        guard let dirtyFields = dirtyFields else {
+    public var hasChanged: ModelChangeStatus {
+        guard let changedFields = changedFields else {
             return .Unknown
         }
         
-        return dirtyFields.isEmpty ? .Clean : .Dirty
+        return changedFields.isEmpty ? .Unchanged : .Changed
     }
     
-    public var dirtyValuesByField: [Field: SQLDataConvertible?]? {
-        guard let dirtyFields = dirtyFields else {
+    public var changedValuesByField: [Field: SQLDataConvertible?]? {
+        guard let changedFields = changedFields else {
             return nil
         }
         
@@ -290,14 +311,14 @@ public extension Model {
         
         var values = persistedValuesByField
         
-        for field in dirtyFields {
+        for field in changedFields {
             dict[field] = values[field]
         }
         
         return dict
     }
     
-    var persistedFields: [Field] {
+    public var persistedFields: [Field] {
         return Array(persistedValuesByField.keys)
     }
 
@@ -321,41 +342,53 @@ public extension Model {
         return selectFields.map { Self.field($0) }
     }
     
-    static func find<T: Connection where T.ResultType.Generator.Element == Row>(pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
+    public static func get<T: Connection where T.ResultType.Generator.Element == Row>(pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
         return try selectQuery.filter(declaredPrimaryKeyField == pk).first(connection)
     }
     
-    mutating func refresh<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
-        guard let pk = primaryKey, newSelf = try Self.find(pk, connection: connection) else {
+    public mutating func refresh<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+        guard let pk = primaryKey, newSelf = try Self.get(pk, connection: connection) else {
             throw ModelError(description: "Cannot refresh a non-persisted model. Please use insert() or save() first.")
         }
+        
+        willRefresh()
         self = newSelf
+        didRefresh()
     }
     
-    mutating func update<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+    public mutating func update<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
         guard let pk = primaryKey else {
             throw ModelError(description: "Cannot update a model that isn't persisted. Please use insert() first or save()")
         }
         
-        let values = dirtyValuesByField ?? persistedValuesByField
+        let values = changedValuesByField ?? persistedValuesByField
         
         guard !values.isEmpty else {
             throw ModelError(description: "Nothing to save")
         }
         
+        try validate()
+        
+        willSave()
+        willUpdate()
         try Self.updateQuery(values).filter(Self.declaredPrimaryKeyField == pk).execute(connection)
         try self.refresh(connection)
+        didUpdate()
+        didSave()
     }
     
-    mutating func delete<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+    public mutating func delete<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
         guard let pk = self.primaryKey else {
             throw ModelError(description: "Cannot delete a model that isn't persisted.")
         }
         
+        willDelete()
         try Self.deleteQuery.filter(Self.declaredPrimaryKeyField == pk).execute(connection)
+        didDelete()
     }
 
-    mutating func save<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+    public mutating func save<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+        
         if isPersisted {
             try update(connection)
         }
@@ -366,4 +399,23 @@ public extension Model {
             }
         }
     }
+}
+
+public extension Model {
+    public func willSave() {}
+    public func didSave() {}
+    
+    public func willUpdate() {}
+    public func didUpdate() {}
+    
+    public func willCreate() {}
+    public func didCreate() {}
+    
+    public func willDelete() {}
+    public func didDelete() {}
+    
+    public func willRefresh() {}
+    public func didRefresh() {}
+    
+    public func validate() throws {}
 }

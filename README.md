@@ -188,7 +188,8 @@ extension Artist: Model {
 	static let fieldForPrimaryKey: Field = .Id
 	    
 	// The fields used when constructing your model.
-	// You don't have to match all the values in your `Field` enum, unless you want
+	// You don't have to match all the values in your `Field` enum, unless you want to.
+	// NOTE: Leave this out to select all fields.
 	static let selectFields: [Field] = [
 	    .Id,
 	    .Name,
@@ -369,7 +370,7 @@ try artist.save(connection)
 try artist.delete(connection: connection)
 ```
 
-## Dirty tracking for performance 
+## Change tracking for performance 
 
 By default, a `Model` will update all fields as defined in its `persistedValuesByField` property. If you want a more performant solution, you can use *dirty tracking*.
 
@@ -381,7 +382,7 @@ struct Artist {
    	var name: String
    	var genre: String?
    	
-   	var dirtyFields: [Field]? = []
+   	var changedFields: [Field]? = []
    	
 }
 ```
@@ -389,10 +390,10 @@ struct Artist {
 By default, this property is `nil` which instructs `SQL` to save **all** values. After assigning a non-nil dictionary to your model, you have to tell your model which values to update.
 
 ```swift
-try artist.setNeedsSaveForField(.Genre)
+try artist.setNeedsSave(.Genre)
 ```
 
-The method will throw an error if your `dirtyFields` property is nil, warning you that you have not setup dirty tracking.
+The method will throw an error if your `changedFields` property is nil, warning you that you have not setup dirty tracking.
 A convenient way of adding validations, for additional safety in your models  would be to use `willSet/didSet` hooks on your 
 properties.
 
@@ -401,16 +402,16 @@ struct Artist {
 	let id: Int?
    	var name: String {
    		didSet {
-   			try artist.setNeedsSaveForField(.Name)
+   			try artist.setNeedsSave(.Name)
    		}
    	}
    	var genre: String? {
    		didSet {
-   			try artist.setNeedsSaveForField(.Genre)
+   			try artist.setNeedsSave(.Genre)
    		}
    	}
    	
-   	var dirtyFields: [Field]? = []
+   	var changedFields: [Field]? = []
    	
 }
 ```
