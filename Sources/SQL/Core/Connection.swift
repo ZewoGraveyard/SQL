@@ -25,13 +25,21 @@
 @_exported import Log
 
 
-public protocol Connection {
-    associatedtype ConnectionInfo
+public protocol ConnectionInfo {
+    var host: String { get }
+    var port: Int { get }
+    var databaseName: String { get }
+    var username: String? { get }
+    var password: String? { get }
+}
+
+public protocol Connection: class {
+    associatedtype Info: ConnectionInfo
     associatedtype ResultType: Result
     associatedtype StatusType
     associatedtype Error: ErrorType
 
-    var connectionInfo: ConnectionInfo { get }
+    var connectionInfo: Info { get }
 
     func open() throws
 
@@ -55,7 +63,7 @@ public protocol Connection {
 
     func rollbackToSavePointNamed(name: String) throws
 
-    init(_ info: ConnectionInfo)
+    init(_ info: Info)
     
     var mostRecentError: Error? { get }
 }
@@ -93,8 +101,12 @@ public extension Connection {
         return try execute(statement)
     }
     
-    public func execute(statement: String) throws -> ResultType {
-        return try execute(QueryComponents(statement))
+    public func execute(statement: String, parameters: [SQLDataConvertible?] = []) throws -> ResultType {
+        return try execute(QueryComponents(statement, values: parameters.map { $0?.sqlData }))
+    }
+    
+    public func execute(statement: String, parameters: SQLDataConvertible?...) throws -> ResultType {
+        return try execute(statement, parameters: parameters)
     }
 
     public func execute(convertible: QueryComponentsConvertible) throws -> ResultType {

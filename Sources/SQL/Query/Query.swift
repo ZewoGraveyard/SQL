@@ -51,12 +51,12 @@ public extension ModelQuery where Self: FetchQuery {
         return try connection.execute(new).map { try ModelType(row: $0) }.first
     }
     
-    public func order(values: [ModelOrderBy<ModelType>]) -> Self {
-        return self.order(values.map { $0.normalize })
+    public func orderBy(values: [ModelOrderBy<ModelType>]) -> Self {
+        return orderBy(values.map { $0.normalize })
     }
     
-    public func order(values: ModelOrderBy<ModelType>...) -> Self {
-        return self.order(values)
+    public func orderBy(values: ModelOrderBy<ModelType>...) -> Self {
+        return orderBy(values)
     }
 }
 
@@ -97,15 +97,29 @@ extension Offset: IntegerLiteralConvertible {
 }
 
 public enum OrderBy: QueryComponentsConvertible {
-    case Ascending(DeclaredField)
-    case Descending(DeclaredField)
+    case Ascending(String)
+    case Descending(String)
     
     public var queryComponents: QueryComponents {
         switch self {
         case .Ascending(let field):
-            return QueryComponents(strings: [field.qualifiedName, "ASC"])
+            return QueryComponents(strings: [field, "ASC"])
         case .Descending(let field):
-            return QueryComponents(strings: [field.qualifiedName, "DESC"])
+            return QueryComponents(strings: [field, "DESC"])
+        }
+    }
+}
+
+public enum DeclaredFieldOrderBy {
+    case Ascending(DeclaredField)
+    case Descending(DeclaredField)
+    
+    public var normalize: OrderBy {
+        switch self {
+        case .Ascending(let field):
+            return .Ascending(field.qualifiedName)
+        case .Descending(let field):
+            return .Descending(field.qualifiedName)
         }
     }
 }
@@ -114,7 +128,7 @@ public enum ModelOrderBy<T: Model> {
     case Ascending(T.Field)
     case Descending(T.Field)
     
-    public var normalize: OrderBy {
+    public var normalize: DeclaredFieldOrderBy {
         switch self {
         case .Ascending(let field):
             return .Ascending(T.field(field))
@@ -180,14 +194,22 @@ public extension FetchQuery {
         }
     }
     
-    public func order(values: [OrderBy]) -> Self {
+    public func orderBy(values: [OrderBy]) -> Self {
         var new = self
         new.orderBy.appendContentsOf(values)
         return new
     }
     
-    public func order(values: OrderBy...) -> Self {
-        return self.order(values)
+    public func orderBy(values: OrderBy...) -> Self {
+        return orderBy(values)
+    }
+    
+    public func orderBy(values: [DeclaredFieldOrderBy]) -> Self {
+        return orderBy(values.map { $0.normalize })
+    }
+    
+    public func orderBy(values: DeclaredFieldOrderBy...) -> Self {
+        return orderBy(values)
     }
     
     public func limit(value: Int?) -> Self {

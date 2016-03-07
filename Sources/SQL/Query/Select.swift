@@ -38,13 +38,9 @@ public struct Select: SelectQuery {
     
     public var orderBy: [OrderBy] = []
     
-    public init(from tableName: String, fields: [DeclaredField] = []) {
+    public init(_ fields: [String] = [], from tableName: String) {
         self.tableName = tableName
-        self.fields = fields
-    }
-    
-    public init(from tableName: String, fields: DeclaredField...) {
-        self.init(from: tableName, fields: fields)
+        self.fields = fields.map { DeclaredField(name: $0) }
     }
     
     public func join(tableName: String, using type: Join.JoinType..., leftKey: String, rightKey: String) -> Select {

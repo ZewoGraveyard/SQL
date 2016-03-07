@@ -24,7 +24,7 @@
 
 
 
-public struct DeclaredField: CustomStringConvertible, StringLiteralConvertible {
+public struct DeclaredField: CustomStringConvertible {
     public let unqualifiedName: String
     public var tableName: String?
     
@@ -32,24 +32,16 @@ public struct DeclaredField: CustomStringConvertible, StringLiteralConvertible {
         self.unqualifiedName = name
         self.tableName = tableName
     }
-    
-    public init(stringLiteral value: String) {
-        self.init(name: value)
-    }
-    
-    public init(unicodeScalarLiteral value: String) {
-        self.init(stringLiteral: value)
-    }
-    
-    public init(extendedGraphemeClusterLiteral value: String) {
-        self.init(stringLiteral: value)
-    }
 }
 
 extension DeclaredField: Hashable {
     public var hashValue: Int {
         return qualifiedName.hashValue
     }
+}
+
+public func field(name: String) -> DeclaredField {
+    return DeclaredField(name: name)
 }
 
 public extension SequenceType where Generator.Element == DeclaredField {
@@ -151,6 +143,10 @@ public extension DeclaredField {
     public func equals<T: SQLDataConvertible>(value: T?) -> Condition {
         return .Equals(self, .Value(value?.sqlData))
     }
+    
+    public func like<T: SQLDataConvertible>(value: T?) -> Condition {
+        return .Like(self, value?.sqlData)
+    }
 }
 
 public func == <T: SQLDataConvertible>(lhs: DeclaredField, rhs: T?) -> Condition {
@@ -202,7 +198,17 @@ public protocol FieldType: RawRepresentable, Hashable {
 }
 
 public struct ModelError: ErrorType {
-    let description: String
+    public let description: String
+    
+    public init(description: String) {
+        self.description = description
+    }
+}
+
+public enum ModelDirtyStatus {
+    case Unknown
+    case Dirty
+    case Clean
 }
 
 public protocol Model {
@@ -216,11 +222,13 @@ public protocol Model {
     
     static var selectFields: [Field] { get }
     
-    var dirtyFields: [Field] { get set }
+    var dirtyFields: [Field]? { get set }
    
     var persistedValuesByField: [Field: SQLDataConvertible?] { get }
     
-    mutating func insert<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws
+    mutating func create<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws
+    
+    static func create<T: SQL.Connection where T.ResultType.Generator.Element == Row>(values: [Field: SQLDataConvertible?], connection: T) throws -> Self
     
     init(row: Row) throws
 }
@@ -236,23 +244,45 @@ public extension Model {
         return ModelUpdate(values)
     }
     
-    static func insert(set values: [Field: SQLDataConvertible?]) -> ModelInsert<Self> {
-        return ModelInsert(values)
-    }
-    
-    static func delete() -> ModelDelete<Self> {
+    static var delete: ModelDelete<Self> {
         return ModelDelete()
     }
     
-    mutating func setNeedsSaveForField(field: Field) {
+    mutating func setNeedsSaveForField(field: Field) throws {
+        guard var dirtyFields = dirtyFields else {
+            throw ModelError(description: "Cannot set dirty value, as property `dirtyFields` is nil")
+        }
+        
         guard !dirtyFields.contains(field) else {
             return
         }
         
         dirtyFields.append(field)
+        self.dirtyFields = dirtyFields
     }
     
-    public var dirtyValuesByField: [Field: SQLDataConvertible?] {
+    public var dirtyFields: [Self.Field]? {
+        get {
+            return nil
+        }
+        set {
+            return
+        }
+    }
+    
+    public var isDirty: ModelDirtyStatus {
+        guard let dirtyFields = dirtyFields else {
+            return .Unknown
+        }
+        
+        return dirtyFields.isEmpty ? .Clean : .Dirty
+    }
+    
+    public var dirtyValuesByField: [Field: SQLDataConvertible?]? {
+        guard let dirtyFields = dirtyFields else {
+            return nil
+        }
+        
         var dict = [Field: SQLDataConvertible?]()
         
         var values = persistedValuesByField
@@ -290,16 +320,32 @@ public extension Model {
     
     mutating func refresh<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
         guard let pk = primaryKey, newSelf = try Self.find(pk, connection: connection) else {
-            throw ModelError(description: "Cannot update a non-persisted model. Please use insert() or save()")
+            throw ModelError(description: "Cannot refresh a non-persisted model. Please use insert() or save() first.")
         }
         self = newSelf
     }
     
     mutating func update<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
-        let fields = dirtyFields.isEmpty ? persistedValuesByField : dirtyValuesByField
+        guard let pk = primaryKey else {
+            throw ModelError(description: "Cannot update a model that isn't persisted. Please use insert() first or save()")
+        }
         
-        try Self.update(fields).execute(connection)
+        let fields = dirtyValuesByField ?? persistedValuesByField
+        
+        guard !fields.isEmpty else {
+            throw ModelError(description: "Nothing to save")
+        }
+        
+        try Self.update(fields).filter(Self.declaredPrimaryKeyField == pk).execute(connection)
         try self.refresh(connection)
+    }
+    
+    mutating func delete<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+        guard let pk = self.primaryKey else {
+            throw ModelError(description: "Cannot delete a model that isn't persisted.")
+        }
+        
+        try Self.delete.filter(Self.declaredPrimaryKeyField == pk).execute(connection)
     }
 
     mutating func save<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
@@ -307,7 +353,7 @@ public extension Model {
             try update(connection)
         }
         else {
-            try insert(connection)
+            try create(connection)
             guard isPersisted else {
                 fatalError("Primary key not set after insert. This is a serious error in an SQL adapter. Please consult a developer.")
             }

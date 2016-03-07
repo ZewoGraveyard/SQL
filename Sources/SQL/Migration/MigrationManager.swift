@@ -159,7 +159,6 @@ public class MigrationManager<T: Connection> {
                 }
 
                 if upDirection {
-
                     try self.connection.execute(migration.upStatement)
                 }
                 else {

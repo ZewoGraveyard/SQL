@@ -27,7 +27,7 @@ public struct Delete: DeleteQuery {
     public let tableName: String
     public var condition: Condition? = nil
     
-    init(from tableName: String) {
+    public init(from tableName: String) {
         self.tableName = tableName
     }
 }

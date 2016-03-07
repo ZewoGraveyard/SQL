@@ -29,9 +29,27 @@ public struct Update: UpdateQuery {
     
     public var condition: Condition?
     
-    public init(_ tableName: String, set valuesByField: [DeclaredField : SQLData?] = [:]) {
+    public init(_ tableName: String, set valuesByField: [String : SQLData?] = [:]) {
         self.tableName = tableName
-        self.valuesByField = valuesByField
+        
+        var dict = [DeclaredField: SQLData?]()
+        
+        for (key, value) in valuesByField {
+            dict[DeclaredField(name: key)] = value
+        }
+        
+        self.valuesByField = dict
+    }
+    
+    public init(_ tableName: String, set valuesByField: [String : SQLDataConvertible?] = [:]) {
+        
+        var dict = [String: SQLData?]()
+        
+        for (key, value) in valuesByField {
+            dict[key] = value?.sqlData
+        }
+        
+        self.init(tableName, set: dict)
     }
 }
 
@@ -99,6 +117,7 @@ public extension UpdateQuery {
         )
         
         if let condition = condition {
+            components.append("WHERE")
             components.append(condition.queryComponents)
         }
         

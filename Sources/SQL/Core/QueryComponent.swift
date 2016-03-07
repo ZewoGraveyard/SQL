@@ -123,25 +123,6 @@ extension QueryComponents: StringLiteralConvertible {
     }
 }
 
-extension QueryComponents: StringInterpolationConvertible {
-    public init<T>(stringInterpolationSegment expr: T) {
-        self.init("\(expr)")
-    }
-    
-    public init<T: SQLDataConvertible>(stringInterpolationSegment expr: T) {
-        self.init(QueryComponents.valuePlaceholder, values: [expr.sqlData])
-    }
-    
-    public init(stringInterpolationSegment expr: String) {
-        self.init(expr)
-    }
-    
-    public init(stringInterpolation strings: QueryComponents...) {
-        self.init(components: strings)
-    }
-}
-
-
 public protocol QueryComponentsConvertible {
     var queryComponents: QueryComponents { get }
 }

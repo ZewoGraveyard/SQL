@@ -131,24 +131,16 @@ public extension RowType {
     }
     
     
-    public var description: String {
-        var string: String = ""
-        
-        let tab = "\t\t"
-        
-        string += dataByfield.keys.joinWithSeparator(tab)
-        string += "\n---------\n"
-        string += dataByfield.values.map {
-            value in
+    public var description: String {        
+        return dataByfield.map {
+            (key, value) in
             
             guard let value = value else {
                 return "NULL"
             }
             
-            return value.description
-            
-            }.joinWithSeparator(tab)
-        
-        return string
+            return "\(key): \(value)"
+        }.joinWithSeparator(", ")
+
     }
 }

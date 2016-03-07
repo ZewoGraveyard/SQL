@@ -26,9 +26,27 @@ public struct Insert: InsertQuery {
     public let tableName: String
     public let valuesByField: [DeclaredField: SQLData?]
     
-    public init(_ tableName: String, values valuesByDeclaredField: [DeclaredField : SQLData?]) {
+    public init(_ valuesByField: [String : SQLData?], into tableName: String) {
         self.tableName = tableName
-        self.valuesByField = valuesByDeclaredField
+        
+        var dict = [DeclaredField: SQLData?]()
+        
+        for (key, value) in valuesByField {
+            dict[DeclaredField(name: key)] = value
+        }
+        
+        self.valuesByField = dict
+    }
+    
+    public init(_ valuesByField: [String : SQLDataConvertible?], into tableName: String) {
+        
+        var dict = [String: SQLData?]()
+        
+        for (key, value) in valuesByField {
+            dict[key] = value?.sqlData
+        }
+        
+        self.init(dict, into: tableName)
     }
 }
 

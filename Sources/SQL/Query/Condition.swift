@@ -36,7 +36,9 @@ public indirect enum Condition: QueryComponentsConvertible {
     case LessThan(DeclaredField, Key)
     case LessThanOrEquals(DeclaredField, Key)
 
-
+    
+    case Like(DeclaredField, SQLData?)
+    
     case In(DeclaredField, [SQLData?])
     case NotIn(DeclaredField, [SQLData?])
 
@@ -97,6 +99,9 @@ public indirect enum Condition: QueryComponentsConvertible {
             var queryComponents = condition.queryComponents.isolate()
             queryComponents.prepend("NOT")
             return queryComponents
+            
+        case .Like(let key, let value):
+            return QueryComponents(strings: [key.qualifiedName, "LIKE", QueryComponents.valuePlaceholder], values: [value])
         }
     }
 }
