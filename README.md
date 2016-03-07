@@ -273,19 +273,13 @@ After creating our models, we can use a more safe way of creating queries.
 
 ```swift
 Artist.select
-// SELECT artists.id AS artists__id, artists.name AS artists__name, artists.genre AS artists__genre FROM artists
-
 let artist = Artist.find(1, connection: connection)
-// SELECT artists.id AS artists__id, artists.name AS artists__name, artists.genre AS artists__genre FROM artists WHERE artists.id = %@ LIMIT 1 OFFSET 0
 
 Artist.select.join(Album.self, type: .Inner, leftKey: .Id, rightKey: .ArtistId)
-// SELECT artists.id AS artists__id, artists.name AS artists__name, artists.genre AS artists__genre FROM artists INNER JOIN albums ON artists.id = albums.artist_id
 
 Artist.select.limit(10).offset(1)
-// SELECT artists.id AS artists__id, artists.name AS artists__name, artists.genre AS artists__genre FROM artists LIMIT 10 OFFSET 1
 
 Artist.select.orderBy(.Descending(.Name), .Ascending(.Id))
-// SELECT artists.id AS artists__id, artists.name AS artists__name, artists.genre AS artists__genre FROM artists ORDER BY artists.name DESC
 ```
 
 ### Filtering
@@ -301,13 +295,10 @@ Using model selects, you can call `fetch` and `first`
 
 ```swift
 let artists = try Artist.select.fetch(connection) // [Artist]
-// SELECT artists.id AS artists__id, artists.name AS artists__name, artists.genre AS artists__genre FROM artists
 
 let artist = try Artist.select.first(connection) // Artist?
-// SELECT artists.id AS artists__id, artists.name AS artists__name, artists.genre AS artists__genre FROM artists LIMIT 1 OFFSET 0
 
-// let artist = try Artist.find(1, connection: connection) // Artist?
-SELECT artists.id AS artists__id, artists.name AS artists__name, artists.genre AS artists__genre FROM artists WHERE artists.id = %@ LIMIT 1 OFFSET 0
+let artist = try Artist.find(1, connection: connection) // Artist?
 ```
 
 ### CREATE & SAVE
@@ -337,6 +328,56 @@ try artist.save(connection)
 ```swift
 try artist.delete(connection: connection)
 ```
+
+
+### Dirty tracking for performance 
+
+By default, a `Model` will update all fields as defined in its `persistedValuesByField` property. If you want a more performant solution, you can use *dirty tracking*.
+
+Start by adding a property to your model called `dirtyFields`:
+
+```swift
+struct Artist {
+	let id: Int?
+   	var name: String
+   	var genre: String?
+   	
+   	var dirtyFields: [Field: SQLValueConvertible?] = [:]
+   	
+}
+```
+
+By default, this property is `nil` which instructs `SQL` to save **all** values. After assigning a non-nil dictionary to your model, you have to tell your model which values to update.
+
+```swift
+try artist.setNeedsSaveForField(.Genre)
+```
+
+
+The method will throw an error if your `dirtyFields` property is nil, warning you that you have not setup dirty tracking.
+A convenient way of adding validations, for additional safety in your models  would be to use `willSet/didSet` hooks on your 
+properties.
+
+```swift
+struct Artist {
+	let id: Int?
+   	var name: String {
+   		didSet {
+   			try artist.setNeedsSaveForField(.Name)
+   		}
+   	}
+   	var genre: String? {
+   		didSet {
+   			try artist.setNeedsSaveForField(.Genre)
+   		}
+   	}
+   	
+   	var dirtyFields: [Field: SQLValueConvertible?] = [:]
+   	
+}
+```
+
+
 
 ## Community
 
