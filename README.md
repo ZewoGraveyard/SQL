@@ -372,7 +372,7 @@ struct Artist {
    		}
    	}
    	
-   	var dirtyFields: [Field: SQLValueConvertible?] = [:]
+   	var dirtyFields: [Field]? = []
    	
 }
 ```
