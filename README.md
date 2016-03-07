@@ -132,7 +132,7 @@ Select(from: "artists").filter(field("id") >= 1 && field("genre") == field("genr
 Insert(["name": "Lady Gaga"], into: "artists")
 ```
 
-## Running built
+## Running built queries
 All built queries have an `execute` method, that takes a `Connection` class ass a parameter.
 
 ```swift
