@@ -330,7 +330,7 @@ try artist.delete(connection: connection)
 ```
 
 
-### Dirty tracking for performance 
+## Dirty tracking for performance 
 
 By default, a `Model` will update all fields as defined in its `persistedValuesByField` property. If you want a more performant solution, you can use *dirty tracking*.
 
@@ -376,7 +376,6 @@ struct Artist {
    	
 }
 ```
-
 
 
 ## Community

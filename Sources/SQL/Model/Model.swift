@@ -313,6 +313,10 @@ public extension Model {
         return field(fieldForPrimaryKey)
     }
     
+    public static var declaredSelectFields: [DeclaredField] {
+        return selectFields.map { Self.field($0) }
+    }
+    
     static func find<T: Connection where T.ResultType.Generator.Element == Row>(pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
         return try select.filter(declaredPrimaryKeyField == pk).first(connection)
     }

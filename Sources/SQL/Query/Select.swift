@@ -73,9 +73,7 @@ public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
         return T.tableName
     }
     
-    public var fields: [DeclaredField] {
-        return T.selectFields.map { T.field($0) }
-    }
+    public let fields: [DeclaredField]
     
     public var condition: Condition? = nil
     
@@ -100,8 +98,9 @@ public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
         return join(model, using: [type], leftKey: leftKey, rightKey: rightKey)
     }
 
-    public init() {}
-
+    public init(_ fields: [DeclaredField]? = nil) {
+        self.fields = fields ?? T.selectFields.map { T.field($0) }
+    }
 }
 
 public protocol SelectQuery: FilteredQuery, FetchQuery {
