@@ -314,7 +314,7 @@ public extension Model {
     }
     
     static func find<T: Connection where T.ResultType.Generator.Element == Row>(pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
-        return try ModelSelect().filter(declaredPrimaryKeyField == pk).first(connection)
+        return try select.filter(declaredPrimaryKeyField == pk).first(connection)
     }
     
     mutating func refresh<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
