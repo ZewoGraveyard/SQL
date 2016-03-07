@@ -73,10 +73,8 @@ for row in try connection.execute("SELECT * FROM artists") {
 
 When accessing values from a `Row`, you can either ask for a value or `Data`. When asking for a value, you need to infer the type of the value you are expecting, including if it's optional or not. This helps with the data integrity of your application, as `Row` will throw an error if it finds a null value where you've inferred a non-optional type. Similarly, `Row` will throw an error if the field is not present in the result.
 
-
-
 ## Using the standard query methods
-If you do not want an ORM-style query builder, SQL allows you to build your queries with a simple syntax.
+The standard query methods provide a simple way to build queries.
 
 ### SELECT
 
@@ -87,6 +85,7 @@ Select(["id", "name"], from: "artists")
 // Select all fields
 Select(from: "artists")
 
+// Limit to one result
 Select(["id", "name"], from: "artists").first
 
 // Join
@@ -131,6 +130,19 @@ Select(from: "artists").filter(field("id") >= 1 && field("genre") == field("genr
 Insert(["name": "Lady Gaga"], into: "artists")
 ```
 
+## Running built
+All built queries have an `execute` method, that takes a `Connection` class ass a parameter.
+
+```swift
+try Select(from: "albums").execute(connection)
+```
+
+You can also pass the query to `Connection.execute`.
+
+```swift
+try connection.execute(Select(from: "albums"))
+```
+
 ## Creating models
 `SQL` has ORM-style functionality, focusing on efficiency, transparency and safety. Your specific driver should have a `Model` protocol, that extends `SQL.Model`. Let's go through how to implement it.
 
@@ -159,7 +171,7 @@ In order to conform to the `Model` protocol, we have to extend `Artist`. You can
 ```swift
 extension Artist: Model {
 	// Define the fields of your model.
-	// Make sure to name id `Field` and have it conform to `String` and `FieldType`
+	// Make sure to name it `Field` and have it conform to `String` and `FieldType`
 	enum Field: String, FieldType {
 	    case Id = "id"
 	    case Name = "name"
