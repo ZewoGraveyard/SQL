@@ -29,24 +29,28 @@ public struct Update: UpdateQuery {
     
     public var condition: Condition?
     
-    public init(_ tableName: String, set valuesByField: [String : SQLData?] = [:]) {
+    public init(_ tableName: String, set valuesByField: [DeclaredField : SQLData?] = [:]) {
         self.tableName = tableName
+        self.valuesByField = valuesByField
+    }
+    
+    public init(_ tableName: String, set valuesByField: [DeclaredField : SQLDataConvertible?] = [:]) {
         
         var dict = [DeclaredField: SQLData?]()
         
         for (key, value) in valuesByField {
-            dict[DeclaredField(name: key)] = value
+            dict[key] = value?.sqlData
         }
         
-        self.valuesByField = dict
+        self.init(tableName, set: dict)
     }
     
     public init(_ tableName: String, set valuesByField: [String : SQLDataConvertible?] = [:]) {
         
-        var dict = [String: SQLData?]()
+        var dict = [DeclaredField: SQLData?]()
         
         for (key, value) in valuesByField {
-            dict[key] = value?.sqlData
+            dict[DeclaredField(name: key)] = value?.sqlData
         }
         
         self.init(tableName, set: dict)

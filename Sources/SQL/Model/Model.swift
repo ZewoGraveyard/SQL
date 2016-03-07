@@ -235,16 +235,20 @@ public protocol Model {
 
 public extension Model {
     
-    static var select: ModelSelect<Self> {
+    static var selectQuery: ModelSelect<Self> {
         return ModelSelect()
     }
     
-    static func update(values: [Field: SQLDataConvertible?] = [:]) -> ModelUpdate<Self> {
+    static func updateQuery(values: [Field: SQLDataConvertible?] = [:]) -> ModelUpdate<Self> {
         return ModelUpdate(values)
     }
     
-    static var delete: ModelDelete<Self> {
+    static var deleteQuery: ModelDelete<Self> {
         return ModelDelete()
+    }
+    
+    static func insertQuery(values: [Field: SQLDataConvertible?]) -> ModelInsert<Self> {
+        return ModelInsert(values)
     }
     
     mutating func setNeedsSaveForField(field: Field) throws {
@@ -318,7 +322,7 @@ public extension Model {
     }
     
     static func find<T: Connection where T.ResultType.Generator.Element == Row>(pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
-        return try select.filter(declaredPrimaryKeyField == pk).first(connection)
+        return try selectQuery.filter(declaredPrimaryKeyField == pk).first(connection)
     }
     
     mutating func refresh<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
@@ -333,13 +337,13 @@ public extension Model {
             throw ModelError(description: "Cannot update a model that isn't persisted. Please use insert() first or save()")
         }
         
-        let fields = dirtyValuesByField ?? persistedValuesByField
+        let values = dirtyValuesByField ?? persistedValuesByField
         
-        guard !fields.isEmpty else {
+        guard !values.isEmpty else {
             throw ModelError(description: "Nothing to save")
         }
         
-        try Self.update(fields).filter(Self.declaredPrimaryKeyField == pk).execute(connection)
+        try Self.updateQuery(values).filter(Self.declaredPrimaryKeyField == pk).execute(connection)
         try self.refresh(connection)
     }
     
@@ -348,7 +352,7 @@ public extension Model {
             throw ModelError(description: "Cannot delete a model that isn't persisted.")
         }
         
-        try Self.delete.filter(Self.declaredPrimaryKeyField == pk).execute(connection)
+        try Self.deleteQuery.filter(Self.declaredPrimaryKeyField == pk).execute(connection)
     }
 
     mutating func save<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {

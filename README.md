@@ -275,11 +275,11 @@ After creating our models, we can use a more safe way of creating queries.
 Artist.select
 let artist = Artist.find(1, connection: connection)
 
-Artist.select.join(Album.self, type: .Inner, leftKey: .Id, rightKey: .ArtistId)
+Artist.selectQuery.join(Album.self, type: .Inner, leftKey: .Id, rightKey: .ArtistId)
 
-Artist.select.limit(10).offset(1)
+Artist.selectQuery.limit(10).offset(1)
 
-Artist.select.orderBy(.Descending(.Name), .Ascending(.Id))
+Artist.selectQuery.orderBy(.Descending(.Name), .Ascending(.Id))
 ```
 
 ### Filtering
