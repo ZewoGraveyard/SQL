@@ -372,8 +372,8 @@ public extension Model {
         willSave()
         willUpdate()
         try Self.updateQuery(values).filter(Self.declaredPrimaryKeyField == pk).execute(connection)
-        try self.refresh(connection)
         didUpdate()
+        try self.refresh(connection)
         didSave()
     }
     

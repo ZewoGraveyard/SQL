@@ -307,7 +307,7 @@ extension Album: Model {
 
 After creating our models, we can use a more safe way of creating queries.
 
-### SELECT
+### Creating queries
 
 ```swift
 Artist.select
@@ -320,7 +320,7 @@ Artist.selectQuery.limit(10).offset(1)
 Artist.selectQuery.orderBy(.Descending(.Name), .Ascending(.Id))
 ```
 
-### Filtering
+### Filtering queries
 
 When working with model queries, you use `Model.field()`, specifying your models `Field` enum to get the declared fields.
 
@@ -328,7 +328,7 @@ When working with model queries, you use `Model.field()`, specifying your models
 Artist.select.filter(Artist.field(.Id) == 1 || Artist.field(.Genre) == "rock")
 ```
 
-### FETCH, FIRST & FIND
+### Fetching & get models
 
 Using model selects, you can call `fetch` and `first`
 
@@ -337,10 +337,10 @@ let artists = try Artist.select.fetch(connection) // [Artist]
 
 let artist = try Artist.select.first(connection) // Artist?
 
-let artist = try Artist.find(1, connection: connection) // Artist?
+let artist = try Artist.get(1, connection: connection) // Artist?
 ```
 
-### CREATE & SAVE
+### Saving models
 
 You can insert new models either by simply providing a dictionary with fields and values
 
@@ -364,13 +364,48 @@ try artist.save(connection)
 
 `save` will either call `insert` or `update` depending on whether the model has a primary key.
 
-### DELETE
+### Deleting models
 
 ```swift
 try artist.delete(connection: connection)
 ```
 
-## Change tracking for performance 
+### Validating before save/create
+Add a method with the following signature to your models. Throw an error if validation failed. Not throwing an error indicates that the validation passed.
+
+Validations are called before `willSave()`, `willUpdate()`, and `willCreate()`
+
+```swift
+func validate()throws {
+	guard name == "david" else {
+		throw MyError("Name has to be 'david'")
+	}
+}
+```
+
+### Hooks
+You can use any of the following hooks in your model. 
+
+```swift
+func willSave()
+func didSave()
+    
+func willUpdate()
+func didUpdate()
+    
+func willCreate()
+func didCreate()
+    
+func willDelete()
+func didDelete()
+    
+func willRefresh()
+func didRefresh()
+```
+
+For updates the flow is: `willSave() -> willUpdate -> (UPDATE) -> didUpdate() -> willRefresh() -> (REFRESH) -> didRefresh() -> didSave()` For creates, the flow is similar, except the `updates` are `creates`.
+
+### Change tracking for performance 
 
 By default, a `Model` will update all fields as defined in its `persistedValuesByField` property. If you want a more performant solution, you can use *dirty tracking*.
 
