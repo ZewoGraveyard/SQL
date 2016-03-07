@@ -235,7 +235,6 @@ public protocol Model {
 
 public extension Model {
     
-
     static var select: ModelSelect<Self> {
         return ModelSelect()
     }
