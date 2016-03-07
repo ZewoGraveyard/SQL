@@ -342,7 +342,7 @@ struct Artist {
    	var name: String
    	var genre: String?
    	
-   	var dirtyFields: [Field: SQLValueConvertible?] = [:]
+   	var dirtyFields: [Field]? = []
    	
 }
 ```
