@@ -37,7 +37,7 @@ public protocol Connection: class {
     associatedtype Info: ConnectionInfo
     associatedtype ResultType: Result
     associatedtype StatusType
-    associatedtype Error: ErrorType
+    associatedtype Error: ErrorProtocol
 
     var connectionInfo: Info { get }
 

@@ -24,7 +24,7 @@
 
 @_exported import File
 
-public struct MigrationError: ErrorType {
+public struct MigrationError: ErrorProtocol {
     public let description: String
 }
 
@@ -99,7 +99,7 @@ public class MigrationManager<T: Connection> {
             )
         }
 
-        for (i, directoryPath) in directories.enumerate() {
+        for (i, directoryPath) in directories.enumerated() {
             migrationsByNumber[i + 1] = try Migration(path: path + "/" + directoryPath)
         }
 

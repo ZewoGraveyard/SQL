@@ -24,7 +24,7 @@
 
 @_exported import Data
 
-public struct ValueConversionError: ErrorType {
+public struct ValueConversionError: ErrorProtocol {
     let description: String
 }
 

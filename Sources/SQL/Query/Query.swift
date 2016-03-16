@@ -40,11 +40,11 @@ public protocol ModelQuery: TableQuery {
 }
 
 public extension ModelQuery where Self: FetchQuery {
-    public func fetch<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws -> [ModelType] {
+    public func fetch<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws -> [ModelType] {
         return try connection.execute(self).map { try ModelType(row: $0) }
     }
     
-    public func first<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws -> ModelType? {
+    public func first<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws -> ModelType? {
         var new = self
         new.offset = 0
         new.limit = 1
@@ -138,7 +138,7 @@ public enum ModelOrderBy<T: Model> {
     }
 }
 
-public extension SequenceType where Self.Generator.Element == OrderBy {
+public extension Sequence where Self.Iterator.Element == OrderBy {
     public var queryComponents: QueryComponents {
         return QueryComponents(components: map { $0.queryComponents })
     }
@@ -196,7 +196,7 @@ public extension FetchQuery {
     
     public func orderBy(values: [OrderBy]) -> Self {
         var new = self
-        new.orderBy.appendContentsOf(values)
+        new.orderBy.append(contentsOf: values)
         return new
     }
     
