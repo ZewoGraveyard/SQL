@@ -43,7 +43,7 @@ public protocol RowType: CustomStringConvertible {
     var dataByfield: [String: Data?] { get }
 }
 
-public enum RowTypeError: ErrorType {
+public enum RowTypeError: ErrorProtocol {
     case ExpectedField(DeclaredField)
     case UnexpectedNilValue(DeclaredField)
 }
@@ -140,7 +140,7 @@ public extension RowType {
             }
             
             return "\(key): \(value)"
-        }.joinWithSeparator(", ")
+        }.joined(separator: ", ")
 
     }
 }

@@ -27,7 +27,7 @@ public struct QueryComponents: CustomStringConvertible {
     
     internal static let valuePlaceholder = "%@"
     
-    public struct Error: ErrorType {
+    public struct Error: ErrorProtocol {
         public let description: String
     }
     
@@ -35,7 +35,7 @@ public struct QueryComponents: CustomStringConvertible {
     public var values: [SQLData?]
 
     public var string: String {
-        return stringComponents.filter { !$0.isEmpty }.map { $0.trim() }.joinWithSeparator(" ")
+        return stringComponents.filter { !$0.isEmpty }.map { $0.trim() }.joined(separator: " ")
     }
     
     public func stringWithNumberedValuesUsingPrefix(prefix: String, suffix: String? = nil) throws -> String {
@@ -58,7 +58,7 @@ public struct QueryComponents: CustomStringConvertible {
         
         newStrings.append(strings.last!)
 
-        return newStrings.joinWithSeparator("")
+        return newStrings.joined(separator: "")
     }
 
     public init() {
@@ -68,7 +68,7 @@ public struct QueryComponents: CustomStringConvertible {
     
     public init(components: [QueryComponents], mergedByString string: String? = nil) {
         var stringComponents = [String]()
-        for (i, component) in components.enumerate() {
+        for (i, component) in components.enumerated() {
             stringComponents += component.stringComponents
             
             if i < components.count - 1, let mergeString = string {
@@ -91,7 +91,7 @@ public struct QueryComponents: CustomStringConvertible {
     }
 
     public func isolate() -> QueryComponents {
-        return QueryComponents("(" + stringComponents.joinWithSeparator(" ") + ")", values: values)
+        return QueryComponents("(" + stringComponents.joined(separator: " ") + ")", values: values)
     }
 
     public mutating func append(component: QueryComponents) {
@@ -127,7 +127,7 @@ public protocol QueryComponentsConvertible {
     var queryComponents: QueryComponents { get }
 }
 
-public extension SequenceType where Generator.Element: QueryComponentsConvertible {
+public extension Sequence where Iterator.Element: QueryComponentsConvertible {
     public func queryComponents(mergedByString string: String? = nil) -> QueryComponents {
         return QueryComponents(components: self.map { $0.queryComponents }, mergedByString: string)
     }

@@ -44,7 +44,7 @@ public func field(name: String) -> DeclaredField {
     return DeclaredField(name: name)
 }
 
-public extension SequenceType where Generator.Element == DeclaredField {
+public extension Sequence where Iterator.Element == DeclaredField {
     public func queryComponentsForSelectingFields(useQualifiedNames useQualified: Bool, useAliasing aliasing: Bool, isolateQueryComponents isolate: Bool) -> QueryComponents {
         let string = map {
             field in
@@ -56,7 +56,7 @@ public extension SequenceType where Generator.Element == DeclaredField {
             }
             
             return str
-        }.joinWithSeparator(", ")
+        }.joined(separator: ", ")
         
         if isolate {
             return QueryComponents(string).isolate()
@@ -67,7 +67,7 @@ public extension SequenceType where Generator.Element == DeclaredField {
     }
 }
 
-public extension CollectionType where Generator.Element == (DeclaredField, Optional<SQLData>) {
+public extension Collection where Iterator.Element == (DeclaredField, Optional<SQLData>) {
     public func queryComponentsForSettingValues(useQualifiedNames useQualified: Bool) -> QueryComponents {
         let string = map {
             (field, value) in
@@ -78,7 +78,7 @@ public extension CollectionType where Generator.Element == (DeclaredField, Optio
             
             return str
             
-            }.joinWithSeparator(", ")
+            }.joined(separator: ", ")
         
         return QueryComponents(string, values: map { $0.1 })
     }
@@ -90,7 +90,7 @@ public extension CollectionType where Generator.Element == (DeclaredField, Optio
             strings.append(QueryComponents.valuePlaceholder)
         }
         
-        let string = strings.joinWithSeparator(", ")
+        let string = strings.joined(separator: ", ")
         
         let components = QueryComponents(string, values: map { $0.1 })
         
@@ -197,7 +197,7 @@ public protocol FieldType: RawRepresentable, Hashable {
     var rawValue: String { get }
 }
 
-public struct ModelError: ErrorType {
+public struct ModelError: ErrorProtocol {
     public let description: String
     
     public init(description: String) {
@@ -230,9 +230,9 @@ public protocol Model {
    
     var persistedValuesByField: [Field: SQLDataConvertible?] { get }
     
-    mutating func create<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws
+    mutating func create<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws
     
-    static func create<T: SQL.Connection where T.ResultType.Generator.Element == Row>(values: [Field: SQLDataConvertible?], connection: T) throws -> Self
+    static func create<T: SQL.Connection where T.ResultType.Iterator.Element == Row>(values: [Field: SQLDataConvertible?], connection: T) throws -> Self
     
     func willSave()
     func didSave()
@@ -342,11 +342,11 @@ public extension Model {
         return selectFields.map { Self.field($0) }
     }
     
-    public static func get<T: Connection where T.ResultType.Generator.Element == Row>(pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
+    public static func get<T: Connection where T.ResultType.Iterator.Element == Row>(pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
         return try selectQuery.filter(declaredPrimaryKeyField == pk).first(connection)
     }
     
-    public mutating func refresh<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+    public mutating func refresh<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws {
         guard let pk = primaryKey, newSelf = try Self.get(pk, connection: connection) else {
             throw ModelError(description: "Cannot refresh a non-persisted model. Please use insert() or save() first.")
         }
@@ -356,7 +356,7 @@ public extension Model {
         didRefresh()
     }
     
-    public mutating func update<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+    public mutating func update<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws {
         guard let pk = primaryKey else {
             throw ModelError(description: "Cannot update a model that isn't persisted. Please use insert() first or save()")
         }
@@ -377,7 +377,7 @@ public extension Model {
         didSave()
     }
     
-    public mutating func delete<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+    public mutating func delete<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws {
         guard let pk = self.primaryKey else {
             throw ModelError(description: "Cannot delete a model that isn't persisted.")
         }
@@ -387,7 +387,7 @@ public extension Model {
         didDelete()
     }
 
-    public mutating func save<T: Connection where T.ResultType.Generator.Element == Row>(connection: T) throws {
+    public mutating func save<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws {
         
         if isPersisted {
             try update(connection)

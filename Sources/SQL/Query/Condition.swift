@@ -84,7 +84,7 @@ public indirect enum Condition: QueryComponentsConvertible {
                 strings.append(QueryComponents.valuePlaceholder)
             }
 
-            return QueryComponents("\(key) IN(\(strings.joinWithSeparator(", ")))", values: values)
+            return QueryComponents("\(key) IN(\(strings.joined(separator: ", ")))", values: values)
 
         case .NotIn(let key, let values):
             return (!Condition.In(key, values)).queryComponents

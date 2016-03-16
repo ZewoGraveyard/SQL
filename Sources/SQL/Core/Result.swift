@@ -26,9 +26,9 @@ public protocol ResultStatus {
     var successful: Bool { get }
 }
 
-public protocol Result: CollectionType {
+public protocol Result: Collection {
     associatedtype FieldInfoType: FieldInfo
-    associatedtype Generator: RowGeneratorType = RowGenerator
+    associatedtype Generator: RowIteratorProtocol = RowGenerator
 
     func clear()
 
@@ -39,11 +39,11 @@ public protocol Result: CollectionType {
     var count: Int { get }
 }
 
-public protocol RowGeneratorType: GeneratorType {
+public protocol RowIteratorProtocol: IteratorProtocol {
     associatedtype Element: RowType
 }
 
-public struct RowGenerator: RowGeneratorType {
+public struct RowGenerator: RowIteratorProtocol {
     public typealias Element = Row
 
     let block: Void -> Element?
@@ -60,7 +60,7 @@ public struct RowGenerator: RowGeneratorType {
 
 extension Result {
 
-    public func generate() -> RowGenerator {
+    public func makeIterator() -> RowGenerator {
         var index = 0
         return RowGenerator {
             if index < 0 || index >= self.count {
