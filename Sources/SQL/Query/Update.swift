@@ -116,7 +116,7 @@ public extension UpdateQuery {
             "UPDATE",
             QueryComponents(tableName),
             "SET",
-            valuesByField.queryComponentsForSettingValues(useQualifiedNames: false)
+            valuesByField.map { $0 }.queryComponentsForSettingValues(useQualifiedNames: false)
             ]
         )
         

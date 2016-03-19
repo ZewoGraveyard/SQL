@@ -91,14 +91,13 @@ public protocol InsertQuery : TableQuery {
 
 extension InsertQuery {
     public var queryComponents: QueryComponents {
-    
         return QueryComponents(
             components: [
                 "INSERT INTO",
                 QueryComponents(tableName),
                 valuesByField.keys.queryComponentsForSelectingFields(useQualifiedNames: false, useAliasing: false, isolateQueryComponents: true),
                 "VALUES",
-                valuesByField.queryComponentsForValuePlaceHolders(isolated: true)
+                valuesByField.map { $0 }.queryComponentsForValuePlaceHolders(isolated: true)
             ]
         )
         
