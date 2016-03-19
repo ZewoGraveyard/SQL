@@ -91,7 +91,7 @@ public class MigrationManager<T: Connection> {
             path in
 
             return path.split(".").last == "migration"
-		}.sort()
+		}.sorted()
 
         guard !directories.isEmpty else {
             throw MigrationError(
@@ -114,7 +114,7 @@ public class MigrationManager<T: Connection> {
     }
 
     public var latestVersion: Int? {
-        return migrationsByNumber.keys.sort().last
+        return migrationsByNumber.keys.sorted().last
     }
 
     public func migrate(to targetVersion: Int) throws {

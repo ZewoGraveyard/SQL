@@ -28,7 +28,7 @@ public protocol ResultStatus {
 
 public protocol Result: Collection {
     associatedtype FieldInfoType: FieldInfo
-    associatedtype Generator: RowIteratorProtocol = RowIterator
+    associatedtype Iterator: RowIteratorProtocol = RowIterator
 
     func clear()
 
@@ -53,7 +53,7 @@ public struct RowIterator: RowIteratorProtocol {
         self.block = block
     }
 
-    public func makeIterator() -> Element? {
+    public func next() -> Element? {
         return block()
     }
 }
