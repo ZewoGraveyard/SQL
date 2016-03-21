@@ -227,12 +227,8 @@ public protocol Model {
     
     
     var changedFields: [Field]? { get set }
-   
+    
     var persistedValuesByField: [Field: SQLDataConvertible?] { get }
-    
-    mutating func create<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws
-    
-    static func create<T: SQL.Connection where T.ResultType.Iterator.Element == Row>(values: [Field: SQLDataConvertible?], connection: T) throws -> Self
     
     func willSave()
     func didSave()
@@ -398,6 +394,34 @@ public extension Model {
                 fatalError("Primary key not set after insert. This is a serious error in an SQL adapter. Please consult a developer.")
             }
         }
+    }
+
+    public mutating func create<T : Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws {
+
+        let values = persistedValuesByField
+
+        guard !values.isEmpty else {
+            throw ModelError(description: "Nothing to create")
+        }
+
+        try validate()
+
+        willCreate()
+
+        self = try Self.create(values, connection: connection)
+
+        didCreate()
+    }
+
+    static func create<T: SQL.Connection where T.ResultType.Iterator.Element == Row>(values: [Field: SQLDataConvertible?], connection: T) throws -> Self {
+
+        let res = try Self.insertQuery(values).execute(connection)
+
+        guard let row = res.first else {
+            throw ModelError(description: "Something went wrong in the creation of the model.")
+        }
+
+        return try Self.init(row: row)
     }
 }
 
