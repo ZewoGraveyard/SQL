@@ -15,9 +15,6 @@ public protocol Table {
 }
 
 extension Table {
-    public static func f(field: Field) -> DeclaredField {
-        return self.field(field)
-    }
     public static func field(field: Field) -> DeclaredField {
         return DeclaredField(name: field.rawValue, tableName: Self.tableName)
     }

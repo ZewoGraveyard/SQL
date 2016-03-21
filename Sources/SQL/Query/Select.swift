@@ -24,12 +24,14 @@
 
 
 public struct Select: SelectQuery {
-    public let fields: [DeclaredField]
+    public private(set) var fields: [DeclaredField]
     
     public let tableName: String
     
     public var condition: Condition? = nil
-    
+
+    private var aliasName: String?
+
     public var joins: [Join] = []
     
     public var offset: Offset? = nil
@@ -60,6 +62,10 @@ public struct Select: SelectQuery {
         self.fields = []
     }
 
+    public init<T: Table>(from table: T.Type ) {
+        self.init(from: table.tableName)
+    }
+
     public init(fields: [String], from tableName: String) {
         self.init(fields: fields.map { DeclaredField(name: $0) }, from: tableName)
     }
@@ -67,6 +73,23 @@ public struct Select: SelectQuery {
     public init(_ fields: String..., from tableName: String) {
         self.init(fields: fields, from: tableName)
     }
+
+    public func select(fields fields: [DeclaredField]) -> Select {
+        var new = self
+        new.fields.append(contentsOf: fields)
+        return new
+    }
+
+    public func select(fields: DeclaredField...) -> Select {
+        return self.select(fields: fields)
+    }
+    public func select(fields fields: [String]) -> Select {
+        return self.select(fields: fields.map { DeclaredField(name: $0) })
+    }
+    public func select(fields: String...) -> Select {
+        return self.select(fields: fields)
+    }
+
     public func join(tableName: String, using type: [Join.JoinType], leftKey: String, rightKey: String) -> Select {
         var new = self
         new.joins.append(
@@ -78,6 +101,26 @@ public struct Select: SelectQuery {
     
     public func join(tableName: String, using type: Join.JoinType, leftKey: String, rightKey: String) -> Select {
         return join(tableName, using: [type], leftKey: leftKey, rightKey: rightKey)
+    }
+
+    public func join(subquery: SubqueryRepresentable, type: Join.JoinType, leftKey: String, rightKey: String) -> Select {
+        return join(subquery.asSubquery, using: [type], leftKey: leftKey, rightKey: rightKey)
+    }
+
+    public func alias(newAliasName: String) -> Select {
+        var new = self
+        new.aliasName = newAliasName
+        return new
+    }
+}
+
+extension Select: SubqueryRepresentable {
+    public var asSubquery: String {
+        var text = "(\(self.queryComponents.string))"
+        if let aliasName = aliasName {
+            text += " as \(aliasName)"
+        }
+        return text
     }
 }
 
@@ -158,5 +201,11 @@ public extension SelectQuery {
         }
         
         return components
+    }
+}
+
+extension Select: SQLDataRepresentable {
+    public var sqlData: SQLData {
+        return .RawSQL(asSubquery)
     }
 }

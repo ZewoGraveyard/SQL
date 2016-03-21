@@ -278,13 +278,13 @@ public struct Join: QueryComponentsConvertible {
         }
     }
     
-    public let tableName: String
+    public let tableClause: String
     public let types: [JoinType]
     public let leftKey: String
     public let rightKey: String
     
-    public init(_ tableName: String, type: [JoinType], leftKey: String, rightKey: String) {
-        self.tableName = tableName
+    public init(_ tableClause: String, type: [JoinType], leftKey: String, rightKey: String) {
+        self.tableClause = tableClause
         self.types = type
         self.leftKey = leftKey
         self.rightKey = rightKey
@@ -295,7 +295,7 @@ public struct Join: QueryComponentsConvertible {
             types.queryComponents,
             "JOIN",
             QueryComponents(strings: [
-                tableName,
+                tableClause,
                 "ON",
                 leftKey,
                 "=",
@@ -306,4 +306,10 @@ public struct Join: QueryComponentsConvertible {
         )
     }
 }
+
+
+public protocol SubqueryRepresentable {
+    var asSubquery: String { get }
+}
+
 

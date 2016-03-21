@@ -4,10 +4,11 @@
 public struct DeclaredField: CustomStringConvertible {
     public let unqualifiedName: String
     public var tableName: String?
-
-    public init(name: String, tableName: String? = nil) {
+    private var aliasName: String?
+    public init(name: String, tableName: String? = nil, alias aliasName: String? = nil) {
         self.unqualifiedName = name
         self.tableName = tableName
+        self.aliasName = aliasName
     }
 }
 
@@ -61,13 +62,18 @@ public extension Collection where Iterator.Element == (DeclaredField, Optional<S
     }
 
     public func queryComponentsForValuePlaceHolders(isolated isolate: Bool) -> QueryComponents {
-        var strings = [String]()
-
-        for _ in startIndex..<endIndex {
-            strings.append(QueryComponents.valuePlaceholder)
-        }
-
-        let string = strings.joined(separator: ", ")
+        let string = map {
+            (_, value) in
+                guard let value = value else {
+                    return QueryComponents.valuePlaceholder
+                }
+                switch value {
+                case let .RawSQL(rawSql):
+                    return rawSql
+                default:
+                    return QueryComponents.valuePlaceholder
+                }
+        }.joined(separator: ", ")
 
         let components = QueryComponents(string, values: map { $0.1 })
 
@@ -90,11 +96,20 @@ public extension DeclaredField {
     }
 
     public var alias: String {
+        if let aliasName = aliasName {
+            return aliasName
+        }
         guard let tableName = tableName else {
             return unqualifiedName
         }
 
         return tableName + "__" + unqualifiedName
+    }
+
+    public func alias(newAliasName: String) -> DeclaredField {
+        var new = self
+        new.aliasName = newAliasName
+        return new
     }
 
     public var description: String {
