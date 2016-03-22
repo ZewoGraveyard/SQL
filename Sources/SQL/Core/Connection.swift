@@ -109,7 +109,7 @@ public extension Connection {
         return try execute(statement, parameters: parameters)
     }
 
-    public func execute(convertible: QueryComponentsConvertible) throws -> ResultType {
+    public func execute(convertible: QueryComponentsRepresentable) throws -> ResultType {
         return try execute(convertible.queryComponents)
     }
 

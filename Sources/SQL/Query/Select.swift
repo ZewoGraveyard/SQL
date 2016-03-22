@@ -24,13 +24,11 @@
 
 
 public struct Select: SelectQuery {
-    public private(set) var fields: [DeclaredField]
+    public private(set) var fields: [QueryComponentsRepresentable]
     
     public let tableName: String
     
     public var condition: Condition? = nil
-
-    private var aliasName: String?
 
     public var joins: [Join] = []
     
@@ -39,88 +37,62 @@ public struct Select: SelectQuery {
     public var limit: Limit? = nil
     
     public var orderBy: [OrderBy] = []
-    
-    public init(fields: [DeclaredField], from tableName: String) {
+
+    public var groupBy: [GroupBy] = []
+
+
+    public init(fields: [QueryComponentsRepresentable], from tableName: String) {
         self.tableName = tableName
         self.fields = fields
     }
 
-    public init<T: Table>(_ fields: DeclaredField..., from table: T.Type ) {
-        self.init(fields: fields, from: table.tableName)
+    public init(_ fields: QueryComponentsRepresentable..., from tableName: String) {
+        self.init(fields: fields, from: tableName)
     }
+
 
     public init<T: Table>(_ fields: T.Field..., from table: T.Type ) {
         self.init(fields: fields.map {table.field($0)}, from: table.tableName)
     }
 
-    public init(_ fields: DeclaredField..., from tableName: String) {
-        self.init(fields: fields, from: tableName)
-    }
 
     public init(from tableName: String) {
-        self.tableName = tableName
-        self.fields = []
+        self.init(fields: [], from: tableName)
     }
 
-    public init<T: Table>(from table: T.Type ) {
-        self.init(from: table.tableName)
-    }
 
-    public init(fields: [String], from tableName: String) {
-        self.init(fields: fields.map { DeclaredField(name: $0) }, from: tableName)
-    }
-
-    public init(_ fields: String..., from tableName: String) {
-        self.init(fields: fields, from: tableName)
-    }
-
-    public func select(fields fields: [DeclaredField]) -> Select {
+    public func select(fields fields: [QueryComponentsRepresentable]) -> Select {
         var new = self
         new.fields.append(contentsOf: fields)
         return new
     }
 
-    public func select(fields: DeclaredField...) -> Select {
-        return self.select(fields: fields)
-    }
-    public func select(fields fields: [String]) -> Select {
-        return self.select(fields: fields.map { DeclaredField(name: $0) })
-    }
-    public func select(fields: String...) -> Select {
+    public func select(fields: QueryComponentsRepresentable...) -> Select {
         return self.select(fields: fields)
     }
 
-    public func join(tableName: String, using type: [Join.JoinType], leftKey: String, rightKey: String) -> Select {
+
+    public func join(tableClause: QueryComponents, using type: [Join.JoinType], leftKey: QueryComponentsRepresentable, rightKey: QueryComponentsRepresentable) -> Select {
         var new = self
         new.joins.append(
-            Join(tableName, type: type, leftKey: leftKey, rightKey: rightKey)
+            Join(tableClause, type: type, leftKey: leftKey, rightKey: rightKey)
         )
         
         return new
     }
     
-    public func join(tableName: String, using type: Join.JoinType, leftKey: String, rightKey: String) -> Select {
-        return join(tableName, using: [type], leftKey: leftKey, rightKey: rightKey)
+    public func join(tableName: String, using type: Join.JoinType, leftKey: QueryComponentsRepresentable, rightKey: QueryComponentsRepresentable) -> Select {
+        return join(QueryComponents(tableName), using: [type], leftKey: leftKey, rightKey: rightKey)
     }
 
-    public func join(subquery: SubqueryRepresentable, type: Join.JoinType, leftKey: String, rightKey: String) -> Select {
-        return join(subquery.asSubquery, using: [type], leftKey: leftKey, rightKey: rightKey)
-    }
-
-    public func alias(newAliasName: String) -> Select {
-        var new = self
-        new.aliasName = newAliasName
-        return new
+    public func join(queryComponents: QueryComponentsRepresentable, type: Join.JoinType, leftKey: QueryComponentsRepresentable, rightKey: QueryComponentsRepresentable) -> Select {
+        return join(queryComponents.queryComponents, using: [type], leftKey: leftKey, rightKey: rightKey)
     }
 }
 
-extension Select: SubqueryRepresentable {
-    public var asSubquery: String {
-        var text = "(\(self.queryComponents.string))"
-        if let aliasName = aliasName {
-            text += " as \(aliasName)"
-        }
-        return text
+extension Select {
+    public func asSubquery(alias: String) -> Subquery {
+        return Subquery(components: queryComponents, alias: alias)
     }
 }
 
@@ -131,7 +103,7 @@ public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
         return T.tableName
     }
     
-    public let fields: [DeclaredField]
+    public let fields: [QueryComponentsRepresentable]
     
     public var condition: Condition? = nil
     
@@ -142,13 +114,15 @@ public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
     public var limit: Limit? = nil
     
     public var orderBy: [OrderBy] = []
-    
+
+    public var groupBy: [GroupBy] = []
+
     public func join<R: Model>(model: R.Type, using type: [Join.JoinType], leftKey: ModelType.Field, rightKey: R.Field) -> ModelSelect<T> {
         var new = self
         new.joins.append(
-            Join(R.tableName, type: type, leftKey: ModelType.field(leftKey).qualifiedName, rightKey: R.field(rightKey).qualifiedName)
+            Join(QueryComponents(R.tableName), type: type, leftKey: ModelType.field(leftKey).qualifiedName, rightKey: R.field(rightKey).qualifiedName)
         )
-        
+
         return new
     }
     
@@ -156,7 +130,7 @@ public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
         return join(model, using: [type], leftKey: leftKey, rightKey: rightKey)
     }
 
-    public init(_ fields: [DeclaredField]? = nil) {
+    public init(_ fields: [QueryComponentsRepresentable]? = nil) {
         self.fields = fields ?? T.selectFields.map { T.field($0) }
     }
 }
@@ -164,7 +138,7 @@ public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
 public protocol SelectQuery: FilteredQuery, FetchQuery {
     var joins: [Join] { get set }
     
-    var fields: [DeclaredField] { get }
+    var fields: [QueryComponentsRepresentable] { get }
 }
 
 public extension SelectQuery {
@@ -172,7 +146,7 @@ public extension SelectQuery {
     public var queryComponents: QueryComponents {
         var components = QueryComponents(components: [
             "SELECT",
-            fields.isEmpty ? "*" : fields.queryComponentsForSelectingFields(useQualifiedNames: true, useAliasing: true, isolateQueryComponents: false),
+            (fields.isEmpty) ? "*" : QueryComponents(components: fields.map{$0.queryComponents}, mergedByString: ","),
             "FROM",
             QueryComponents(tableName)
             ]
@@ -191,6 +165,11 @@ public extension SelectQuery {
             components.append("ORDER BY")
             components.append(orderBy.queryComponents(mergedByString: ","))
         }
+
+        if !groupBy.isEmpty {
+            components.append("GROUP BY")
+            components.append(groupBy.queryComponents(mergedByString: ","))
+        }
         
         if let limit = limit {
             components.append(limit.queryComponents)
@@ -204,8 +183,3 @@ public extension SelectQuery {
     }
 }
 
-extension Select: SQLDataRepresentable {
-    public var sqlData: SQLData {
-        return .RawSQL(asSubquery)
-    }
-}

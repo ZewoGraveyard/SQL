@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public indirect enum Condition: QueryComponentsConvertible {
+public indirect enum Condition: QueryComponentsRepresentable {
     public enum Key {
         case Value(SQLData?)
         case Property(DeclaredField)

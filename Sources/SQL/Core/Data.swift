@@ -33,6 +33,7 @@ public enum SQLData {
     case Binary(Data)
     case RawSQL(String)
 }
+
 public protocol SQLDataRepresentable {
     var sqlData: SQLData { get }
 }

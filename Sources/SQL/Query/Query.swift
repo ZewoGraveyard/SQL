@@ -23,7 +23,7 @@
 // SOFTWARE.
 
 
-public protocol Query: QueryComponentsConvertible {}
+public protocol Query: QueryComponentsRepresentable {}
 
 public extension Query {
     public func execute<T: Connection>(connection: T) throws -> T.ResultType {
@@ -60,7 +60,7 @@ public extension ModelQuery where Self: FetchQuery {
     }
 }
 
-public struct Limit: QueryComponentsConvertible {
+public struct Limit: QueryComponentsRepresentable {
     public let value: Int
     
     public init(_ value: Int) {
@@ -78,7 +78,7 @@ extension Limit: IntegerLiteralConvertible {
     }
 }
 
-public struct Offset: QueryComponentsConvertible {
+public struct Offset: QueryComponentsRepresentable {
     public let value: Int
     
     public init(_ value: Int) {
@@ -96,7 +96,7 @@ extension Offset: IntegerLiteralConvertible {
     }
 }
 
-public enum OrderBy: QueryComponentsConvertible {
+public enum OrderBy: QueryComponentsRepresentable {
     case Ascending(String)
     case Descending(String)
     
@@ -109,6 +109,22 @@ public enum OrderBy: QueryComponentsConvertible {
         }
     }
 }
+
+public struct GroupBy: QueryComponentsRepresentable {
+    private var field: DeclaredField
+    public init(_ field: DeclaredField) {
+        self.field = field
+    }
+    public var queryComponents: QueryComponents {
+        return QueryComponents(strings: [field.qualifiedName])
+    }
+}
+
+//public struct Having: QueryComponentsRepresentable {
+//    public var queryComponents: QueryComponents {
+//        return QueryComponents(strings: ["HAVING", String(value)])
+//    }
+//}
 
 public enum DeclaredFieldOrderBy {
     case Ascending(DeclaredField)
@@ -148,6 +164,7 @@ public protocol FetchQuery: TableQuery {
     var offset: Offset? { get set }
     var limit: Limit? { get set }
     var orderBy: [OrderBy] { get set }
+    var groupBy: [GroupBy] { get set }
 }
 
 public extension FetchQuery {
@@ -211,7 +228,13 @@ public extension FetchQuery {
     public func orderBy(values: DeclaredFieldOrderBy...) -> Self {
         return orderBy(values)
     }
-    
+
+    public func groupBy(fields: DeclaredField...) -> Self {
+        var new = self
+        new.groupBy.append(contentsOf: fields.map { GroupBy($0) } )
+        return new
+    }
+
     public func limit(value: Int?) -> Self {
         var new = self
         if let value = value {
@@ -257,8 +280,8 @@ extension FilteredQuery {
 }
 
 
-public struct Join: QueryComponentsConvertible {
-    public enum JoinType: QueryComponentsConvertible {
+public struct Join: QueryComponentsRepresentable {
+    public enum JoinType: QueryComponentsRepresentable {
         case Inner
         case Outer
         case Left
@@ -278,38 +301,51 @@ public struct Join: QueryComponentsConvertible {
         }
     }
     
-    public let tableClause: String
+    public let tableClause: QueryComponents
     public let types: [JoinType]
-    public let leftKey: String
-    public let rightKey: String
+    public let leftKey: QueryComponents
+    public let rightKey: QueryComponents
     
-    public init(_ tableClause: String, type: [JoinType], leftKey: String, rightKey: String) {
+    public init(_ tableClause: QueryComponents, type: [JoinType], leftKey: QueryComponentsRepresentable, rightKey: QueryComponentsRepresentable) {
         self.tableClause = tableClause
         self.types = type
-        self.leftKey = leftKey
-        self.rightKey = rightKey
+        self.leftKey = leftKey.queryComponents
+        self.rightKey = rightKey.queryComponents
     }
     
     public var queryComponents: QueryComponents {
         return QueryComponents(components: [
             types.queryComponents,
             "JOIN",
-            QueryComponents(strings: [
-                tableClause,
-                "ON",
-                leftKey,
-                "=",
-                rightKey
-                ]
-            )
+            tableClause,
+            "ON",
+            leftKey,
+            "=",
+            rightKey
             ]
         )
     }
 }
 
 
-public protocol SubqueryRepresentable {
-    var asSubquery: String { get }
+public struct Subquery: QueryComponentsRepresentable {
+    private let components: QueryComponents
+    let alias: String
+    public init(components: QueryComponents, alias: String) {
+        self.components = ["(", components, ")", "as", QueryComponents(alias)]
+        self.alias = alias
+    }
+    public func field(name: String) -> String {
+        return "\(self.alias).\(name)"
+    }
+    public var queryComponents: QueryComponents {
+        return components
+    }
 }
 
 
+extension Subquery: SQLDataRepresentable {
+    public var sqlData: SQLData {
+        return .RawSQL(self.queryComponents.string)
+    }
+}

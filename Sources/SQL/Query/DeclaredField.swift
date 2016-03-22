@@ -12,6 +12,16 @@ public struct DeclaredField: CustomStringConvertible {
     }
 }
 
+extension DeclaredField: QueryComponentsRepresentable {
+    public var queryComponents: QueryComponents {
+        var str = qualifiedName
+        if qualifiedName != alias {
+            str += " AS \(alias)"
+        }
+        return QueryComponents(str)
+    }
+}
+
 extension DeclaredField: Hashable {
     public var hashValue: Int {
         return qualifiedName.hashValue
@@ -99,11 +109,11 @@ public extension DeclaredField {
         if let aliasName = aliasName {
             return aliasName
         }
-        guard let tableName = tableName else {
-            return unqualifiedName
-        }
+//        guard let tableName = tableName else { //todo fix it
+        return unqualifiedName
+//        }
 
-        return tableName + "__" + unqualifiedName
+//        return tableName + "__" + unqualifiedName
     }
 
     public func alias(newAliasName: String) -> DeclaredField {

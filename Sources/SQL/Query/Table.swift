@@ -26,6 +26,17 @@ extension Table {
     public static var declaredPrimaryKeyField: DeclaredField {
         return field(fieldForPrimaryKey)
     }
-
-
 }
+
+
+
+
+//
+//public struct Relation<LeftTable: Table, RightTable: Table> {
+//    let leftField: DeclaredField
+//    let rightField: DeclaredField
+//    public init(_ leftField: LeftTable.Field, _ rightField: RightTable.Field) {
+//        self.leftField = LeftTable.field(leftField)
+//        self.rightField = RightTable.field(rightField)
+//    }
+//}
