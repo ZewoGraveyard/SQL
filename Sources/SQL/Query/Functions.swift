@@ -1,4 +1,4 @@
-//public struct Function: QueryComponentsRepresentable {
+//public struct Function: QueryComponentRepresentable {
 //
 //}
 //

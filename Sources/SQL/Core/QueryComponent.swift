@@ -1,4 +1,4 @@
-// QueryComponents.swift
+// queryComponent.swift
 //
 // The MIT License (MIT)
 //
@@ -23,128 +23,97 @@
 // SOFTWARE.
 
 
-public struct QueryComponents: CustomStringConvertible {
-    
-    internal static let valuePlaceholder = "%@"
-    
-    public struct Error: ErrorProtocol {
-        public let description: String
-    }
-    
-    public var stringComponents: [String]
-    public var values: [SQLData?]
-
-    public var string: String {
-        return stringComponents.filter { !$0.isEmpty }.map { $0.trim() }.joined(separator: " ")
-    }
-    
-    public func stringWithNumberedValuesUsingPrefix(prefix: String, suffix: String? = nil) throws -> String {
-        var strings = string.split(by: QueryComponents.valuePlaceholder)
-        
-        if strings.count == 1 {
-            return string
-        }
-        
-        guard strings.count == values.count + 1 else {
-            throw Error(description: "Parameter count mismatch")
-        }
-        
-        var newStrings = [String]()
-        
-        for i in 0..<values.count {
-            newStrings.append(strings[i])
-            newStrings.append("\(prefix)\(i + 1)\(suffix ?? "")")
-        }
-        
-        newStrings.append(strings.last!)
-
-        return newStrings.joined(separator: "")
-    }
-
-    public init() {
-        stringComponents = []
-        values = []
-    }
-    
-    public init(components: [QueryComponents], mergedByString string: String? = nil) {
-        var stringComponents = [String]()
-        for (i, component) in components.enumerated() {
-            stringComponents += component.stringComponents
-            
-            if i < components.count - 1, let mergeString = string {
-                stringComponents.append(mergeString)
-            }
-        }
-        
-        self.stringComponents = stringComponents
-        self.values = components.flatMap { $0.values }
-        
-    }
-    
-    public init(strings: [String], values: [SQLData?] = []) {
-        self.stringComponents = strings
-        self.values = values
-    }
-    
-    public init(_ string: String, values: [SQLData?] = []) {
-        self.init(strings: [string], values: values)
-    }
-
-    public func isolate() -> QueryComponents {
-        return QueryComponents("(" + stringComponents.joined(separator: " ") + ")", values: values)
-    }
-
-    public mutating func append(component: QueryComponents) {
-        stringComponents += component.stringComponents
-        values += component.values
-    }
-    
-    public mutating func prepend(component: QueryComponents) {
-        stringComponents = component.stringComponents + stringComponents
-        values = component.values + values
-    }
-    
-    public var description: String {
-        return "<QueryComponents string: \"\(string)\", values: \(values)"
-    }
-}
-
-extension QueryComponents: ArrayLiteralConvertible {
-    public init(arrayLiteral elements: QueryComponents...) {
-        self.init(components: elements)
-    }
+public indirect enum QueryComponent {
+    case parts([QueryComponent])
+    case select(fields: QueryComponent, parts: QueryComponent)
+    case subquery(query: QueryComponent, alias: String?)
+    case from(parts: QueryComponent)
+    case table(name: String, alias: String?)
+    case field(name: String, table: String?, alias: String?)
+//    case join(type: Join.JoinType, with: QueryComponent, leftKey: QueryComponent, rightKey: QueryComponent)
+    case filter(condition: QueryComponent)
+    case update(parts: QueryComponent)
+    case set(values: QueryComponent)
+    case function(name: String, args: QueryComponent)
+//    case condition(parts: QueryComponent)
+//    case and(left: QueryComponent, right: QueryComponent)
+//    case or(left: QueryComponent, right: QueryComponent)
+    case orderBy(parts: QueryComponent)
+    case groupBy(parts: QueryComponent)
+    case having(parts: QueryComponent)
+    case offset(Int)
+    case limit(Int)
+    case sql(String)
+    case caseClause
 }
 
 
-extension QueryComponents: StringLiteralConvertible {
+
+
+extension QueryComponent: StringLiteralConvertible {
     public init(stringLiteral value: String) {
-        self.init(value)
+        self = .sql(value)
     }
-    
+
     public init(unicodeScalarLiteral value: String) {
         self.init(stringLiteral: value)
     }
-    
+
     public init(extendedGraphemeClusterLiteral value: String) {
         self.init(stringLiteral: value)
     }
 }
 
-public protocol QueryComponentsRepresentable {
-    var queryComponents: QueryComponents { get }
-}
-
-public extension Sequence where Iterator.Element: QueryComponentsRepresentable {
-    public func queryComponents(mergedByString string: String? = nil) -> QueryComponents {
-        return QueryComponents(components: self.map { $0.queryComponents }, mergedByString: string)
-    }
-    
-    public var queryComponents: QueryComponents {
-        return queryComponents()
+extension QueryComponent: ArrayLiteralConvertible {
+    public init(arrayLiteral elements: QueryComponent...) {
+        self = .parts(elements)
     }
 }
 
-
-extension String: QueryComponentsRepresentable {
-    public var queryComponents: QueryComponents {return  QueryComponents(self) }
+public protocol QueryComponentRepresentable {
+    var queryComponent: QueryComponent { get }
 }
+
+
+
+//public extension Sequence where Iterator.Element: QueryComponentRepresentable {
+//    public func queryComponent(mergedByString string: String? = nil) -> queryComponent {
+//        return queryComponent(components: self.map { $0.queryComponent }, mergedByString: string)
+//    }
+//
+//    public var queryComponent: queryComponent {
+//        return queryComponent()
+//    }
+//}
+//
+//
+//extension String: QueryComponentRepresentable {
+//    public var queryComponent: queryComponent {return  queryComponent(self) }
+//}
+//
+//
+//extension queryComponent: StringInterpolationConvertible {
+//    public init(stringInterpolation strings: queryComponent...) {
+//        self.init(components: strings)
+//    }
+//    public init(stringInterpolationSegment expr: queryComponent) {
+//        self = expr
+//    }
+//    public init(stringInterpolationSegment expr: String) {
+//        self = queryComponent(expr)
+//    }
+//
+//    public init<T: QueryComponentRepresentable>(stringInterpolationSegment expr: T) {
+//        print(expr)
+//        self = expr.queryComponent
+//    }
+//    public init<T: CustomStringConvertible>(stringInterpolationSegment expr: T) {
+//        print(expr)
+//        self = queryComponent(String(expr))
+//    }
+//    public init<T>(stringInterpolationSegment expr: T) {
+//        print(expr)
+//        self = queryComponent(String(expr))
+//    }
+//}
+//

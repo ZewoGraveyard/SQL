@@ -114,13 +114,28 @@ struct Component: Table {
 //let q = Select(Event.f(.id)+"  "+Event.f(.name), from: Event.self)
 
 
+let subq = Select(Event.f(.id), from: Event.tableName).asSubquery("subquery")
+
+let q = Select(subq, Event.f(.name), from: Event.tableName)
+
+
+//print(q.queryComponent)
+
+let qq = Compiler().compile(q.queryComponent)
+
+print(qq.joined(separator: " "))
 
 
 
 
 
 
-//print(q.queryComponents.string)
+
+
+
+
+//print(q.queryComponent.string)
+
 
 
 

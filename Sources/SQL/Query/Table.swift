@@ -7,7 +7,7 @@
 
 
 public protocol Table {
-    associatedtype Field:FieldType
+    associatedtype Field: FieldType
 
     static var fieldForPrimaryKey: Field { get }
 
