@@ -31,6 +31,21 @@ extension DeclaredField: QueryComponentRepresentable {
     }
 }
 
+
+extension DeclaredField: StringLiteralConvertible {
+    public init(stringLiteral value: String) {
+        self.init(name: value)
+    }
+
+    public init(unicodeScalarLiteral value: String) {
+        self.init(stringLiteral: value)
+    }
+
+    public init(extendedGraphemeClusterLiteral value: String) {
+        self.init(stringLiteral: value)
+    }
+}
+
 //extension DeclaredField: Hashable {
 //    public var hashValue: Int {
 //        return name.hashValue

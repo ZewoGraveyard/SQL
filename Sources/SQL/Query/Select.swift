@@ -31,7 +31,7 @@ public struct Select: SelectQuery {
 //
 //    public var condition: Condition? = nil
 //
-//    public var joins: [Join] = []
+    public var joins: [Join] = []
 //
     public var offset: Offset? = nil
 
@@ -39,7 +39,7 @@ public struct Select: SelectQuery {
 //
 //    public var orderBy: [OrderBy] = []
 //
-    public var groupBy: [GroupBy] = []
+    public var group: GroupBy? = nil
 
 
     public init(fields: [QueryComponentRepresentable], from tableName: String) {
@@ -73,14 +73,14 @@ public struct Select: SelectQuery {
     }
 
 
-//    public func join(tableClause: queryComponent, using type: [Join.JoinType], leftKey: QueryComponentRepresentable, rightKey: QueryComponentRepresentable) -> Select {
-//        var new = self
-//        new.joins.append(
-//            Join(tableClause, type: type, leftKey: leftKey, rightKey: rightKey)
-//        )
-//
-//        return new
-//    }
+    public func join(tableClause: QueryComponentRepresentable, using type: [Join.JoinType],
+                     leftKey: DeclaredField, rightKey: DeclaredField) -> Select {
+        var new = self
+        new.joins.append(
+            Join(tableClause.queryComponent, type: type, leftKey: leftKey, rightKey: rightKey)
+        )
+        return new
+    }
 //
 //    public func join(tableName: String, using type: Join.JoinType, leftKey: QueryComponentRepresentable, rightKey: QueryComponentRepresentable) -> Select {
 //        return join(queryComponent(tableName), using: [type], leftKey: leftKey, rightKey: rightKey)
@@ -108,7 +108,7 @@ extension Select {
 //
 //    public var condition: Condition? = nil
 //
-//    public var joins: [Join] = []
+    public var joins: [Join] = []
 //
 //    public var offset: Offset? = nil
 //
@@ -137,18 +137,27 @@ extension Select {
 //}
 
 public protocol SelectQuery: FilteredQuery, FetchQuery {
-//    var joins: [Join] { get set }
+    var joins: [Join] { get set }
 //
     var fields: [QueryComponentRepresentable] { get }
 }
 
 public extension SelectQuery {
-    
     public var queryComponent: QueryComponent {
-        var fieldsComponents: QueryComponent = .parts(fields.map{$0.queryComponent})
+        var fieldsComponents: [QueryComponent] = fields.map{$0.queryComponent}
         var parts: [QueryComponent] = []
-        parts.append(.from(parts: .table(name: tableName, alias: nil)))
-        return .select(fields: fieldsComponents, parts: .parts(parts))
+
+
+        return .select(fields: fieldsComponents,
+                from: .table(name: tableName, alias: nil),
+                joins: joins.map{$0.queryComponent},
+                filter: nil,
+                orderBy: nil,
+                offset: offset?.queryComponent,
+                limit: limit?.queryComponent,
+                groupBy: group?.queryComponent,
+                having: nil
+        )
 
 //        if !joins.isEmpty {
 //            components.append(joins.queryComponent)

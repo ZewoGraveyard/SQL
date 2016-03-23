@@ -24,23 +24,25 @@
 
 
 public indirect enum QueryComponent {
+    case join(types:[Join.JoinType], with:QueryComponent, leftKey:QueryComponent, rightKey:QueryComponent)
     case parts([QueryComponent])
-    case select(fields: QueryComponent, parts: QueryComponent)
-    case subquery(query: QueryComponent, alias: String?)
-    case from(parts: QueryComponent)
-    case table(name: String, alias: String?)
-    case field(name: String, table: String?, alias: String?)
-//    case join(type: Join.JoinType, with: QueryComponent, leftKey: QueryComponent, rightKey: QueryComponent)
-    case filter(condition: QueryComponent)
-    case update(parts: QueryComponent)
-    case set(values: QueryComponent)
-    case function(name: String, args: QueryComponent)
+    case select(fields:[QueryComponent], from:QueryComponent, joins:[QueryComponent],
+                filter:QueryComponent?, orderBy:QueryComponent?, offset:QueryComponent?,
+                limit:QueryComponent?, groupBy:QueryComponent?, having:QueryComponent?)
+
+    case subquery(query:QueryComponent, alias:String?)
+    case table(name:String, alias:String?)
+    case field(name:String, table:String?, alias:String?)
+//    case filter(condition: QueryComponent)
+    case update(parts:QueryComponent)
+    case set(values:QueryComponent)
+    case function(name:String, args:QueryComponent)
 //    case condition(parts: QueryComponent)
 //    case and(left: QueryComponent, right: QueryComponent)
 //    case or(left: QueryComponent, right: QueryComponent)
-    case orderBy(parts: QueryComponent)
-    case groupBy(parts: QueryComponent)
-    case having(parts: QueryComponent)
+    case orderBy(parts:QueryComponent)
+    case groupBy(fields:[QueryComponent])
+    case having(parts:QueryComponent)
     case offset(Int)
     case limit(Int)
     case sql(String)
@@ -48,17 +50,13 @@ public indirect enum QueryComponent {
 }
 
 
-
-
 extension QueryComponent: StringLiteralConvertible {
     public init(stringLiteral value: String) {
         self = .sql(value)
     }
-
     public init(unicodeScalarLiteral value: String) {
         self.init(stringLiteral: value)
     }
-
     public init(extendedGraphemeClusterLiteral value: String) {
         self.init(stringLiteral: value)
     }
@@ -73,7 +71,6 @@ extension QueryComponent: ArrayLiteralConvertible {
 public protocol QueryComponentRepresentable {
     var queryComponent: QueryComponent { get }
 }
-
 
 
 //public extension Sequence where Iterator.Element: QueryComponentRepresentable {

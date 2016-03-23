@@ -116,7 +116,8 @@ struct Component: Table {
 
 let subq = Select(Event.f(.id), from: Event.tableName).asSubquery("subquery")
 
-let q = Select(subq, Event.f(.name), from: Event.tableName)
+let q = Select(subq, Event.f(.name), from: Event.tableName).groupBy("asd", "fdsd").join(subq, using: [.Inner, .Left],
+        leftKey: "asd2", rightKey: subq.field("asd")).offset(10).limit(15)
 
 
 //print(q.queryComponent)

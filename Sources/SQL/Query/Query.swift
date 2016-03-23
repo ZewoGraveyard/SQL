@@ -111,12 +111,12 @@ extension Offset: IntegerLiteralConvertible {
 //}
 
 public struct GroupBy: QueryComponentRepresentable {
-    private var field: DeclaredField
-    public init(_ field: DeclaredField) {
-        self.field = field
+    private var fields: [DeclaredField]
+    public init(_ fields: [DeclaredField]) {
+        self.fields = fields
     }
     public var queryComponent: QueryComponent {
-        return .groupBy(parts: .parts([field.queryComponent]))
+        return .groupBy(fields: fields.map {$0.queryComponent} )
     }
 }
 
@@ -164,11 +164,11 @@ public protocol FetchQuery: TableQuery {
     var offset: Offset? { get set }
     var limit: Limit? { get set }
 //    var orderBy: [OrderBy] { get set }
-    var groupBy: [GroupBy] { get set }
+    var group: GroupBy? { get set }
 }
 
 //
-//public extension FetchQuery {
+public extension FetchQuery {
 //    public var pageSize: Int? {
 //        get {
 //            return limit?.value
@@ -230,34 +230,34 @@ public protocol FetchQuery: TableQuery {
 //        return orderBy(values)
 //    }
 //
-//    public func groupBy(fields: DeclaredField...) -> Self {
-//        var new = self
-//        new.groupBy.append(contentsOf: fields.map { GroupBy($0) } )
-//        return new
-//    }
+    public func groupBy(fields: DeclaredField...) -> Self {
+        var new = self
+        new.group = GroupBy(fields)
+        return new
+    }
 //
-//    public func limit(value: Int?) -> Self {
-//        var new = self
-//        if let value = value {
-//            new.limit = Limit(value)
-//        }
-//        else {
-//            new.limit = nil
-//        }
-//        return new
-//    }
-//
-//    public func offset(value: Int?) -> Self {
-//        var new = self
-//        if let value = value {
-//            new.offset = Offset(value)
-//        }
-//        else {
-//            new.offset = nil
-//        }
-//        return new
-//    }
-//}
+    public func limit(value: Int?) -> Self {
+        var new = self
+        if let value = value {
+            new.limit = Limit(value)
+        }
+        else {
+            new.limit = nil
+        }
+        return new
+    }
+
+    public func offset(value: Int?) -> Self {
+        var new = self
+        if let value = value {
+            new.offset = Offset(value)
+        }
+        else {
+            new.offset = nil
+        }
+        return new
+    }
+}
 //
 public protocol FilteredQuery: Query {
 //    var condition: Condition? { get set }
@@ -281,55 +281,29 @@ extension FilteredQuery {
 }
 //
 //
-//public struct Join: QueryComponentRepresentable {
-//    public enum JoinType: QueryComponentRepresentable {
-//        case Inner
-//        case Outer
-//        case Left
-//        case Right
-//
-//        public var queryComponent: queryComponent {
-//            switch self {
-//            case .Inner:
-//                return "INNER"
-//            case .Outer:
-//                return "OUTER"
-//            case .Left:
-//                return "LEFT"
-//            case .Right:
-//                return "RIGHT"
-//            }
-//        }
-//    }
-//
-//    public let tableClause: queryComponent
-//    public let types: [JoinType]
-//    public let leftKey: queryComponent
-//    public let rightKey: queryComponent
-//
-//    public init(_ tableClause: queryComponent, type: [JoinType], leftKey: QueryComponentRepresentable, rightKey: QueryComponentRepresentable) {
-//        self.tableClause = tableClause
-//        self.types = type
-//        self.leftKey = leftKey.queryComponent
-//        self.rightKey = rightKey.queryComponent
-//    }
-//
-//    public var queryComponent: queryComponent {
-//        return "\(types) JOIN \(tableClause) on \(leftKey) = \(rightKey)"
-////        return queryComponent(components: [
-////            types.queryComponent,
-////            "JOIN",
-////            tableClause,
-////            "ON",
-////            leftKey,
-////            "=",
-////            rightKey
-////            ]
-////        )
-//    }
-//}
-//
-//
+public struct Join: QueryComponentRepresentable {
+    public enum JoinType {
+        case Inner, Outer, Left, Right
+    }
+
+    public let tableClause: QueryComponent
+    public let types: [JoinType]
+    public let leftKey: QueryComponent
+    public let rightKey: QueryComponent
+
+    public init(_ tableClause: QueryComponent, type: [JoinType], leftKey: DeclaredField, rightKey: DeclaredField) {
+        self.tableClause = tableClause
+        self.types = type
+        self.leftKey = leftKey.queryComponent
+        self.rightKey = rightKey.queryComponent
+    }
+
+    public var queryComponent: QueryComponent {
+        return .join(types: types, with: tableClause, leftKey: leftKey, rightKey: rightKey)
+    }
+}
+
+
 public struct Subquery: QueryComponentRepresentable {
     private let query: QueryComponent
     let alias: String
@@ -337,9 +311,9 @@ public struct Subquery: QueryComponentRepresentable {
         self.query = query
         self.alias = alias
     }
-//    public func field(name: String) -> String {
-//        return "\(self.alias).\(name)"
-//    }
+    public func field(name: String) -> DeclaredField {
+        return DeclaredField(name: name, tableName: alias)
+    }
     public var queryComponent: QueryComponent {
         return .subquery(query: query, alias: alias)
     }
