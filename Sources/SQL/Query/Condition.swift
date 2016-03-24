@@ -22,7 +22,7 @@
 //// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //// SOFTWARE.
 //
-public indirect enum Condition: QueryComponentRepresentable {
+public indirect enum Condition: QueryComponentRepresentable { //todo should be params or smth like
 //    public enum Key {
 //        case Value(SQLData?)
 //        case Property(DeclaredField)

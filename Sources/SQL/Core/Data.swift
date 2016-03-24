@@ -34,6 +34,12 @@ public enum SQLData {
     case RawSQL(String)
 }
 
+extension SQLData: QueryComponentRepresentable {
+    public var queryComponent: QueryComponent {
+        return .bind(data: self)
+    }
+}
+
 public protocol SQLDataRepresentable {
     var sqlData: SQLData { get }
 }

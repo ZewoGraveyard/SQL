@@ -1,8 +1,14 @@
 public class Compiler {
 
-//    var stringParts: [String] = []
+    var sqlData: [SQLData] = []
 
-    public func compile(query: QueryComponent) -> [String] {
+    public func compile(query: QueryComponentRepresentable) -> (statement: String, params: [SQLData]) {
+
+        let stringParts = compilePart(query.queryComponent)
+        return (statement: stringParts.joined(separator: " "), params: sqlData)
+    }
+
+    func compilePart(query: QueryComponent) -> [String] {
 
         switch query {
         case let .sql(str):
@@ -24,24 +30,27 @@ public class Compiler {
             return join(types, with: with, leftKey: leftKey, rightKey: rightKey)
         case let .condition(cond):
             return compileCondition(cond)
+        case let .bind(data):
+            return bind(data)
         default:
             print("default!!!!!!!!!!!!!!!!!!!!! \(query)")
             return []
         }
     }
+
     func compileParts(parts: [QueryComponent]) -> [String] {
-            return parts.map {
-                compile($0)
-            }.flatMap {
-                $0
-            }
+        return parts.map {
+            compilePart($0)
+        }.flatMap {
+            $0
+        }
     }
 
     func compileParts(parts: [QueryComponent], withDivider divider: String) -> [String] {
         var stringParts: [String] = []
         let lastIndex = parts.count - 1
         for (index, part) in parts.enumerated() {
-            stringParts.append(contentsOf: compile(part))
+            stringParts.append(contentsOf: compilePart(part))
             if index != lastIndex {
                 stringParts.append(divider)
             }
@@ -82,8 +91,9 @@ public class Compiler {
         return stringParts
     }
 
-    func bind() -> [String] {
-        return []
+    func bind(data: SQLData) -> [String] {
+        sqlData.append(data)
+        return ["%s"]
     }
 
     func joinType(type: Join.JoinType) -> String {
@@ -105,17 +115,17 @@ public class Compiler {
             joinType($0)
         })
         stringParts.append("JOIN")
-        stringParts.append(contentsOf: compile(with))
+        stringParts.append(contentsOf: compilePart(with))
         stringParts.append("ON")
-        stringParts.append(contentsOf: compile(leftKey))
+        stringParts.append(contentsOf: compilePart(leftKey))
         stringParts.append("=")
-        stringParts.append(contentsOf: compile(rightKey))
+        stringParts.append(contentsOf: compilePart(rightKey))
         return stringParts
     }
 
     func subquery(query: QueryComponent, alias: String?) -> [String] {
         var stringParts: [String] = ["("]
-        stringParts.append(contentsOf: compile(query))
+        stringParts.append(contentsOf: compilePart(query))
         stringParts.append(")")
         if let alias = alias {
             stringParts.append(contentsOf: ["AS", alias])
@@ -134,15 +144,15 @@ public class Compiler {
         stringParts.append(contentsOf: compileParts(fields, withDivider: ","))
 
         stringParts.append("FROM")
-        stringParts.append(contentsOf: compile(from))
+        stringParts.append(contentsOf: compilePart(from))
 
         for join in joins {
-            stringParts.append(contentsOf: compile(join))
+            stringParts.append(contentsOf: compilePart(join))
         }
 
         if let filter = filter {
             stringParts.append("WHERE")
-            stringParts.append(contentsOf: compile(filter))
+            stringParts.append(contentsOf: compilePart(filter))
         }
 
         if (offset != nil || limit != nil) {
@@ -160,9 +170,9 @@ public class Compiler {
     func compileCondition(condition: Condition) -> [String] {
         func statementWithKeyValue(key: QueryComponentRepresentable, _ op: String, _ value: QueryComponentRepresentable) -> [String] {
             var stringParts: [String] = []
-            stringParts.append(contentsOf: compile(key.queryComponent))
+            stringParts.append(contentsOf: compilePart(key.queryComponent))
             stringParts.append(op)
-            stringParts.append(contentsOf: compile(value.queryComponent))
+            stringParts.append(contentsOf: compilePart(value.queryComponent))
             return stringParts
         }
 
@@ -212,7 +222,7 @@ public class Compiler {
             stringParts.append(")")
 
             return stringParts
-      default:
+        default:
             return []
 //        case .Like(let key, let value):
 //            return queryComponent(strings: [key.qualifiedName, "LIKE", queryComponent.valuePlaceholder], values: [value])
