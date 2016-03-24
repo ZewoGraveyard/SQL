@@ -117,12 +117,15 @@ struct Component: Table {
 let subq = Select(Event.f(.id), from: Event.tableName).asSubquery("subquery")
 
 let q = Select(subq, Event.f(.name), from: Event.tableName).groupBy("asd", "fdsd").join(subq, using: [.Inner, .Left],
-        leftKey: "asd2", rightKey: subq.field("asd")).offset(10).limit(15)
+        leftKey: "asd2", rightKey: subq.field("asd")).orderBy(.Ascending("asd")).limit(1000).offset(12)
 
 
 //print(q.queryComponent)
 
-let qq = Compiler().compile(q.queryComponent)
+
+let qq = OracleCompiler().compile(q.queryComponent)
+
+
 
 print(qq.joined(separator: " "))
 

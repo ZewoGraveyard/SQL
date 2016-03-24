@@ -37,7 +37,7 @@ public struct Select: SelectQuery {
 
     public var limit: Limit? = nil
 //
-//    public var orderBy: [OrderBy] = []
+    public var orderBy: [OrderBy] = []
 //
     public var group: GroupBy? = nil
 
@@ -108,7 +108,7 @@ extension Select {
 //
 //    public var condition: Condition? = nil
 //
-    public var joins: [Join] = []
+//    public var joins: [Join] = []
 //
 //    public var offset: Offset? = nil
 //
@@ -152,40 +152,12 @@ public extension SelectQuery {
                 from: .table(name: tableName, alias: nil),
                 joins: joins.map{$0.queryComponent},
                 filter: nil,
-                orderBy: nil,
+                ordersBy: orderBy.map{ $0.queryComponent },
                 offset: offset?.queryComponent,
                 limit: limit?.queryComponent,
                 groupBy: group?.queryComponent,
                 having: nil
         )
-
-//        if !joins.isEmpty {
-//            components.append(joins.queryComponent)
-//        }
-//
-//        if let condition = condition {
-//            components.append("WHERE")
-//            components.append(condition.queryComponent)
-//        }
-//
-//        if !orderBy.isEmpty {
-//            components.append("ORDER BY")
-//            components.append(orderBy.queryComponent(mergedByString: ","))
-//        }
-//
-//        if !groupBy.isEmpty {
-//            components.append("GROUP BY")
-//            components.append(groupBy.queryComponent(mergedByString: ","))
-//        }
-//
-//        if let limit = limit {
-//            components.append(limit.queryComponent)
-//        }
-//
-//        if let offset = offset {
-//            components.append(offset.queryComponent)
-//        }
-//
     }
 }
 

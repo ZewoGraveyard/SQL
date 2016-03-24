@@ -27,7 +27,7 @@ public indirect enum QueryComponent {
     case join(types:[Join.JoinType], with:QueryComponent, leftKey:QueryComponent, rightKey:QueryComponent)
     case parts([QueryComponent])
     case select(fields:[QueryComponent], from:QueryComponent, joins:[QueryComponent],
-                filter:QueryComponent?, orderBy:QueryComponent?, offset:QueryComponent?,
+                filter:QueryComponent?, ordersBy:[QueryComponent], offset:QueryComponent?,
                 limit:QueryComponent?, groupBy:QueryComponent?, having:QueryComponent?)
 
     case subquery(query:QueryComponent, alias:String?)
@@ -40,7 +40,7 @@ public indirect enum QueryComponent {
 //    case condition(parts: QueryComponent)
 //    case and(left: QueryComponent, right: QueryComponent)
 //    case or(left: QueryComponent, right: QueryComponent)
-    case orderBy(parts:QueryComponent)
+    case orderBy(orderBy: OrderBy)
     case groupBy(fields:[QueryComponent])
     case having(parts:QueryComponent)
     case offset(Int)

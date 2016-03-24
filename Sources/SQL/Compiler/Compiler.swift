@@ -7,8 +7,8 @@ public class Compiler {
         switch query {
         case let .parts(parts):
             return compileParts(parts)
-        case let .select(fields, from, joins, filter, orderBy, offset, limit, groupBy, having):
-            return select(fields, from: from, joins: joins, filter: filter, orderBy: orderBy, offset: offset,
+        case let .select(fields, from, joins, filter, ordersBy, offset, limit, groupBy, having):
+            return select(fields, from: from, joins: joins, filter: filter, ordersBy: ordersBy, offset: offset,
                     limit: limit, groupBy: groupBy, having: having)
         case let .field(name, table, alias):
             return field(name, table: table, alias: alias)
@@ -99,8 +99,9 @@ public class Compiler {
     }
 
     func select(fields: [QueryComponent], from: QueryComponent, joins: [QueryComponent],
-                filter: QueryComponent?, orderBy: QueryComponent?, offset: QueryComponent?,
+                filter: QueryComponent?, ordersBy: [QueryComponent], offset: QueryComponent?,
                 limit: QueryComponent?, groupBy: QueryComponent?, having: QueryComponent?) -> [String] {
+
 
         var stringParts = ["SELECT"]
         for (index, field) in fields.enumerated() {
@@ -117,30 +118,26 @@ public class Compiler {
             stringParts.append(contentsOf: compile(join))
         }
         if (offset != nil || limit != nil) {
-            stringParts = offsetLimit(stringParts, offset: offset, limit: limit, orderBy: orderBy)
-        } else {
-//            ordersBy
+            stringParts = offsetLimit(stringParts, offset: offset, limit: limit)
         }
+
         return stringParts
     }
 
-    func offsetLimit(selectQuery: [String], offset: QueryComponent?, limit: QueryComponent?,
-                     orderBy: QueryComponent?) -> [String] {
+    func ordersBy(ordersBy: [QueryComponent]){
 
+    }
 
-        var stringParts = ["SELECT * FROM ( SELECT ROW_NUMBER() OVER (ORDER BY id ASC) as rownum"]
-        stringParts.append(contentsOf: selectQuery) //fixme have errors, orderby
-        stringParts.append(")")
-        stringParts.append("WHERE")
-        var offsetNumber: Int = 0
-        if case let .offset(num)? = offset {
-            offsetNumber = num
-            stringParts.append("rownum > \(num)")
-        }
+    func offsetLimit(selectQuery: [String], offset: QueryComponent?, limit: QueryComponent?) -> [String]  {
+        var stringParts = selectQuery
         if case let .limit(num)? = limit {
-            stringParts.append("AND rownum <= \(offsetNumber+num)")
+            stringParts.append("LIMIT \(num)")
+        }
+        if case let .offset(num)? = offset {
+            stringParts.append("OFFSET \(num)")
         }
         return stringParts
+
     }
 
     func returning() {

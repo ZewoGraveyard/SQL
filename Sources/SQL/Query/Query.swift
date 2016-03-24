@@ -96,19 +96,14 @@ extension Offset: IntegerLiteralConvertible {
     }
 }
 
-//public enum OrderBy: QueryComponentRepresentable {
-//    case Ascending(String)
-//    case Descending(String)
-//
-//    public var queryComponent: QueryComponent {
-//        switch self {
-//        case .Ascending(let field):
-//            return queryComponent(strings: [field, "ASC"])
-//        case .Descending(let field):
-//            return queryComponent(strings: [field, "DESC"])
-//        }
-//    }
-//}
+public enum OrderBy: QueryComponentRepresentable {
+    case Ascending(String)
+    case Descending(String)
+
+    public var queryComponent: QueryComponent {
+        return .orderBy(orderBy: self)
+    }
+}
 
 public struct GroupBy: QueryComponentRepresentable {
     private var fields: [DeclaredField]
@@ -163,7 +158,7 @@ public struct GroupBy: QueryComponentRepresentable {
 public protocol FetchQuery: TableQuery {
     var offset: Offset? { get set }
     var limit: Limit? { get set }
-//    var orderBy: [OrderBy] { get set }
+    var orderBy: [OrderBy] { get set }
     var group: GroupBy? { get set }
 }
 
@@ -212,16 +207,16 @@ public extension FetchQuery {
 //        }
 //    }
 //
-//    public func orderBy(values: [OrderBy]) -> Self {
-//        var new = self
-//        new.orderBy.append(contentsOf: values)
-//        return new
-//    }
+    public func orderBy(values: [OrderBy]) -> Self {
+        var new = self
+        new.orderBy.append(contentsOf: values)
+        return new
+    }
 //
-//    public func orderBy(values: OrderBy...) -> Self {
-//        return orderBy(values)
-//    }
-//
+    public func orderBy(values: OrderBy...) -> Self {
+        return orderBy(values)
+    }
+
 //    public func orderBy(values: [DeclaredFieldOrderBy]) -> Self {
 //        return orderBy(values.map { $0.normalize })
 //    }
