@@ -32,12 +32,12 @@ public indirect enum QueryComponent {
 
     case subquery(query:QueryComponent, alias:String?)
     case table(name:String, alias:String?)
-    case field(name:String, table:String?, alias:String?)
+    case column(name:String, table:String?, alias:String?)
 //    case filter(condition: QueryComponent)
     case update(parts:QueryComponent)
     case set(values:QueryComponent)
     case function(name:String, args:QueryComponent)
-//    case condition(parts: QueryComponent)
+    case condition(condition: Condition)
 //    case and(left: QueryComponent, right: QueryComponent)
 //    case or(left: QueryComponent, right: QueryComponent)
     case orderBy(orderBy: OrderBy)
@@ -84,9 +84,11 @@ public protocol QueryComponentRepresentable {
 //}
 //
 //
-//extension String: QueryComponentRepresentable {
-//    public var queryComponent: queryComponent {return  queryComponent(self) }
-//}
+extension String: QueryComponentRepresentable {
+    public var queryComponent: QueryComponent {
+        return .sql(self)
+    }
+}
 //
 //
 //extension queryComponent: StringInterpolationConvertible {

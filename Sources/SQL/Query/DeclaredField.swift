@@ -27,7 +27,7 @@ public struct DeclaredField: CustomStringConvertible {
 
 extension DeclaredField: QueryComponentRepresentable {
     public var queryComponent: QueryComponent {
-        return .field(name: name, table: tableName, alias: aliasName)
+        return .column(name: name, table: tableName, alias: aliasName)
     }
 }
 

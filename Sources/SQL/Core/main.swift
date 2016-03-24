@@ -116,14 +116,16 @@ struct Component: Table {
 
 let subq = Select(Event.f(.id), from: Event.tableName).asSubquery("subquery")
 
-let q = Select(subq, Event.f(.name), from: Event.tableName).groupBy("asd", "fdsd").join(subq, using: [.Inner, .Left],
-        leftKey: "asd2", rightKey: subq.field("asd")).orderBy(.Ascending("asd")).limit(1000).offset(12)
+//let q = Select(subq, Event.f(.name), from: Event.tableName).groupBy("asd", "fdsd").join(subq, using: [.Inner, .Left],
+//        leftKey: "asd2", rightKey: subq.field("asd")).orderBy(.Ascending("asd")).limit(1000).offset(12)
 
+
+let q = Select("asd", from: "asdasd").filter("asdas" == "fdsdasf" && "f" != "a" )
 
 //print(q.queryComponent)
 
 
-let qq = OracleCompiler().compile(q.queryComponent)
+let qq = Compiler().compile(q.queryComponent)
 
 
 

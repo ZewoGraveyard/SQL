@@ -255,27 +255,27 @@ public extension FetchQuery {
 }
 //
 public protocol FilteredQuery: Query {
-//    var condition: Condition? { get set }
+    var condition: Condition? { get set }
 }
 //
 extension FilteredQuery {
-//    public func filter(condition: Condition) -> Self {
-//        let newCondition: Condition
-//        if let existing = self.condition {
-//            newCondition = .And([existing, condition])
-//        }
-//        else {
-//            newCondition = condition
-//        }
-//
-//        var new = self
-//        new.condition = newCondition
-//
-//        return new
-//    }
+    public func filter(condition: Condition) -> Self {
+        let newCondition: Condition
+        if let existing = self.condition {
+            newCondition = .And([existing, condition])
+        }
+        else {
+            newCondition = condition
+        }
+
+        var new = self
+        new.condition = newCondition
+
+        return new
+    }
 }
-//
-//
+
+
 public struct Join: QueryComponentRepresentable {
     public enum JoinType {
         case Inner, Outer, Left, Right

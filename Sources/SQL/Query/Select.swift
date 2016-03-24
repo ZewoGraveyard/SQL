@@ -28,17 +28,12 @@ public struct Select: SelectQuery {
     
     public let tableName: String
 
-//
-//    public var condition: Condition? = nil
-//
+    public var condition: Condition? = nil
     public var joins: [Join] = []
-//
     public var offset: Offset? = nil
 
     public var limit: Limit? = nil
-//
     public var orderBy: [OrderBy] = []
-//
     public var group: GroupBy? = nil
 
 
@@ -144,14 +139,11 @@ public protocol SelectQuery: FilteredQuery, FetchQuery {
 
 public extension SelectQuery {
     public var queryComponent: QueryComponent {
-        var fieldsComponents: [QueryComponent] = fields.map{$0.queryComponent}
-        var parts: [QueryComponent] = []
-
-
+        let fieldsComponents: [QueryComponent] = fields.map{$0.queryComponent}
         return .select(fields: fieldsComponents,
                 from: .table(name: tableName, alias: nil),
                 joins: joins.map{$0.queryComponent},
-                filter: nil,
+                filter: condition?.queryComponent,
                 ordersBy: orderBy.map{ $0.queryComponent },
                 offset: offset?.queryComponent,
                 limit: limit?.queryComponent,
