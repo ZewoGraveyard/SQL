@@ -31,12 +31,17 @@ public struct ValueConversionError: ErrorProtocol {
 public enum SQLData {
     case Text(String)
     case Binary(Data)
-    case RawSQL(String)
+    case Query(QueryComponent)
 }
 
 extension SQLData: QueryComponentRepresentable {
     public var queryComponent: QueryComponent {
-        return .bind(data: self)
+        switch self {
+            case .Text, Binary:
+                return .bind(data: self)
+            case let .Query(query):
+                return query
+        }
     }
 }
 

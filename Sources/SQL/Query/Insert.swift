@@ -22,14 +22,11 @@
 //// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //// SOFTWARE.
 //
-//public struct Insert: InsertQuery {
-//    public let tableName: String
-//    public let valuesByField: [DeclaredField: SQLData?]
-//
-//
-//    public init<T: Table>(_ valuesByField: [DeclaredField : SQLDataRepresentable?], into table: T.Type) {
-//        self.init(valuesByField, into: table.tableName)
-//    }
+public struct Insert: InsertQuery {
+    public let tableName: String
+    public let valuesByField: [DeclaredField: SQLData?]
+
+
 //    public init<T: Table>(_ valuesByField: [T.Field : SQLDataRepresentable?], into table: T.Type) {
 //        var newValuesByField = [DeclaredField: SQLDataRepresentable?]()
 //        for (key, value) in valuesByField {
@@ -37,34 +34,34 @@
 //        }
 //        self.init(newValuesByField, into: table.tableName)
 //    }
-//
-//    public init(_ valuesByField: [DeclaredField : SQLData?], into tableName: String) {
-//        self.tableName = tableName
-//        self.valuesByField = valuesByField
-//    }
-//
-//    public init(_ valuesByField: [DeclaredField : SQLDataRepresentable?], into tableName: String) {
-//
-//        var dict = [DeclaredField: SQLData?]()
-//
-//        for (key, value) in valuesByField {
-//            dict[key] = value?.sqlData
-//        }
-//
-//        self.init(dict, into: tableName)
-//    }
-//
-//    public init(_ valuesByField: [String : SQLDataRepresentable?], into tableName: String) {
-//
-//        var dict = [DeclaredField: SQLData?]()
-//
-//        for (key, value) in valuesByField {
-//            dict[DeclaredField(name: key)] = value?.sqlData
-//        }
-//
-//        self.init(dict, into: tableName)
-//    }
-//}
+
+    public init(_ valuesByField: [DeclaredField : SQLData?], into tableName: String) {
+        self.tableName = tableName
+        self.valuesByField = valuesByField
+    }
+
+    public init(_ valuesByField: [DeclaredField : SQLDataRepresentable?], into tableName: String) {
+
+        var dict = [DeclaredField: SQLData?]()
+
+        for (key, value) in valuesByField {
+            dict[key] = value?.sqlData
+        }
+
+        self.init(dict, into: tableName)
+    }
+
+    public init(_ valuesByField: [String : SQLDataRepresentable?], into tableName: String) {
+
+        var dict = [DeclaredField: SQLData?]()
+
+        for (key, value) in valuesByField {
+            dict[DeclaredField(name: key)] = value?.sqlData
+        }
+
+        self.init(dict, into: tableName)
+    }
+}
 //
 //public struct ModelInsert<T: Model>: InsertQuery {
 //    public typealias ModelType = T
@@ -97,21 +94,13 @@
 //
 //}
 //
-//public protocol InsertQuery : TableQuery {
-//    var valuesByField: [DeclaredField: SQLData?] { get }
-//}
-//
-//extension InsertQuery {
-//    public var queryComponent: queryComponent {
-//        return queryComponent(
-//            components: [
-//                "INSERT INTO",
-//                queryComponent(tableName),
-//                valuesByField.keys.queryComponentForSelectingFields(useQualifiedNames: false, useAliasing: false, isolatequeryComponent: true),
-//                "VALUES",
-//                valuesByField.map { $0 }.queryComponentForValuePlaceHolders(isolated: true)
-//            ]
-//        )
-//
-//    }
-//}
+public protocol InsertQuery : TableQuery {
+    var valuesByField: [DeclaredField: SQLData?] { get }
+}
+
+
+extension InsertQuery {
+    public var queryComponent: QueryComponent {
+        return .insert(into: .table(name: tableName, alias: nil), values: [])
+    }
+}

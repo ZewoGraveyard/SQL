@@ -66,10 +66,13 @@ public func || (lhs: Condition, rhs: Condition) -> Condition {
 }
 
 
-public func == (lhs: QueryComponentRepresentable, rhs: QueryComponentRepresentable) -> Condition {
-    return .Equals(lhs, rhs)
-}
+//public func == (lhs: QueryComponentRepresentable, rhs: QueryComponentRepresentable) -> Condition {
+//    return .Equals(lhs, rhs)
+//}
 
-public func != (lhs: QueryComponentRepresentable, rhs: QueryComponentRepresentable) -> Condition {
-    return .Not(.Equals(lhs, rhs))
-}
+
+
+//
+//public func != (lhs: QueryComponentRepresentable, rhs: QueryComponentRepresentable) -> Condition {
+//    return .Not(.Equals(lhs, rhs))
+//}

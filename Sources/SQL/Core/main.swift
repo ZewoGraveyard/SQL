@@ -120,14 +120,19 @@ let subq = Select(Event.f(.id), from: Event.tableName).asSubquery("subquery")
 //        leftKey: "asd2", rightKey: subq.field("asd")).orderBy(.Ascending("asd")).limit(1000).offset(12)
 
 
-let d: SQLData = "asd".sqlData
 
 let d2 = "asdsa"
 
-let q = Select("asd", from: "asdasd").filter("asdas" == "fdsdasf" && "f" != d2.sqlData )
+//extension QueryComponentRepresentable:StringLiteralConvertible {
+//
+//}
+
+//let q = Select("asd", from: "asdasd").filter(field("asdas") == "fdsdasf" && "f" == d2.sqlData )
 
 //print(q.queryComponent)
 
+
+let q = Delete(from: "table").filter("asdsa" == subq)
 
 let qq = Compiler().compile(q)
 

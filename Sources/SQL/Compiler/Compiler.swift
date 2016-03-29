@@ -32,6 +32,10 @@ public class Compiler {
             return compileCondition(cond)
         case let .bind(data):
             return bind(data)
+        case let .delete(from, condition):
+             return delete(from, condition: condition)
+        case let .insert(into, values):
+            return insert(into, values: values)
         default:
             print("default!!!!!!!!!!!!!!!!!!!!! \(query)")
             return []
@@ -251,5 +255,19 @@ public class Compiler {
         return stringParts
     }
 
+    func delete(from: QueryComponent, condition: QueryComponent?) -> [String] {
+        var stringParts = ["DELETE FROM"]
+        stringParts.append(contentsOf: compilePart(from))
+        if let condition = condition {
+            stringParts.append("WHERE")
+            stringParts.append(contentsOf: compilePart(condition))
+        }
+        return stringParts
+    }
+    func insert(into: QueryComponent, values: QueryComponent) -> [String] {
+        var stringParts = ["INSERT INTO"]
+        stringParts.append(contentsOf: compilePart(into))
+        return stringParts
+    }
 
 }

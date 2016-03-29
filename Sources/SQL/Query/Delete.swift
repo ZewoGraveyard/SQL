@@ -22,16 +22,27 @@
 //// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //// SOFTWARE.
 //
-//public struct Delete: DeleteQuery {
-//
-//    public let tableName: String
-//    public var condition: Condition? = nil
-//
-//    public init(from tableName: String) {
-//        self.tableName = tableName
-//    }
-//}
-//
+
+public protocol DeleteQuery: FilteredQuery, TableQuery {}
+
+
+public struct Delete: DeleteQuery {
+
+    public let tableName: String
+    public var condition: Condition? = nil
+
+    public init(from tableName: String) {
+        self.tableName = tableName
+    }
+}
+
+extension DeleteQuery {
+    public var queryComponent: QueryComponent {
+        return .delete(from: .table(name: tableName, alias: nil), filter: condition?.queryComponent)
+    }
+}
+
+
 //public struct ModelDelete<T: Model>: DeleteQuery {
 //    public typealias ModelType = T
 //
@@ -42,22 +53,10 @@
 //    public var condition: Condition? = nil
 //}
 //
-//public protocol DeleteQuery: FilteredQuery, TableQuery {}
 //
 //extension DeleteQuery {
 //    public init<T: Model>(from tableName: T.Type) {
 //        self.init(from: tableName)
 //    }
 //
-//    public var queryComponent: queryComponent {
-//
-//        var queryComponent = queryComponent(strings: ["DELETE", "FROM", tableName])
-//
-//        if let condition = condition {
-//            queryComponent.append("WHERE")
-//            queryComponent.append(condition.queryComponent)
-//        }
-//
-//        return queryComponent
-//    }
 //}

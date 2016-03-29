@@ -315,8 +315,8 @@ public struct Subquery: QueryComponentRepresentable {
 }
 
 //
-//extension Subquery: SQLDataRepresentable {
-//    public var sqlData: SQLData {
-//        return .RawSQL(self.queryComponent.string)
-//    }
-//}
+extension Subquery: SQLDataRepresentable {
+    public var sqlData: SQLData {
+        return .Query(self.queryComponent)
+    }
+}

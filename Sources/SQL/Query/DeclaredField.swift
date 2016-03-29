@@ -46,11 +46,11 @@ extension DeclaredField: StringLiteralConvertible {
     }
 }
 
-//extension DeclaredField: Hashable {
-//    public var hashValue: Int {
-//        return name.hashValue
-//    }
-//}
+extension DeclaredField: Hashable {
+    public var hashValue: Int {
+        return name.hashValue
+    }
+}
 
 public func field(name: String) -> DeclaredField {
     return DeclaredField(name: name)
@@ -115,9 +115,9 @@ public func field(name: String) -> DeclaredField {
 //    }
 //}
 //
-//public func == (lhs: DeclaredField, rhs: DeclaredField) -> Bool {
-//    return lhs.hashValue == rhs.hashValue
-//}
+public func == (lhs: DeclaredField, rhs: DeclaredField) -> Bool {
+    return lhs.hashValue == rhs.hashValue
+}
 //
 //public extension DeclaredField {
 //
@@ -175,13 +175,14 @@ public func field(name: String) -> DeclaredField {
 //    }
 //}
 //
-//public func == <T: SQLDataConvertible>(lhs: DeclaredField, rhs: T?) -> Condition {
-//    return lhs.equals(rhs)
-//}
-//
-//public func == (lhs: DeclaredField, rhs: DeclaredField) -> Condition {
-//    return .Equals(lhs, .Property(rhs))
-//}
+public func == <T: SQLDataRepresentable>(lhs: DeclaredField, rhs: T) -> Condition {
+    return .Equals(lhs, rhs.sqlData)
+}
+
+public func == (lhs: DeclaredField, rhs: DeclaredField) -> Condition {
+    return .Equals(lhs, rhs)
+}
+
 //
 //public func > <T: SQLDataConvertible>(lhs: DeclaredField, rhs: T?) -> Condition {
 //    return .GreaterThan(lhs, .Value(rhs?.sqlData))
