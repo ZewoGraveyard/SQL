@@ -29,18 +29,25 @@ public struct ValueConversionError: ErrorProtocol {
 }
 
 public enum SQLData {
+    case Null
     case Text(String)
     case Binary(Data)
     case Query(QueryComponent)
 }
 
+extension SQLData: NilLiteralConvertible {
+    public init(nilLiteral: ()) {
+        self = .Null
+    }
+}
+
 extension SQLData: QueryComponentRepresentable {
     public var queryComponent: QueryComponent {
         switch self {
-            case .Text, Binary:
-                return .bind(data: self)
-            case let .Query(query):
-                return query
+        case .Text, Binary, Null:
+            return .bind(data: self)
+        case let .Query(query):
+            return query
         }
     }
 }
@@ -48,12 +55,14 @@ extension SQLData: QueryComponentRepresentable {
 public protocol SQLDataRepresentable {
     var sqlData: SQLData { get }
 }
+
 public protocol SQLDataInitializable {
     init(rawSQLData: Data) throws
 }
 
 public protocol SQLDataConvertible: SQLDataRepresentable, SQLDataInitializable {
 }
+
 
 extension Int: SQLDataConvertible {
     public init(rawSQLData data: Data) throws {

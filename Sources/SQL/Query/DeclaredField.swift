@@ -31,6 +31,11 @@ extension DeclaredField: QueryComponentRepresentable {
     }
 }
 
+extension DeclaredField: SQLDataRepresentable {
+    public var sqlData: SQLData {
+        return .Query(self.queryComponent)
+    }
+}
 
 extension DeclaredField: StringLiteralConvertible {
     public init(stringLiteral value: String) {
@@ -150,27 +155,27 @@ public func == (lhs: DeclaredField, rhs: DeclaredField) -> Bool {
 //        return qualifiedName
 //    }
 //
-//    public func containedIn<T: SQLDataConvertible>(values: [T?]) -> Condition {
+//    public func containedIn<T: SQLDataRepresentable>(values: [T?]) -> Condition {
 //        return .In(self, values.map { $0?.sqlData })
 //    }
 //
-//    public func containedIn<T: SQLDataConvertible>(values: T?...) -> Condition {
+//    public func containedIn<T: SQLDataRepresentable>(values: T?...) -> Condition {
 //        return .In(self, values.map { $0?.sqlData })
 //    }
 //
-//    public func notContainedIn<T: SQLDataConvertible>(values: [T?]) -> Condition {
+//    public func notContainedIn<T: SQLDataRepresentable>(values: [T?]) -> Condition {
 //        return .NotIn(self, values.map { $0?.sqlData })
 //    }
 //
-//    public func notContainedIn<T: SQLDataConvertible>(values: T?...) -> Condition {
+//    public func notContainedIn<T: SQLDataRepresentable>(values: T?...) -> Condition {
 //        return .NotIn(self, values.map { $0?.sqlData })
 //    }
 //
-//    public func equals<T: SQLDataConvertible>(value: T?) -> Condition {
+//    public func equals<T: SQLDataRepresentable>(value: T?) -> Condition {
 //        return .Equals(self, .Value(value?.sqlData))
 //    }
 //
-//    public func like<T: SQLDataConvertible>(value: T?) -> Condition {
+//    public func like<T: SQLDataRepresentable>(value: T?) -> Condition {
 //        return .Like(self, value?.sqlData)
 //    }
 //}
@@ -179,12 +184,16 @@ public func == <T: SQLDataRepresentable>(lhs: DeclaredField, rhs: T) -> Conditio
     return .Equals(lhs, rhs.sqlData)
 }
 
-public func == (lhs: DeclaredField, rhs: DeclaredField) -> Condition {
-    return .Equals(lhs, rhs)
+public func == (lhs: DeclaredField, rhs: SQLData) -> Condition {
+    if case .Null = rhs {
+        return .Is(lhs, rhs)
+    } else {
+        return .Equals(lhs, rhs)
+    }
 }
 
 //
-//public func > <T: SQLDataConvertible>(lhs: DeclaredField, rhs: T?) -> Condition {
+//public func > <T: SQLDataRepresentable>(lhs: DeclaredField, rhs: T?) -> Condition {
 //    return .GreaterThan(lhs, .Value(rhs?.sqlData))
 //}
 //
@@ -193,7 +202,7 @@ public func == (lhs: DeclaredField, rhs: DeclaredField) -> Condition {
 //}
 //
 //
-//public func >= <T: SQLDataConvertible>(lhs: DeclaredField, rhs: T?) -> Condition {
+//public func >= <T: SQLDataRepresentable>(lhs: DeclaredField, rhs: T?) -> Condition {
 //    return .GreaterThanOrEquals(lhs, .Value(rhs?.sqlData))
 //}
 //
@@ -202,7 +211,7 @@ public func == (lhs: DeclaredField, rhs: DeclaredField) -> Condition {
 //}
 //
 //
-//public func < <T: SQLDataConvertible>(lhs: DeclaredField, rhs: T?) -> Condition {
+//public func < <T: SQLDataRepresentable>(lhs: DeclaredField, rhs: T?) -> Condition {
 //    return .LessThan(lhs, .Value(rhs?.sqlData))
 //}
 //
@@ -211,7 +220,7 @@ public func == (lhs: DeclaredField, rhs: DeclaredField) -> Condition {
 //}
 //
 //
-//public func <= <T: SQLDataConvertible>(lhs: DeclaredField, rhs: T?) -> Condition {
+//public func <= <T: SQLDataRepresentable>(lhs: DeclaredField, rhs: T?) -> Condition {
 //    return .LessThanOrEquals(lhs, .Value(rhs?.sqlData))
 //}
 //

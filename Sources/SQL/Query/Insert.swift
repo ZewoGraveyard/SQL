@@ -25,6 +25,7 @@
 public struct Insert: InsertQuery {
     public let tableName: String
     public let valuesByField: [DeclaredField: SQLData?]
+    public var returning: [DeclaredField]
 
 
 //    public init<T: Table>(_ valuesByField: [T.Field : SQLDataRepresentable?], into table: T.Type) {
@@ -38,6 +39,7 @@ public struct Insert: InsertQuery {
     public init(_ valuesByField: [DeclaredField : SQLData?], into tableName: String) {
         self.tableName = tableName
         self.valuesByField = valuesByField
+        self.returning = [DeclaredField(name: "id", tableName: tableName, alias: "id")]
     }
 
     public init(_ valuesByField: [DeclaredField : SQLDataRepresentable?], into tableName: String) {
@@ -51,16 +53,6 @@ public struct Insert: InsertQuery {
         self.init(dict, into: tableName)
     }
 
-    public init(_ valuesByField: [String : SQLDataRepresentable?], into tableName: String) {
-
-        var dict = [DeclaredField: SQLData?]()
-
-        for (key, value) in valuesByField {
-            dict[DeclaredField(name: key)] = value?.sqlData
-        }
-
-        self.init(dict, into: tableName)
-    }
 }
 //
 //public struct ModelInsert<T: Model>: InsertQuery {
@@ -94,13 +86,16 @@ public struct Insert: InsertQuery {
 //
 //}
 //
+
 public protocol InsertQuery : TableQuery {
     var valuesByField: [DeclaredField: SQLData?] { get }
+    var returning: [DeclaredField] { get }
 }
 
 
 extension InsertQuery {
     public var queryComponent: QueryComponent {
-        return .insert(into: .table(name: tableName, alias: nil), values: [])
+        return .insert(into: .table(name: tableName, alias: nil), values: valuesByField,
+                returning: returning.map{ $0.queryComponent })
     }
 }

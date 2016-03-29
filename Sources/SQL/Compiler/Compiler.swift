@@ -34,8 +34,8 @@ public class Compiler {
             return bind(data)
         case let .delete(from, condition):
              return delete(from, condition: condition)
-        case let .insert(into, values):
-            return insert(into, values: values)
+        case let .insert(into, values, returning):
+            return insert(into, values: values, returning: returning)
         default:
             print("default!!!!!!!!!!!!!!!!!!!!! \(query)")
             return []
@@ -96,6 +96,9 @@ public class Compiler {
     }
 
     func bind(data: SQLData) -> [String] {
+        if case .Null = data {
+            return ["NULL"]
+        }
         sqlData.append(data)
         return ["%s"]
     }
@@ -196,6 +199,9 @@ public class Compiler {
         case .LessThanOrEquals(let key, let value):
             return statementWithKeyValue(key, "<=", value)
 
+        case let .Is(key, value):
+            return statementWithKeyValue(key, "IS", value)
+
 //        case .In(let key, let values):
 //
 //            var strings = [String]()
@@ -245,9 +251,7 @@ public class Compiler {
 
     }
 
-    func returning() {
 
-    }
 
     func groupBy(fields: [QueryComponent]) -> [String] {
         var stringParts = ["GROUP BY"]
@@ -264,9 +268,25 @@ public class Compiler {
         }
         return stringParts
     }
-    func insert(into: QueryComponent, values: QueryComponent) -> [String] {
+    func insert(into: QueryComponent, values: [DeclaredField: SQLData?], returning: [QueryComponent]) -> [String] {
         var stringParts = ["INSERT INTO"]
         stringParts.append(contentsOf: compilePart(into))
+        stringParts.append("(")
+        let columns = compileParts(values.keys.map { $0.queryComponent }, withDivider: ",")
+        stringParts.append(contentsOf: columns)
+        stringParts.append(contentsOf: [")", "VALUES", "("])
+        let values = compileParts(values.values.map { ($0 ?? .Null ).queryComponent }, withDivider: ",")
+        stringParts.append(contentsOf: values)
+        stringParts.append(")")
+        if !returning.isEmpty {
+            stringParts.append(contentsOf: renderReturning(returning))
+        }
+        return stringParts
+    }
+
+    func renderReturning(fields: [QueryComponent]) -> [String] {
+        var stringParts = ["RETURNING"]
+        stringParts.append(contentsOf: compileParts(fields, withDivider: ","))
         return stringParts
     }
 

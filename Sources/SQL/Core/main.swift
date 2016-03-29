@@ -132,7 +132,9 @@ let d2 = "asdsa"
 //print(q.queryComponent)
 
 
-let q = Delete(from: "table").filter("asdsa" == subq)
+//let q = Delete(from: "table").filter("asdsa" == nil)
+
+let q = Insert(["name": subq], into: "asd")
 
 let qq = Compiler().compile(q)
 

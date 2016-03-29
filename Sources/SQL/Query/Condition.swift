@@ -36,6 +36,7 @@ public indirect enum Condition: QueryComponentRepresentable { //todo should be p
     case LessThan(QueryComponentRepresentable, QueryComponentRepresentable)
     case LessThanOrEquals(QueryComponentRepresentable, QueryComponentRepresentable)
 
+    case Is(QueryComponentRepresentable, QueryComponentRepresentable)
 
     case Like(QueryComponentRepresentable, QueryComponentRepresentable)
 
@@ -65,14 +66,3 @@ public func || (lhs: Condition, rhs: Condition) -> Condition {
     return .Or([lhs, rhs])
 }
 
-
-//public func == (lhs: QueryComponentRepresentable, rhs: QueryComponentRepresentable) -> Condition {
-//    return .Equals(lhs, rhs)
-//}
-
-
-
-//
-//public func != (lhs: QueryComponentRepresentable, rhs: QueryComponentRepresentable) -> Condition {
-//    return .Not(.Equals(lhs, rhs))
-//}
