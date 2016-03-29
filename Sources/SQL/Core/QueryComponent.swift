@@ -109,6 +109,13 @@ public struct QueryComponents: CustomStringConvertible {
     }
 }
 
+extension QueryComponents: ArrayLiteralConvertible {
+    public init(arrayLiteral elements: QueryComponents...) {
+        self.init(components: elements)
+    }
+}
+
+
 extension QueryComponents: StringLiteralConvertible {
     public init(stringLiteral value: String) {
         self.init(value)
@@ -123,11 +130,11 @@ extension QueryComponents: StringLiteralConvertible {
     }
 }
 
-public protocol QueryComponentsConvertible {
+public protocol QueryComponentsRepresentable {
     var queryComponents: QueryComponents { get }
 }
 
-public extension Sequence where Iterator.Element: QueryComponentsConvertible {
+public extension Sequence where Iterator.Element: QueryComponentsRepresentable {
     public func queryComponents(mergedByString string: String? = nil) -> QueryComponents {
         return QueryComponents(components: self.map { $0.queryComponents }, mergedByString: string)
     }
@@ -135,4 +142,9 @@ public extension Sequence where Iterator.Element: QueryComponentsConvertible {
     public var queryComponents: QueryComponents {
         return queryComponents()
     }
+}
+
+
+extension String: QueryComponentsRepresentable {
+    public var queryComponents: QueryComponents {return  QueryComponents(self) }
 }

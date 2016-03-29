@@ -31,12 +31,17 @@ public struct ValueConversionError: ErrorProtocol {
 public enum SQLData {
     case Text(String)
     case Binary(Data)
+    case RawSQL(String)
 }
 
-public protocol SQLDataConvertible {
+public protocol SQLDataRepresentable {
     var sqlData: SQLData { get }
-
+}
+public protocol SQLDataInitializable {
     init(rawSQLData: Data) throws
+}
+
+public protocol SQLDataConvertible: SQLDataRepresentable, SQLDataInitializable {
 }
 
 extension Int: SQLDataConvertible {

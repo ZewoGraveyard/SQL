@@ -25,13 +25,25 @@
 public struct Insert: InsertQuery {
     public let tableName: String
     public let valuesByField: [DeclaredField: SQLData?]
-    
+
+
+    public init<T: Table>(_ valuesByField: [DeclaredField : SQLDataRepresentable?], into table: T.Type) {
+        self.init(valuesByField, into: table.tableName)
+    }
+    public init<T: Table>(_ valuesByField: [T.Field : SQLDataRepresentable?], into table: T.Type) {
+        var newValuesByField = [DeclaredField: SQLDataRepresentable?]()
+        for (key, value) in valuesByField {
+            newValuesByField[T.field(key)] = value
+        }
+        self.init(newValuesByField, into: table.tableName)
+    }
+
     public init(_ valuesByField: [DeclaredField : SQLData?], into tableName: String) {
         self.tableName = tableName
         self.valuesByField = valuesByField
     }
     
-    public init(_ valuesByField: [DeclaredField : SQLDataConvertible?], into tableName: String) {
+    public init(_ valuesByField: [DeclaredField : SQLDataRepresentable?], into tableName: String) {
         
         var dict = [DeclaredField: SQLData?]()
         
@@ -42,7 +54,7 @@ public struct Insert: InsertQuery {
         self.init(dict, into: tableName)
     }
     
-    public init(_ valuesByField: [String : SQLDataConvertible?], into tableName: String) {
+    public init(_ valuesByField: [String : SQLDataRepresentable?], into tableName: String) {
         
         var dict = [DeclaredField: SQLData?]()
         
