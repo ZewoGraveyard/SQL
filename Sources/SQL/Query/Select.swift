@@ -87,7 +87,7 @@ public struct Select: SelectQuery {
 }
 
 extension Select {
-    public func asSubquery(alias: String) -> Subquery {
+    public func asSubquery(alias: String? = nil) -> Subquery {
         return Subquery(query: queryComponent, alias: alias)
     }
 }

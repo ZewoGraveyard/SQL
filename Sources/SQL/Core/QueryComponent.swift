@@ -33,7 +33,6 @@ public indirect enum QueryComponent {
     case subquery(query:QueryComponent, alias:String?)
     case table(name:String, alias:String?)
     case column(name:String, table:String?, alias:String?)
-    case update(parts:QueryComponent)
     case set(values:QueryComponent)
     case function(name:String, args:QueryComponent)
     case condition(condition: Condition)
@@ -47,6 +46,7 @@ public indirect enum QueryComponent {
     case limit(Int)
     case delete(from: QueryComponent, filter: QueryComponent?)
     case insert(into: QueryComponent, values: [DeclaredField: SQLData?], returning: [QueryComponent])
+    case update(table: QueryComponent, set: [DeclaredField: SQLData?], filter: QueryComponent?)
     case sql(String)
     case caseClause
 

@@ -301,8 +301,8 @@ public struct Join: QueryComponentRepresentable {
 
 public struct Subquery: QueryComponentRepresentable {
     private let query: QueryComponent
-    let alias: String
-    public init(query: QueryComponent, alias: String) {
+    let alias: String?
+    public init(query: QueryComponent, alias: String?) {
         self.query = query
         self.alias = alias
     }

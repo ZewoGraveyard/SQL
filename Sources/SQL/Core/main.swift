@@ -114,7 +114,7 @@ struct Component: Table {
 //let q = Select(Event.f(.id)+"  "+Event.f(.name), from: Event.self)
 
 
-let subq = Select(Event.f(.id), from: Event.tableName).asSubquery("subquery")
+let subq = Select(Event.f(.id), from: Event.tableName).asSubquery()
 
 //let q = Select(subq, Event.f(.name), from: Event.tableName).groupBy("asd", "fdsd").join(subq, using: [.Inner, .Left],
 //        leftKey: "asd2", rightKey: subq.field("asd")).orderBy(.Ascending("asd")).limit(1000).offset(12)
@@ -134,9 +134,13 @@ let d2 = "asdsa"
 
 //let q = Delete(from: "table").filter("asdsa" == nil)
 
-let q = Insert(["name": subq], into: "asd")
+//let q = Insert(["name": subq], into: "asd")
+
+
+let q = Update("table", set: ["name": subq]).filter("asd"==d2)
 
 let qq = Compiler().compile(q)
+
 
 
 

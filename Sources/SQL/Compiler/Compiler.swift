@@ -36,6 +36,10 @@ public class Compiler {
              return delete(from, condition: condition)
         case let .insert(into, values, returning):
             return insert(into, values: values, returning: returning)
+        case let .update(table, set, condition):
+            return update(table, set: set, condition: condition)
+
+
         default:
             print("default!!!!!!!!!!!!!!!!!!!!! \(query)")
             return []
@@ -287,6 +291,19 @@ public class Compiler {
     func renderReturning(fields: [QueryComponent]) -> [String] {
         var stringParts = ["RETURNING"]
         stringParts.append(contentsOf: compileParts(fields, withDivider: ","))
+        return stringParts
+    }
+
+    func update(table: QueryComponent, set: [DeclaredField: SQLData?], condition: QueryComponent?) -> [String] {
+        var stringParts = ["UPDATE"]
+        stringParts.append(contentsOf: compilePart(table))
+        stringParts.append("SET")
+        let components: [QueryComponent] = set.map { .parts([ $0.queryComponent, "=", ($1 ?? .Null).queryComponent ]) }
+        stringParts.append(contentsOf: compileParts(components, withDivider: ","))
+        if let condition = condition {
+            stringParts.append("WHERE")
+            stringParts.append(contentsOf: compilePart(condition))
+        }
         return stringParts
     }
 
