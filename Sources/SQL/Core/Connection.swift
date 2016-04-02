@@ -26,10 +26,23 @@
 import C7
 
 
+public protocol ConnectionInfo {
+    var host: String { get }
+    var port: Int { get }
+    var databaseName: String { get }
+    var username: String? { get }
+    var password: String? { get }
+}
+
 public protocol Connection: class, C7.Connection {
-    
+    associatedtype Info: ConnectionInfo
     associatedtype ResultType: Result
+    associatedtype StatusType
     associatedtype Error: ErrorProtocol
+
+    var connectionInfo: Info { get }
+
+    var status: StatusType { get }
 
     var log: Log? { get set }
 
@@ -47,7 +60,7 @@ public protocol Connection: class, C7.Connection {
 
     func rollbackToSavePointNamed(name: String) throws
 
-    init(_ info: ConnectionInfo)
+    init(_ info: Info)
     
     var mostRecentError: Error? { get }
 }
