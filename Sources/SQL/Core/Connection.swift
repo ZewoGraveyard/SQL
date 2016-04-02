@@ -23,29 +23,13 @@
 // SOFTWARE.
 
 @_exported import Log
+import C7
 
 
-public protocol ConnectionInfo {
-    var host: String { get }
-    var port: Int { get }
-    var databaseName: String { get }
-    var username: String? { get }
-    var password: String? { get }
-}
-
-public protocol Connection: class {
-    associatedtype Info: ConnectionInfo
+public protocol Connection: class, C7.Connection {
+    
     associatedtype ResultType: Result
-    associatedtype StatusType
     associatedtype Error: ErrorProtocol
-
-    var connectionInfo: Info { get }
-
-    func open() throws
-
-    func close()
-
-    var status: StatusType { get }
 
     var log: Log? { get set }
 
@@ -63,7 +47,7 @@ public protocol Connection: class {
 
     func rollbackToSavePointNamed(name: String) throws
 
-    init(_ info: Info)
+    init(_ info: ConnectionInfo)
     
     var mostRecentError: Error? { get }
 }
