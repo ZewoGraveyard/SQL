@@ -43,17 +43,17 @@ public struct Migration {
         let upPath = path + "/up.sql"
         let downPath = path + "/down.sql"
 
-        let checkUpFile = File.fileExistsAt(upPath)
+        let checkUpFile = File.exists(at: upPath)
         
-        guard checkUpFile.fileExists && checkUpFile.isDirectory else {
+        guard checkUpFile.exists && checkUpFile.isDirectory else {
             throw MigrationError(description: "up.sql not found at \(upPath)")
         }
 
         self.upStatement = try String(data: File(path: upPath).read())
         
-        let checkDownFile = File.fileExistsAt(downPath)
+        let checkDownFile = File.exists(at: downPath)
 
-        if checkDownFile.fileExists && checkDownFile.isDirectory {
+        if checkDownFile.exists && checkDownFile.isDirectory {
             self.downStatement = try String(data: File(path: downPath).read())
         }
         else {
@@ -81,9 +81,9 @@ public class MigrationManager<T: Connection> {
 			path = String(path.characters.dropLast())
         }
 
-        let checkFile = File.fileExistsAt(path)
+        let checkFile = File.exists(at: path)
         
-        guard checkFile.fileExists && checkFile.isDirectory else {
+        guard checkFile.exists && checkFile.isDirectory else {
             throw MigrationError(description: "Unable to open find migrations directory at \(path)")
         }
 
