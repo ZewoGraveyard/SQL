@@ -54,30 +54,6 @@ public class Compiler {
         }
     }
 
-    func compileParts(parts: [QueryComponent], withDivider divider: String) -> [String] {
-        var stringParts: [String] = []
-        let lastIndex = parts.count - 1
-        for (index, part) in parts.enumerated() {
-            stringParts.append(contentsOf: compilePart(part))
-            if index != lastIndex {
-                stringParts.append(divider)
-            }
-        }
-        return stringParts
-    }
-
-    func compileParts<T>(parts: [T], withDivider divider: String, compileFunc: (T -> [String])) -> [String] {
-        var stringParts: [String] = []
-        let lastIndex = parts.count - 1
-        for (index, part) in parts.enumerated() {
-            stringParts.append(contentsOf: compileFunc(part))
-            if index != lastIndex {
-                stringParts.append(divider)
-            }
-        }
-        return stringParts
-    }
-
     func column(name: String, table: String?, alias: String?) -> [String] {
         var stringParts: [String] = []
         if let table = table {
@@ -151,8 +127,8 @@ public class Compiler {
 
         var stringParts = ["SELECT"]
 
-
-        stringParts.append(contentsOf: compileParts(fields, withDivider: ","))
+        let fieldParts = fields.map{ compilePart($0) }.joined(separator: [","])
+        stringParts.append(contentsOf: fieldParts)
 
         stringParts.append("FROM")
         stringParts.append(contentsOf: compilePart(from))
@@ -221,13 +197,15 @@ public class Compiler {
 
         case .And(let conditions):
             var stringParts = ["("]
-            stringParts.append(contentsOf: compileParts(conditions, withDivider: "AND", compileFunc: compileCondition))
+            let condParts: [[String]] = conditions.map {compileCondition($0)}
+            stringParts.append(contentsOf: condParts.joined(separator: ["AND"]))
             stringParts.append(")")
             return stringParts
 
         case .Or(let conditions):
             var stringParts = ["("]
-            stringParts.append(contentsOf: compileParts(conditions, withDivider: "OR", compileFunc: compileCondition))
+            let condParts: [[String]] = conditions.map {compileCondition($0)}
+            stringParts.append(contentsOf: condParts.joined(separator: ["OR"]))
             stringParts.append(")")
             return stringParts
         case .Not(let cond):
@@ -259,7 +237,9 @@ public class Compiler {
 
     func groupBy(fields: [QueryComponent]) -> [String] {
         var stringParts = ["GROUP BY"]
-        stringParts.append(contentsOf: compileParts(fields, withDivider: ","))
+        let fieldParts = fields.map{ compilePart($0) }.joined(separator: [","])
+
+        stringParts.append(contentsOf: stringParts)
         return stringParts
     }
 
@@ -276,11 +256,11 @@ public class Compiler {
         var stringParts = ["INSERT INTO"]
         stringParts.append(contentsOf: compilePart(into))
         stringParts.append("(")
-        let columns = compileParts(values.keys.map { $0.queryComponent }, withDivider: ",")
-        stringParts.append(contentsOf: columns)
+        let columnsParts = values.keys.map{ self.compilePart($0.queryComponent) }.joined(separator: [","])
+        stringParts.append(contentsOf: columnsParts )
         stringParts.append(contentsOf: [")", "VALUES", "("])
-        let values = compileParts(values.values.map { ($0 ?? .Null ).queryComponent }, withDivider: ",")
-        stringParts.append(contentsOf: values)
+        let valuesParts = values.values.map{ self.compilePart(($0 ?? .Null ).queryComponent) }.joined(separator: [","])
+        stringParts.append(contentsOf: valuesParts)
         stringParts.append(")")
         if !returning.isEmpty {
             stringParts.append(contentsOf: renderReturning(returning))
@@ -290,7 +270,8 @@ public class Compiler {
 
     func renderReturning(fields: [QueryComponent]) -> [String] {
         var stringParts = ["RETURNING"]
-        stringParts.append(contentsOf: compileParts(fields, withDivider: ","))
+        let fieldParts = fields.map{ compilePart($0) }.joined(separator: [","])
+        stringParts.append(contentsOf: fieldParts)
         return stringParts
     }
 
@@ -299,7 +280,8 @@ public class Compiler {
         stringParts.append(contentsOf: compilePart(table))
         stringParts.append("SET")
         let components: [QueryComponent] = set.map { .parts([ $0.queryComponent, "=", ($1 ?? .Null).queryComponent ]) }
-        stringParts.append(contentsOf: compileParts(components, withDivider: ","))
+        let valuesParts = components.map{ compilePart($0) }.joined(separator: [","])
+        stringParts.append(contentsOf: valuesParts)
         if let condition = condition {
             stringParts.append("WHERE")
             stringParts.append(contentsOf: compilePart(condition))

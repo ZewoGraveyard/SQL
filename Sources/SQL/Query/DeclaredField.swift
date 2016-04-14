@@ -124,7 +124,7 @@ public func == (lhs: DeclaredField, rhs: DeclaredField) -> Bool {
     return lhs.hashValue == rhs.hashValue
 }
 //
-//public extension DeclaredField {
+public extension DeclaredField {
 //
 //    public var qualifiedName: String {
 //        guard let tableName = tableName else {
@@ -145,16 +145,12 @@ public func == (lhs: DeclaredField, rhs: DeclaredField) -> Bool {
 ////        return tableName + "__" + unqualifiedName
 //    }
 //
-//    public func alias(newAliasName: String) -> DeclaredField {
-//        var new = self
-//        new.aliasName = newAliasName
-//        return new
-//    }
-//
-//    public var description: String {
-//        return qualifiedName
-//    }
-//
+    public func alias(newAliasName: String) -> DeclaredField {
+        var new = self
+        new.aliasName = newAliasName
+        return new
+    }
+
 //    public func containedIn<T: SQLDataRepresentable>(values: [T?]) -> Condition {
 //        return .In(self, values.map { $0?.sqlData })
 //    }
@@ -178,7 +174,7 @@ public func == (lhs: DeclaredField, rhs: DeclaredField) -> Bool {
 //    public func like<T: SQLDataRepresentable>(value: T?) -> Condition {
 //        return .Like(self, value?.sqlData)
 //    }
-//}
+}
 //
 public func == <T: SQLDataRepresentable>(lhs: DeclaredField, rhs: T) -> Condition {
     return .Equals(lhs, rhs.sqlData)

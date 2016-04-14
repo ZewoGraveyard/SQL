@@ -127,24 +127,23 @@ let d2 = "asdsa"
 //
 //}
 
-//let q = Select("asd", from: "asdasd").filter(field("asdas") == "fdsdasf" && "f" == d2.sqlData )
+let q = Select(Event.f(.id), from: "asdasd").filter(field("asdas") == "fdsdasf" && "f" == d2.sqlData )
 
 //print(q.queryComponent)
 
 
 //let q = Delete(from: "table").filter("asdsa" == nil)
 
-//let q = Insert(["name": subq], into: "asd")
+let q2 = Insert([Event.f(.id): subq, "naame": subq], into: "asd")
 
 
-let q = Update("table", set: ["name": subq]).filter("asd"==d2)
+//let q = Update("table", set: ["name": subq]).filter("asd"==Func.count(d2, "secondarg") && "asd" == "fds2")
 
-let qq = Compiler().compile(q)
+print(Compiler().compile(q))
+print(Compiler().compile(q2))
 
 
 
-
-print(qq)
 
 
 
