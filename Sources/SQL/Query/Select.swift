@@ -52,7 +52,7 @@ public struct Select: SelectQuery {
         self.init(fields.map { DeclaredField(name: $0) }, from: tableName)
     }
     
-    public func join(tableName: String, using type: [Join.JoinType], leftKey: String, rightKey: String) -> Select {
+    public func join(_ tableName: String, using type: [Join.JoinType], leftKey: String, rightKey: String) -> Select {
         var new = self
         new.joins.append(
             Join(tableName, type: type, leftKey: leftKey, rightKey: rightKey)
@@ -61,7 +61,7 @@ public struct Select: SelectQuery {
         return new
     }
     
-    public func join(tableName: String, using type: Join.JoinType, leftKey: String, rightKey: String) -> Select {
+    public func join(_ tableName: String, using type: Join.JoinType, leftKey: String, rightKey: String) -> Select {
         return join(tableName, using: [type], leftKey: leftKey, rightKey: rightKey)
     }
 }
@@ -85,7 +85,7 @@ public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
     
     public var orderBy: [OrderBy] = []
     
-    public func join<R: Model>(model: R.Type, using type: [Join.JoinType], leftKey: ModelType.Field, rightKey: R.Field) -> ModelSelect<T> {
+    public func join<R: Model>(_ model: R.Type, using type: [Join.JoinType], leftKey: ModelType.Field, rightKey: R.Field) -> ModelSelect<T> {
         var new = self
         new.joins.append(
             Join(R.tableName, type: type, leftKey: ModelType.field(leftKey).qualifiedName, rightKey: R.field(rightKey).qualifiedName)
@@ -94,7 +94,7 @@ public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
         return new
     }
     
-    public func join<R: Model>(model: R.Type, using type: Join.JoinType, leftKey: ModelType.Field, rightKey: R.Field) -> ModelSelect<T> {
+    public func join<R: Model>(_ model: R.Type, using type: Join.JoinType, leftKey: ModelType.Field, rightKey: R.Field) -> ModelSelect<T> {
         return join(model, using: [type], leftKey: leftKey, rightKey: rightKey)
     }
 

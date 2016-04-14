@@ -50,7 +50,7 @@ public indirect enum Condition: QueryComponentsConvertible {
 
     public var queryComponents: QueryComponents {
 
-        func statementWithKeyValue(key: String, _ op: String, _ value: Key) -> QueryComponents {
+        func statementWithKeyValue(_ key: String, _ op: String, _ value: Key) -> QueryComponents {
             switch value {
             case .Value(let value):
                 return QueryComponents("\(key) \(op) \(QueryComponents.valuePlaceholder)", values: [value])

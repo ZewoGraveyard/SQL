@@ -26,7 +26,7 @@
 public protocol Query: QueryComponentsConvertible {}
 
 public extension Query {
-    public func execute<T: Connection>(connection: T) throws -> T.ResultType {
+    public func execute<T: Connection>(_ connection: T) throws -> T.ResultType {
         return try connection.execute(self)
     }
 }
@@ -40,22 +40,22 @@ public protocol ModelQuery: TableQuery {
 }
 
 public extension ModelQuery where Self: FetchQuery {
-    public func fetch<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws -> [ModelType] {
+    public func fetch<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws -> [ModelType] {
         return try connection.execute(self).map { try ModelType(row: $0) }
     }
     
-    public func first<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws -> ModelType? {
+    public func first<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws -> ModelType? {
         var new = self
         new.offset = 0
         new.limit = 1
         return try connection.execute(new).map { try ModelType(row: $0) }.first
     }
     
-    public func orderBy(values: [ModelOrderBy<ModelType>]) -> Self {
+    public func orderBy(_ values: [ModelOrderBy<ModelType>]) -> Self {
         return orderBy(values.map { $0.normalize })
     }
     
-    public func orderBy(values: ModelOrderBy<ModelType>...) -> Self {
+    public func orderBy(_ values: ModelOrderBy<ModelType>...) -> Self {
         return orderBy(values)
     }
 }
@@ -164,13 +164,13 @@ public extension FetchQuery {
         }
     }
     
-    public func page(value: Int?) -> Self {
+    public func page(_ value: Int?) -> Self {
         var new = self
         new.page = value
         return new
     }
     
-    public func pageSize(value: Int?) -> Self {
+    public func pageSize(_ value: Int?) -> Self {
         var new = self
         new.pageSize = value
         return new
@@ -194,25 +194,25 @@ public extension FetchQuery {
         }
     }
     
-    public func orderBy(values: [OrderBy]) -> Self {
+    public func orderBy(_ values: [OrderBy]) -> Self {
         var new = self
         new.orderBy.append(contentsOf: values)
         return new
     }
     
-    public func orderBy(values: OrderBy...) -> Self {
+    public func orderBy(_ values: OrderBy...) -> Self {
         return orderBy(values)
     }
     
-    public func orderBy(values: [DeclaredFieldOrderBy]) -> Self {
+    public func orderBy(_ values: [DeclaredFieldOrderBy]) -> Self {
         return orderBy(values.map { $0.normalize })
     }
     
-    public func orderBy(values: DeclaredFieldOrderBy...) -> Self {
+    public func orderBy(_ values: DeclaredFieldOrderBy...) -> Self {
         return orderBy(values)
     }
     
-    public func limit(value: Int?) -> Self {
+    public func limit(_ value: Int?) -> Self {
         var new = self
         if let value = value {
             new.limit = Limit(value)
@@ -223,7 +223,7 @@ public extension FetchQuery {
         return new
     }
     
-    public func offset(value: Int?) -> Self {
+    public func offset(_ value: Int?) -> Self {
         var new = self
         if let value = value {
             new.offset = Offset(value)
@@ -240,7 +240,7 @@ public protocol FilteredQuery: Query {
 }
 
 extension FilteredQuery {
-    public func filter(condition: Condition) -> Self {
+    public func filter(_ condition: Condition) -> Self {
         let newCondition: Condition
         if let existing = self.condition {
             newCondition = .And([existing, condition])

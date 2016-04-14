@@ -49,7 +49,7 @@ public protocol Connection: class {
 
     var log: Log? { get set }
 
-    func execute(statement: QueryComponents) throws -> ResultType
+    func execute(_ statement: QueryComponents) throws -> ResultType
 
     func begin() throws
 
@@ -57,11 +57,11 @@ public protocol Connection: class {
 
     func rollback() throws
 
-    func createSavePointNamed(name: String) throws
+    func createSavePointNamed(_ name: String) throws
 
-    func releaseSavePointNamed(name: String) throws
+    func releaseSavePointNamed(_ name: String) throws
 
-    func rollbackToSavePointNamed(name: String) throws
+    func rollbackToSavePointNamed(_ name: String) throws
 
     init(_ info: Info)
     
@@ -83,7 +83,7 @@ public extension Connection {
         }
     }
 
-    public func withSavePointNamed(name: String, block: Void throws -> Void) throws {
+    public func withSavePointNamed(_ name: String, block: Void throws -> Void) throws {
         try createSavePointNamed(name)
 
         do {
@@ -97,19 +97,19 @@ public extension Connection {
         }
     }
     
-    public func execute(statement: QueryComponents) throws -> ResultType {
+    public func execute(_ statement: QueryComponents) throws -> ResultType {
         return try execute(statement)
     }
     
-    public func execute(statement: String, parameters: [SQLDataConvertible?] = []) throws -> ResultType {
+    public func execute(_ statement: String, parameters: [SQLDataConvertible?] = []) throws -> ResultType {
         return try execute(QueryComponents(statement, values: parameters.map { $0?.sqlData }))
     }
     
-    public func execute(statement: String, parameters: SQLDataConvertible?...) throws -> ResultType {
+    public func execute(_ statement: String, parameters: SQLDataConvertible?...) throws -> ResultType {
         return try execute(statement, parameters: parameters)
     }
 
-    public func execute(convertible: QueryComponentsConvertible) throws -> ResultType {
+    public func execute(_ convertible: QueryComponentsConvertible) throws -> ResultType {
         return try execute(convertible.queryComponents)
     }
 

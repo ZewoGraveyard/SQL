@@ -40,7 +40,7 @@ extension DeclaredField: Hashable {
     }
 }
 
-public func field(name: String) -> DeclaredField {
+public func field(_ name: String) -> DeclaredField {
     return DeclaredField(name: name)
 }
 
@@ -124,27 +124,27 @@ public extension DeclaredField {
         return qualifiedName
     }
 
-    public func containedIn<T: SQLDataConvertible>(values: [T?]) -> Condition {
+    public func containedIn<T: SQLDataConvertible>(_ values: [T?]) -> Condition {
         return .In(self, values.map { $0?.sqlData })
     }
 
-    public func containedIn<T: SQLDataConvertible>(values: T?...) -> Condition {
+    public func containedIn<T: SQLDataConvertible>(_ values: T?...) -> Condition {
         return .In(self, values.map { $0?.sqlData })
     }
 
-    public func notContainedIn<T: SQLDataConvertible>(values: [T?]) -> Condition {
+    public func notContainedIn<T: SQLDataConvertible>(_ values: [T?]) -> Condition {
         return .NotIn(self, values.map { $0?.sqlData })
     }
 
-    public func notContainedIn<T: SQLDataConvertible>(values: T?...) -> Condition {
+    public func notContainedIn<T: SQLDataConvertible>(_ values: T?...) -> Condition {
         return .NotIn(self, values.map { $0?.sqlData })
     }
     
-    public func equals<T: SQLDataConvertible>(value: T?) -> Condition {
+    public func equals<T: SQLDataConvertible>(_ value: T?) -> Condition {
         return .Equals(self, .Value(value?.sqlData))
     }
     
-    public func like<T: SQLDataConvertible>(value: T?) -> Condition {
+    public func like<T: SQLDataConvertible>(_ value: T?) -> Condition {
         return .Like(self, value?.sqlData)
     }
 }
@@ -230,9 +230,9 @@ public protocol Model {
    
     var persistedValuesByField: [Field: SQLDataConvertible?] { get }
     
-    mutating func create<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws
+    mutating func create<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws
     
-    static func create<T: SQL.Connection where T.ResultType.Iterator.Element == Row>(values: [Field: SQLDataConvertible?], connection: T) throws -> Self
+    static func create<T: SQL.Connection where T.ResultType.Iterator.Element == Row>(_ values: [Field: SQLDataConvertible?], connection: T) throws -> Self
     
     func willSave()
     func didSave()
@@ -264,7 +264,7 @@ public extension Model {
         return ModelSelect()
     }
     
-    public static func updateQuery(values: [Field: SQLDataConvertible?] = [:]) -> ModelUpdate<Self> {
+    public static func updateQuery(_ values: [Field: SQLDataConvertible?] = [:]) -> ModelUpdate<Self> {
         return ModelUpdate(values)
     }
     
@@ -322,11 +322,11 @@ public extension Model {
         return Array(persistedValuesByField.keys)
     }
 
-    public static func field(field: Field) -> DeclaredField {
+    public static func field(_ field: Field) -> DeclaredField {
         return DeclaredField(name: field.rawValue, tableName: Self.tableName)
     }
     
-    public static func field(field: String) -> DeclaredField {
+    public static func field(_ field: String) -> DeclaredField {
         return DeclaredField(name: field, tableName: Self.tableName)
     }
     
@@ -342,11 +342,11 @@ public extension Model {
         return selectFields.map { Self.field($0) }
     }
     
-    public static func get<T: Connection where T.ResultType.Iterator.Element == Row>(pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
+    public static func get<T: Connection where T.ResultType.Iterator.Element == Row>(_ pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
         return try selectQuery.filter(declaredPrimaryKeyField == pk).first(connection)
     }
     
-    public mutating func refresh<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws {
+    public mutating func refresh<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws {
         guard let pk = primaryKey, newSelf = try Self.get(pk, connection: connection) else {
             throw ModelError(description: "Cannot refresh a non-persisted model. Please use insert() or save() first.")
         }
@@ -356,7 +356,7 @@ public extension Model {
         didRefresh()
     }
     
-    public mutating func update<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws {
+    public mutating func update<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws {
         guard let pk = primaryKey else {
             throw ModelError(description: "Cannot update a model that isn't persisted. Please use insert() first or save()")
         }
@@ -377,7 +377,7 @@ public extension Model {
         didSave()
     }
     
-    public mutating func delete<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws {
+    public mutating func delete<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws {
         guard let pk = self.primaryKey else {
             throw ModelError(description: "Cannot delete a model that isn't persisted.")
         }
@@ -387,7 +387,7 @@ public extension Model {
         didDelete()
     }
 
-    public mutating func save<T: Connection where T.ResultType.Iterator.Element == Row>(connection: T) throws {
+    public mutating func save<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws {
         
         if isPersisted {
             try update(connection)

@@ -87,10 +87,10 @@ public class MigrationManager<T: Connection> {
             throw MigrationError(description: "Unable to open find migrations directory at \(path)")
         }
 
-        let directories = try File.contentsOfDirectoryAt(path).filter {
+        let directories = try File.contentsOfDirectory(at: path).filter {
             path in
 
-            return path.split(".").last == "migration"
+            return path.split(separator: ".").last == "migration"
 		}.sorted()
 
         guard !directories.isEmpty else {

@@ -88,7 +88,7 @@ public extension RowType {
         return result
     }
     
-    public func data(field: DeclaredField) throws -> Data {
+    public func data(_ field: DeclaredField) throws -> Data {
         guard let data: Data = try data(field) else {
             throw RowTypeError.UnexpectedNilValue(field)
         }
@@ -98,7 +98,7 @@ public extension RowType {
     
     // MARK: - SQLDataConvertible
     
-    public func value<T: SQLDataConvertible>(field: DeclaredField) throws -> T? {
+    public func value<T: SQLDataConvertible>(_ field: DeclaredField) throws -> T? {
         guard let data: Data = try data(field) else {
             return nil
         }
@@ -106,7 +106,7 @@ public extension RowType {
         return try T(rawSQLData: data)
     }
     
-    public func value<T: SQLDataConvertible>(field: DeclaredField) throws -> T {
+    public func value<T: SQLDataConvertible>(_ field: DeclaredField) throws -> T {
         guard let data: Data = try data(field) else {
             throw RowTypeError.UnexpectedNilValue(field)
         }
@@ -120,11 +120,11 @@ public extension RowType {
         return try data(DeclaredField(name: field))
     }
     
-    public func value<T: SQLDataConvertible>(field: String) throws -> T? {
+    public func value<T: SQLDataConvertible>(_ field: String) throws -> T? {
         return try value(DeclaredField(name: field))
     }
     
-    public func value<T: SQLDataConvertible>(field: String) throws -> T {
+    public func value<T: SQLDataConvertible>(_ field: String) throws -> T {
         return try value(DeclaredField(name: field))
     }
     
