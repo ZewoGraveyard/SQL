@@ -115,7 +115,7 @@ public extension Connection {
 
     public func executeFromFile(atPath path: String) throws -> ResultType {
         return try execute(
-            QueryComponents(try String(data: File(path: path).read()))
+            QueryComponents(try String(data: File(path: path).readAll()))
         )
     }
 

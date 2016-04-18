@@ -49,12 +49,12 @@ public struct Migration {
             throw MigrationError(description: "up.sql not found at \(upPath)")
         }
 
-        self.upStatement = try String(data: File(path: upPath).read())
+        self.upStatement = try String(data: File(path: upPath).readAll())
         
         let checkDownFile = File.exists(at: downPath)
 
         if checkDownFile.exists && checkDownFile.isDirectory {
-            self.downStatement = try String(data: File(path: downPath).read())
+            self.downStatement = try String(data: File(path: downPath).readAll())
         }
         else {
             self.downStatement = nil
