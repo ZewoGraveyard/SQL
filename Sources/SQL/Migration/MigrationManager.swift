@@ -49,12 +49,12 @@ public struct Migration {
             throw MigrationError(description: "up.sql not found at \(upPath)")
         }
 
-        self.upStatement = try String(data: File(path: upPath).read())
+        self.upStatement = try String(data: File(path: upPath).readAllBytes())
         
         let checkDownFile = File.exists(at: downPath)
 
         if checkDownFile.exists && checkDownFile.isDirectory {
-            self.downStatement = try String(data: File(path: downPath).read())
+            self.downStatement = try String(data: File(path: downPath).readAllBytes())
         }
         else {
             self.downStatement = nil
@@ -87,10 +87,10 @@ public class MigrationManager<T: Connection> {
             throw MigrationError(description: "Unable to open find migrations directory at \(path)")
         }
 
-        let directories = try File.contentsOfDirectoryAt(path).filter {
+        let directories = try File.contentsOfDirectory(at: path).filter {
             path in
 
-            return path.split(".").last == "migration"
+            return path.split(separator: ".").last == "migration"
 		}.sorted()
 
         guard !directories.isEmpty else {

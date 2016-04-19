@@ -88,11 +88,11 @@ public struct ModelUpdate<T: Model>: UpdateQuery {
         self.valuesByField = dict
     }
     
-    public mutating func set(value: SQLData?, forField field: ModelType.Field) {
+    public mutating func set(_ value: SQLData?, forField field: ModelType.Field) {
         set(value, forField: ModelType.field(field))
     }
     
-    public mutating func set(value: SQLDataConvertible?, forField field: ModelType.Field) {
+    public mutating func set(_ value: SQLDataConvertible?, forField field: ModelType.Field) {
         set(value?.sqlData, forField: field)
     }
 }
@@ -103,11 +103,11 @@ public protocol UpdateQuery: FilteredQuery, TableQuery {
 
 public extension UpdateQuery {
     
-    public mutating func set(value: SQLData?, forField field: DeclaredField) {
+    public mutating func set(_ value: SQLData?, forField field: DeclaredField) {
         valuesByField[field] = value
     }
     
-    public mutating func set(value: SQLDataConvertible?, forField field: DeclaredField) {
+    public mutating func set(_ value: SQLDataConvertible?, forField field: DeclaredField) {
         self.set(value?.sqlData, forField: field)
     }
     

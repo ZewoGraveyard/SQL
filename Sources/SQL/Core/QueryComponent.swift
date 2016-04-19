@@ -38,8 +38,8 @@ public struct QueryComponents: CustomStringConvertible {
         return stringComponents.filter { !$0.isEmpty }.map { $0.trim() }.joined(separator: " ")
     }
     
-    public func stringWithNumberedValuesUsingPrefix(prefix: String, suffix: String? = nil) throws -> String {
-        var strings = string.split(by: QueryComponents.valuePlaceholder)
+    public func stringWithNumberedValuesUsingPrefix(_ prefix: String, suffix: String? = nil) throws -> String {
+        var strings = string.split(byString: QueryComponents.valuePlaceholder)
         
         if strings.count == 1 {
             return string
@@ -94,12 +94,12 @@ public struct QueryComponents: CustomStringConvertible {
         return QueryComponents("(" + stringComponents.joined(separator: " ") + ")", values: values)
     }
 
-    public mutating func append(component: QueryComponents) {
+    public mutating func append(_ component: QueryComponents) {
         stringComponents += component.stringComponents
         values += component.values
     }
     
-    public mutating func prepend(component: QueryComponents) {
+    public mutating func prepend(_ component: QueryComponents) {
         stringComponents = component.stringComponents + stringComponents
         values = component.values + values
     }
