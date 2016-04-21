@@ -335,11 +335,11 @@ public extension Model {
         return selectFields.map { Self.field($0) }
     }
     
-    public static func get<T: ConnectionProtocol>(_ pk: Self.PrimaryKey, connection: T) throws -> Self? {
+    public static func get<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(_ pk: Self.PrimaryKey, connection: T) throws -> Self? {
         return try selectQuery.filter(declaredPrimaryKeyField == pk).first(connection)
     }
     
-    mutating func create<T: ConnectionProtocol>(_ connection: T) throws {
+    mutating func create<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(_ connection: T) throws {
         guard !isPersisted else {
             throw ModelError(description: "Cannot create an already persisted model.")
         }
@@ -357,7 +357,7 @@ public extension Model {
         didSave()
     }
     
-    public mutating func refresh<T: ConnectionProtocol>(_ connection: T) throws {
+    public mutating func refresh<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(_ connection: T) throws {
         guard let pk = primaryKey, newSelf = try Self.get(pk, connection: connection) else {
             throw ModelError(description: "Cannot refresh a non-persisted model. Please use insert() or save() first.")
         }
@@ -367,7 +367,7 @@ public extension Model {
         didRefresh()
     }
     
-    public mutating func update<T: ConnectionProtocol>(_ connection: T) throws {
+    public mutating func update<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(_ connection: T) throws {
         guard let pk = primaryKey else {
             throw ModelError(description: "Cannot update a model that isn't persisted. Please use insert() first or save()")
         }
@@ -398,7 +398,7 @@ public extension Model {
         didDelete()
     }
 
-    public mutating func save<T: ConnectionProtocol>(_ connection: T) throws {
+    public mutating func save<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(_ connection: T) throws {
         
         if isPersisted {
             try update(connection)

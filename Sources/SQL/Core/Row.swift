@@ -54,7 +54,7 @@ public extension RowProtocol {
     
     // MARK: - Data
     
-    public func data(field: DeclaredField) throws -> Data? {
+    public func data(_ field: DeclaredField) throws -> Data? {
         
         /*
          Supplying a fielName can done either

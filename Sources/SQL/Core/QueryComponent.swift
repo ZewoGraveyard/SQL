@@ -38,7 +38,8 @@ public struct QueryComponents: CustomStringConvertible {
         return stringComponents.filter { !$0.isEmpty }.map { $0.trim() }.joined(separator: " ")
     }
     
-    public func stringWithNumberedValuesUsingPrefix(_ prefix: String, suffix: String? = nil) throws -> String {
+    public func stringWithEscapedValuesUsingPrefix(_ prefix: String, suffix: String? = nil, transformer: (Int, SQLData?) -> String) throws -> String {
+        
         var strings = string.split(byString: QueryComponents.valuePlaceholder)
         
         if strings.count == 1 {
@@ -53,11 +54,16 @@ public struct QueryComponents: CustomStringConvertible {
         
         for i in 0..<values.count {
             newStrings.append(strings[i])
-            newStrings.append("\(prefix)\(i + 1)\(suffix ?? "")")
+            newStrings.append(prefix)
+            newStrings.append(transformer(i, values[i]))
+            
+            if let suffix = suffix {
+                newStrings.append(suffix)
+            }
         }
         
         newStrings.append(strings.last!)
-
+        
         return newStrings.joined(separator: "")
     }
 
@@ -105,7 +111,25 @@ public struct QueryComponents: CustomStringConvertible {
     }
     
     public var description: String {
-        return "<QueryComponents string: \"\(string)\", values: \(values)"
+        guard let result = (try? stringWithEscapedValuesUsingPrefix("'", suffix: "'") {
+            index, value in
+        
+            guard let value = value else {
+                return "NULL"
+            }
+            
+            switch value {
+            case .Text(let string):
+                return string
+            default:
+                return "BINARY DATA"
+            }
+        
+        }) else {
+            return string
+        }
+        
+        return result
     }
 }
 

@@ -22,6 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+@_exported import URI
+@_exported import Log
 
 public protocol ConnectionInfoProtocol: StringLiteralConvertible {
     var host: String { get }
@@ -29,6 +31,22 @@ public protocol ConnectionInfoProtocol: StringLiteralConvertible {
     var databaseName: String { get }
     var username: String? { get }
     var password: String? { get }
+    
+    init(_ uri: URI) throws
+}
+
+public extension ConnectionInfoProtocol {
+    public init(stringLiteral value: String) {
+        try! self.init(URI(value))
+    }
+    
+    public init(unicodeScalarLiteral value: String) {
+        self.init(stringLiteral: value)
+    }
+    
+    public init(extendedGraphemeClusterLiteral value: String) {
+        self.init(stringLiteral: value)
+    }
 }
 
 public protocol ConnectionProtocol: class {
@@ -36,7 +54,9 @@ public protocol ConnectionProtocol: class {
     associatedtype Result: ResultProtocol
     associatedtype Error: ErrorProtocol
     associatedtype ConnectionInfo: ConnectionInfoProtocol
-
+    
+    var logger: Logger? { get set }
+    
     var connectionInfo: ConnectionInfo { get }
 
     func open() throws
@@ -67,6 +87,10 @@ public protocol ConnectionProtocol: class {
 }
 
 public extension ConnectionProtocol {
+    
+    public init(_ uri: URI) throws {
+        try self.init(ConnectionInfo(uri))
+    }
 
     public func transaction(block: Void throws -> Void) throws {
         try begin()
@@ -109,12 +133,6 @@ public extension ConnectionProtocol {
 
     public func execute(_ convertible: QueryComponentsConvertible) throws -> Result {
         return try execute(convertible.queryComponents)
-    }
-
-    public func executeFromFile(atPath path: String) throws -> Result {
-        return try execute(
-            QueryComponents(try String(data: File(path: path).readAllBytes()))
-        )
     }
 
     public func begin() throws {

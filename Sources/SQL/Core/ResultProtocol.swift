@@ -27,12 +27,12 @@ public protocol ResultStatus {
 }
 
 public protocol ResultProtocol: Collection {
-    associatedtype FieldInfoType: FieldInfo
+    associatedtype FieldInfoProtocolType: FieldInfoProtocol
     associatedtype Iterator: RowIteratorProtocol = RowIterator
 
     func clear()
 
-    var fields: [FieldInfoType] { get }
+    var fields: [FieldInfoProtocolType] { get }
 
     subscript(index: Int) -> Row { get }
 
