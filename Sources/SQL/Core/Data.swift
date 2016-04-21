@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public struct ValueConversionError: ErrorProtocol {
+public struct SQLDataConversionError: ErrorProtocol {
     let description: String
 }
 
@@ -40,7 +40,7 @@ public protocol SQLDataConvertible {
 extension Int: SQLDataConvertible {
     public init(rawSQLData data: Data) throws {
         guard let value = Int(try String(data: data)) else {
-            throw ValueConversionError(description: "Failed to convert data to Int")
+            throw SQLDataConversionError(description: "Failed to convert data to Int")
         }
         self = value
     }
@@ -53,7 +53,7 @@ extension Int: SQLDataConvertible {
 extension UInt: SQLDataConvertible {
     public init(rawSQLData data: Data) throws {
         guard let value = UInt(try String(data: data)) else {
-            throw ValueConversionError(description: "Failed to convert data to UInt")
+            throw SQLDataConversionError(description: "Failed to convert data to UInt")
         }
         self = value
     }
@@ -66,7 +66,7 @@ extension UInt: SQLDataConvertible {
 extension Float: SQLDataConvertible {
     public init(rawSQLData data: Data) throws {
         guard let value = Float(try String(data: data)) else {
-            throw ValueConversionError(description: "Failed to convert data to Float")
+            throw SQLDataConversionError(description: "Failed to convert data to Float")
         }
         self = value
     }
@@ -79,7 +79,7 @@ extension Float: SQLDataConvertible {
 extension Double: SQLDataConvertible {
     public init(rawSQLData data: Data) throws {
         guard let value = Double(try String(data: data)) else {
-            throw ValueConversionError(description: "Failed to convert data to Double")
+            throw SQLDataConversionError(description: "Failed to convert data to Double")
         }
         self = value
     }

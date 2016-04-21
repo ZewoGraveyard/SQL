@@ -24,7 +24,7 @@
 
 @_exported import String
 
-public struct Row: RowType {
+public struct Row: RowProtocol {
     
     public var dataByfield: [String: Data?]
     
@@ -33,7 +33,7 @@ public struct Row: RowType {
     }
 }
 
-public protocol RowType: CustomStringConvertible {
+public protocol RowProtocol: CustomStringConvertible {
     init(dataByfield: [String: Data?])
     
     var fields: [String] { get }
@@ -41,12 +41,12 @@ public protocol RowType: CustomStringConvertible {
     var dataByfield: [String: Data?] { get }
 }
 
-public enum RowTypeError: ErrorProtocol {
+public enum RowProtocolError: ErrorProtocol {
     case ExpectedField(DeclaredField)
     case UnexpectedNilValue(DeclaredField)
 }
 
-public extension RowType {
+public extension RowProtocol {
     
     public var fields: [String] {
         return Array(dataByfield.keys)
@@ -83,14 +83,23 @@ public extension RowType {
         }
         
         guard let result = data else {
-            throw RowTypeError.ExpectedField(field)
+            throw RowProtocolError.ExpectedField(field)
         }
         return result
     }
     
     public func data(_ field: DeclaredField) throws -> Data {
         guard let data: Data = try data(field) else {
-            throw RowTypeError.UnexpectedNilValue(field)
+            throw RowProtocolError.UnexpectedNilValue(field)
+        }
+        
+        return data
+    }
+    
+    public func data(_ field: String) throws -> Data {
+        let field = DeclaredField(name: field)
+        guard let data: Data = try data(field) else {
+            throw RowProtocolError.UnexpectedNilValue(field)
         }
         
         return data
@@ -108,7 +117,7 @@ public extension RowType {
     
     public func value<T: SQLDataConvertible>(_ field: DeclaredField) throws -> T {
         guard let data: Data = try data(field) else {
-            throw RowTypeError.UnexpectedNilValue(field)
+            throw RowProtocolError.UnexpectedNilValue(field)
         }
         
         return try T(rawSQLData: data)

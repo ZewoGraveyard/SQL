@@ -26,7 +26,7 @@
 public protocol Query: QueryComponentsConvertible {}
 
 public extension Query {
-    public func execute<T: Connection>(_ connection: T) throws -> T.ResultType {
+    public func execute<T: ConnectionProtocol>(_ connection: T) throws -> T.Result {
         return try connection.execute(self)
     }
 }
@@ -40,15 +40,16 @@ public protocol ModelQuery: TableQuery {
 }
 
 public extension ModelQuery where Self: FetchQuery {
-    public func fetch<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws -> [ModelType] {
+    public func fetch<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(_ connection: T) throws -> [ModelType] {
         return try connection.execute(self).map { try ModelType(row: $0) }
     }
     
-    public func first<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws -> ModelType? {
+    public func first<T: ConnectionProtocol>(_ connection: T) throws -> ModelType? {
         var new = self
         new.offset = 0
         new.limit = 1
-        return try connection.execute(new).map { try ModelType(row: $0) }.first
+        fatalError()
+        //return try connection.execute(new).map { try ModelType(row: $0) }.first
     }
     
     public func orderBy(_ values: [ModelOrderBy<ModelType>]) -> Self {

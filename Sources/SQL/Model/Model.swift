@@ -193,9 +193,10 @@ public func <= (lhs: DeclaredField, rhs: DeclaredField) -> Condition {
 }
 
 
-public protocol FieldType: RawRepresentable, Hashable {
+public protocol FieldProtocol: RawRepresentable, Hashable {
     var rawValue: String { get }
 }
+
 
 public struct ModelError: ErrorProtocol {
     public let description: String
@@ -212,27 +213,19 @@ public enum ModelChangeStatus {
 }
 
 public protocol Model {
-    associatedtype Field: FieldType
-    associatedtype PrimaryKeyType: SQLDataConvertible
+    associatedtype Field: FieldProtocol
+    associatedtype PrimaryKey: SQLDataConvertible
     
-    var primaryKey: PrimaryKeyType? { get }
+    var primaryKey: PrimaryKey? { get }
     static var fieldForPrimaryKey: Field { get }
     
     static var tableName: String { get }
     
     static var selectFields: [Field] { get }
     
-    
-    
-    
-    
     var changedFields: [Field]? { get set }
    
     var persistedValuesByField: [Field: SQLDataConvertible?] { get }
-    
-    mutating func create<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws
-    
-    static func create<T: SQL.Connection where T.ResultType.Iterator.Element == Row>(_ values: [Field: SQLDataConvertible?], connection: T) throws -> Self
     
     func willSave()
     func didSave()
@@ -342,11 +335,29 @@ public extension Model {
         return selectFields.map { Self.field($0) }
     }
     
-    public static func get<T: Connection where T.ResultType.Iterator.Element == Row>(_ pk: Self.PrimaryKeyType, connection: T) throws -> Self? {
+    public static func get<T: ConnectionProtocol>(_ pk: Self.PrimaryKey, connection: T) throws -> Self? {
         return try selectQuery.filter(declaredPrimaryKeyField == pk).first(connection)
     }
     
-    public mutating func refresh<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws {
+    mutating func create<T: ConnectionProtocol>(_ connection: T) throws {
+        guard !isPersisted else {
+            throw ModelError(description: "Cannot create an already persisted model.")
+        }
+        
+        let pk: PrimaryKey = try connection.executeInsertQuery(query: self.dynamicType.insertQuery(values: persistedValuesByField), returningPrimaryKeyForField: self.dynamicType.declaredPrimaryKeyField)
+        
+        guard let newSelf = try self.dynamicType.get(pk, connection: connection) else {
+            throw ModelError(description: "Failed to find model of supposedly inserted id \(pk)")
+        }
+        
+        willSave()
+        willCreate()
+        self = newSelf
+        didCreate()
+        didSave()
+    }
+    
+    public mutating func refresh<T: ConnectionProtocol>(_ connection: T) throws {
         guard let pk = primaryKey, newSelf = try Self.get(pk, connection: connection) else {
             throw ModelError(description: "Cannot refresh a non-persisted model. Please use insert() or save() first.")
         }
@@ -356,7 +367,7 @@ public extension Model {
         didRefresh()
     }
     
-    public mutating func update<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws {
+    public mutating func update<T: ConnectionProtocol>(_ connection: T) throws {
         guard let pk = primaryKey else {
             throw ModelError(description: "Cannot update a model that isn't persisted. Please use insert() first or save()")
         }
@@ -377,7 +388,7 @@ public extension Model {
         didSave()
     }
     
-    public mutating func delete<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws {
+    public mutating func delete<T: ConnectionProtocol>(_ connection: T) throws {
         guard let pk = self.primaryKey else {
             throw ModelError(description: "Cannot delete a model that isn't persisted.")
         }
@@ -387,7 +398,7 @@ public extension Model {
         didDelete()
     }
 
-    public mutating func save<T: Connection where T.ResultType.Iterator.Element == Row>(_ connection: T) throws {
+    public mutating func save<T: ConnectionProtocol>(_ connection: T) throws {
         
         if isPersisted {
             try update(connection)

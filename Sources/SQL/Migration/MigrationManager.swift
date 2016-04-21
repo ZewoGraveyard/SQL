@@ -63,7 +63,7 @@ public struct Migration {
 }
 
 
-public class MigrationManager<T: Connection> {
+public class MigrationManager<T: ConnectionProtocol> {
 
     public let connection: T
 

@@ -26,7 +26,7 @@ public protocol ResultStatus {
     var successful: Bool { get }
 }
 
-public protocol Result: Collection {
+public protocol ResultProtocol: Collection {
     associatedtype FieldInfoType: FieldInfo
     associatedtype Iterator: RowIteratorProtocol = RowIterator
 
@@ -40,7 +40,7 @@ public protocol Result: Collection {
 }
 
 public protocol RowIteratorProtocol: IteratorProtocol {
-    associatedtype Element: RowType
+    associatedtype Element: RowProtocol = Row
 }
 
 public struct RowIterator: RowIteratorProtocol {
@@ -58,7 +58,7 @@ public struct RowIterator: RowIteratorProtocol {
     }
 }
 
-extension Result {
+extension ResultProtocol {
 
     public func makeIterator() -> RowIterator {
         var index = 0

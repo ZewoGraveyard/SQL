@@ -22,10 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-@_exported import Log
 
-
-public protocol ConnectionInfo {
+public protocol ConnectionInfoProtocol: StringLiteralConvertible {
     var host: String { get }
     var port: Int { get }
     var databaseName: String { get }
@@ -33,23 +31,21 @@ public protocol ConnectionInfo {
     var password: String? { get }
 }
 
-public protocol Connection: class {
-    associatedtype Info: ConnectionInfo
-    associatedtype ResultType: Result
-    associatedtype StatusType
+public protocol ConnectionProtocol: class {
+    associatedtype InternalStatus
+    associatedtype Result: ResultProtocol
     associatedtype Error: ErrorProtocol
+    associatedtype ConnectionInfo: ConnectionInfoProtocol
 
-    var connectionInfo: Info { get }
+    var connectionInfo: ConnectionInfo { get }
 
     func open() throws
 
     func close()
 
-    var status: StatusType { get }
+    var internalStatus: InternalStatus { get }
 
-    var log: Log? { get set }
-
-    func execute(_ statement: QueryComponents) throws -> ResultType
+    func execute(_ statement: QueryComponents) throws -> Result
 
     func begin() throws
 
@@ -63,12 +59,14 @@ public protocol Connection: class {
 
     func rollbackToSavePointNamed(_ name: String) throws
 
-    init(_ info: Info)
+    init(_ info: ConnectionInfo)
     
     var mostRecentError: Error? { get }
+    
+    func executeInsertQuery<T: SQLDataConvertible>(query: InsertQuery, returningPrimaryKeyForField primaryKey: DeclaredField) throws -> T
 }
 
-public extension Connection {
+public extension ConnectionProtocol {
 
     public func transaction(block: Void throws -> Void) throws {
         try begin()
@@ -97,23 +95,23 @@ public extension Connection {
         }
     }
     
-    public func execute(_ statement: QueryComponents) throws -> ResultType {
+    public func execute(_ statement: QueryComponents) throws -> Result {
         return try execute(statement)
     }
     
-    public func execute(_ statement: String, parameters: [SQLDataConvertible?] = []) throws -> ResultType {
+    public func execute(_ statement: String, parameters: [SQLDataConvertible?] = []) throws -> Result {
         return try execute(QueryComponents(statement, values: parameters.map { $0?.sqlData }))
     }
     
-    public func execute(_ statement: String, parameters: SQLDataConvertible?...) throws -> ResultType {
+    public func execute(_ statement: String, parameters: SQLDataConvertible?...) throws -> Result {
         return try execute(statement, parameters: parameters)
     }
 
-    public func execute(_ convertible: QueryComponentsConvertible) throws -> ResultType {
+    public func execute(_ convertible: QueryComponentsConvertible) throws -> Result {
         return try execute(convertible.queryComponents)
     }
 
-    public func executeFromFile(atPath path: String) throws -> ResultType {
+    public func executeFromFile(atPath path: String) throws -> Result {
         return try execute(
             QueryComponents(try String(data: File(path: path).readAllBytes()))
         )
