@@ -74,8 +74,8 @@ public extension RowProtocol {
         
         var data: Data??
         
-        for fielNameCandidate in fieldCandidates {
-            data = dataByfield[fielNameCandidate]
+        for fieldNameCandidate in fieldCandidates {
+            data = dataByfield[fieldNameCandidate]
             
             if data != nil {
                 break
