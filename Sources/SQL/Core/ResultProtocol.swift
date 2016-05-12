@@ -80,4 +80,8 @@ extension ResultProtocol {
     public var endIndex: Int {
         return count
     }
+    
+    public func index(after: Int) -> Int {
+        return after + 1
+    }
 }

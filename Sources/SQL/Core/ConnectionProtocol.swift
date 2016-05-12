@@ -25,7 +25,12 @@
 @_exported import URI
 @_exported import Log
 
-public protocol ConnectionInfoProtocol: StringLiteralConvertible {
+
+/**
+ *  ConnectionInfoProtocol is an adapter-specific protocol that holds necessary
+ *  values to connect to a database. Associated with `ConnectionProtocol.ConnectionInfo`
+ */
+public protocol ConnectionInfoProtocol {
     var host: String { get }
     var port: Int { get }
     var databaseName: String { get }
@@ -33,20 +38,6 @@ public protocol ConnectionInfoProtocol: StringLiteralConvertible {
     var password: String? { get }
     
     init(_ uri: URI) throws
-}
-
-public extension ConnectionInfoProtocol {
-    public init(stringLiteral value: String) {
-        try! self.init(URI(value))
-    }
-    
-    public init(unicodeScalarLiteral value: String) {
-        self.init(stringLiteral: value)
-    }
-    
-    public init(extendedGraphemeClusterLiteral value: String) {
-        self.init(stringLiteral: value)
-    }
 }
 
 public protocol ConnectionProtocol: class {

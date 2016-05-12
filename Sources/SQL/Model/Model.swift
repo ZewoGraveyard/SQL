@@ -86,7 +86,8 @@ public extension Collection where Iterator.Element == (DeclaredField, Optional<S
     public func queryComponentsForValuePlaceHolders(isolated isolate: Bool) -> QueryComponents {
         var strings = [String]()
         
-        for _ in startIndex..<endIndex {
+    
+        indices.forEach { _ in
             strings.append(QueryComponents.valuePlaceholder)
         }
         
