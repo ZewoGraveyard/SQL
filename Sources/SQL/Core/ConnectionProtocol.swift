@@ -83,7 +83,7 @@ public extension ConnectionProtocol {
         try self.init(ConnectionInfo(uri))
     }
 
-    public func transaction(block: Void throws -> Void) throws {
+    public func transaction(block: (Void) throws -> Void) throws {
         try begin()
 
         do {
@@ -96,7 +96,7 @@ public extension ConnectionProtocol {
         }
     }
 
-    public func withSavePointNamed(_ name: String, block: Void throws -> Void) throws {
+    public func withSavePointNamed(_ name: String, block: (Void) throws -> Void) throws {
         try createSavePointNamed(name)
 
         do {

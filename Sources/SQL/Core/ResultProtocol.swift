@@ -46,10 +46,10 @@ public protocol RowIteratorProtocol: IteratorProtocol {
 public struct RowIterator: RowIteratorProtocol {
     public typealias Element = Row
 
-    let block: Void -> Element?
+    let block: (Void) -> Element?
     var index: Int = 0
 
-    init(block: Void -> Element?) {
+    init(block: (Void) -> Element?) {
         self.block = block
     }
 
