@@ -17,7 +17,7 @@ extension ColumnProperty: SQLDataRepresentable {
 
 }
 
-public func FunctionFactory(functionName: String) -> (QueryComponentRepresentable...) -> ColumnProperty {
+public func FunctionFactory(_ functionName: String) -> (QueryComponentRepresentable...) -> ColumnProperty {
 
     func function(args: QueryComponentRepresentable...) -> ColumnProperty {
         var parts: [QueryComponent] = [.sql(functionName), "("]

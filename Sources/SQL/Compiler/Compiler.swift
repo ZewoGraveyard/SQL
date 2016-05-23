@@ -2,13 +2,13 @@ public class Compiler {
 
     var sqlData: [SQLData] = []
 
-    public func compile(query: QueryComponentRepresentable) -> (statement: String, params: [SQLData]) {
+    public func compile(_ query: QueryComponentRepresentable) -> (statement: String, params: [SQLData]) {
 
         let stringParts = compilePart(query.queryComponent)
         return (statement: stringParts.joined(separator: " "), params: sqlData)
     }
 
-    func compilePart(query: QueryComponent) -> [String] {
+    func compilePart(_ query: QueryComponent) -> [String] {
 
         switch query {
         case let .sql(str):
@@ -16,28 +16,28 @@ public class Compiler {
         case let .parts(parts):
             return compileParts(parts)
         case let .select(fields, from, joins, filter, ordersBy, offset, limit, groupBy, having):
-            return select(fields, from: from, joins: joins, filter: filter, ordersBy: ordersBy, offset: offset,
+            return select(fields: fields, from: from, joins: joins, filter: filter, ordersBy: ordersBy, offset: offset,
                     limit: limit, groupBy: groupBy, having: having)
         case let .column(name, table, alias):
-            return column(name, table: table, alias: alias)
+            return column(name: name, table: table, alias: alias)
         case let .table(name, alias):
-            return table(name, alias: alias)
+            return table(name: name, alias: alias)
         case let .subquery(query, alias):
-            return subquery(query, alias: alias)
+            return subquery(query: query, alias: alias)
         case let .groupBy(fields):
-            return groupBy(fields)
+            return groupBy(fields: fields)
         case let .join(types, with, leftKey, rightKey):
-            return join(types, with: with, leftKey: leftKey, rightKey: rightKey)
+            return join(types: types, with: with, leftKey: leftKey, rightKey: rightKey)
         case let .condition(cond):
             return compileCondition(cond)
         case let .bind(data):
             return bind(data)
         case let .delete(from, condition):
-             return delete(from, condition: condition)
+            return delete(from: from, condition: condition)
         case let .insert(into, values, returning):
-            return insert(into, values: values, returning: returning)
+            return insert(into: into, values: values, returning: returning)
         case let .update(table, set, condition):
-            return update(table, set: set, condition: condition)
+            return update(table: table, set: set, condition: condition)
 
 
         default:
@@ -46,7 +46,7 @@ public class Compiler {
         }
     }
 
-    func compileParts(parts: [QueryComponent]) -> [String] {
+    func compileParts(_ parts: [QueryComponent]) -> [String] {
         return parts.map {
             compilePart($0)
         }.flatMap {
@@ -75,7 +75,7 @@ public class Compiler {
         return stringParts
     }
 
-    func bind(data: SQLData) -> [String] {
+    func bind(_ data: SQLData) -> [String] {
         if case .Null = data {
             return ["NULL"]
         }
@@ -83,7 +83,7 @@ public class Compiler {
         return ["%s"]
     }
 
-    func joinType(type: Join.JoinType) -> String {
+    func joinType(_ type: Join.JoinType) -> String {
         switch type {
         case .Inner:
             return "INNER"
@@ -143,7 +143,7 @@ public class Compiler {
         }
 
         if (offset != nil || limit != nil) {
-            stringParts = offsetLimit(stringParts, offset: offset, limit: limit)
+            stringParts = offsetLimit(selectQuery: stringParts, offset: offset, limit: limit)
         }
 
         return stringParts
@@ -154,8 +154,8 @@ public class Compiler {
     }
 
 
-    func compileCondition(condition: Condition) -> [String] {
-        func statementWithKeyValue(key: QueryComponentRepresentable, _ op: String, _ value: QueryComponentRepresentable) -> [String] {
+    func compileCondition(_ condition: Condition) -> [String] {
+        func statementWithKeyValue(_ key: QueryComponentRepresentable, _ op: String, _ value: QueryComponentRepresentable) -> [String] {
             var stringParts: [String] = []
             stringParts.append(contentsOf: compilePart(key.queryComponent))
             stringParts.append(op)
@@ -268,7 +268,7 @@ public class Compiler {
         return stringParts
     }
 
-    func renderReturning(fields: [QueryComponent]) -> [String] {
+    func renderReturning(_ fields: [QueryComponent]) -> [String] {
         var stringParts = ["RETURNING"]
         let fieldParts = fields.map{ compilePart($0) }.joined(separator: [","])
         stringParts.append(contentsOf: fieldParts)

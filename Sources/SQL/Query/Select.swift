@@ -57,7 +57,7 @@ public struct Select: SelectQuery {
     }
 
 
-    public func select(fields fields: [QueryComponentRepresentable]) -> Select {
+    public func select(fields: [QueryComponentRepresentable]) -> Select {
         var new = self
         new.fields.append(contentsOf: fields)
         return new

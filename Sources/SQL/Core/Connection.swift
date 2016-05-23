@@ -57,11 +57,11 @@ public protocol Connection: class {
 
     func rollback() throws
 
-    func createSavePointNamed(name: String) throws
+    func createSavePointNamed(_ name: String) throws
 
-    func releaseSavePointNamed(name: String) throws
+    func releaseSavePointNamed(_ name: String) throws
 
-    func rollbackToSavePointNamed(name: String) throws
+    func rollbackToSavePointNamed(_ name: String) throws
 
     init(_ info: Info)
     
@@ -83,7 +83,7 @@ public extension Connection {
         }
     }
 
-    public func withSavePointNamed(name: String, block: Void throws -> Void) throws {
+    public func withSavePointNamed(_ name: String, block: Void throws -> Void) throws {
         try createSavePointNamed(name)
 
         do {
@@ -97,7 +97,7 @@ public extension Connection {
         }
     }
     
-    public func execute(statement: QueryComponent) throws -> ResultType {
+    public func execute(_ statement: QueryComponent) throws -> ResultType {
         return try execute(statement)
     }
     

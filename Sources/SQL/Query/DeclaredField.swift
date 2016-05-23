@@ -57,7 +57,7 @@ extension DeclaredField: Hashable {
     }
 }
 
-public func field(name: String) -> DeclaredField {
+public func field(_ name: String) -> DeclaredField {
     return DeclaredField(name: name)
 }
 

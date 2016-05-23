@@ -1,5 +1,5 @@
 extension Table {
-    public static func f(field: Field) -> DeclaredField {
+    public static func f(_ field: Field) -> DeclaredField {
         return self.field(field)
     }
 }

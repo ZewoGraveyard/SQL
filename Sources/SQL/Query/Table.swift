@@ -15,11 +15,11 @@ public protocol Table {
 }
 
 extension Table {
-    public static func field(field: Field) -> DeclaredField {
+    public static func field(_ field: Field) -> DeclaredField {
         return DeclaredField(name: field.rawValue, tableName: Self.tableName)
     }
 
-    public static func field(field: String) -> DeclaredField {
+    public static func field(_ field: String) -> DeclaredField {
         return DeclaredField(name: field, tableName: Self.tableName)
     }
 

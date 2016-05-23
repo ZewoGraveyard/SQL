@@ -207,13 +207,13 @@ public extension FetchQuery {
 //        }
 //    }
 //
-    public func orderBy(values: [OrderBy]) -> Self {
+    public func orderBy(_ values: [OrderBy]) -> Self {
         var new = self
         new.orderBy.append(contentsOf: values)
         return new
     }
 //
-    public func orderBy(values: OrderBy...) -> Self {
+    public func orderBy(_ values: OrderBy...) -> Self {
         return orderBy(values)
     }
 
@@ -225,13 +225,13 @@ public extension FetchQuery {
 //        return orderBy(values)
 //    }
 //
-    public func groupBy(fields: DeclaredField...) -> Self {
+    public func groupBy(_ fields: DeclaredField...) -> Self {
         var new = self
         new.group = GroupBy(fields)
         return new
     }
 //
-    public func limit(value: Int?) -> Self {
+    public func limit(_ value: Int?) -> Self {
         var new = self
         if let value = value {
             new.limit = Limit(value)
@@ -242,7 +242,7 @@ public extension FetchQuery {
         return new
     }
 
-    public func offset(value: Int?) -> Self {
+    public func offset(_ value: Int?) -> Self {
         var new = self
         if let value = value {
             new.offset = Offset(value)
@@ -259,7 +259,7 @@ public protocol FilteredQuery: Query {
 }
 //
 extension FilteredQuery {
-    public func filter(condition: Condition) -> Self {
+    public func filter(_ condition: Condition) -> Self {
         let newCondition: Condition
         if let existing = self.condition {
             newCondition = .And([existing, condition])

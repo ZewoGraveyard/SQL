@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-@_exported import Data
+@_exported import C7
 
 public struct ValueConversionError: ErrorProtocol {
     let description: String
