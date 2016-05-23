@@ -87,7 +87,7 @@ public extension Collection where Iterator.Element == (DeclaredField, Optional<S
         var strings = [String]()
         
     
-        indices.forEach { _ in
+        for _ in self {
             strings.append(QueryComponents.valuePlaceholder)
         }
         
