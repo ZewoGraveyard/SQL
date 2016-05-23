@@ -68,7 +68,7 @@ public struct Select: SelectQuery {
     }
 
 
-    public func join(tableClause: QueryComponentRepresentable, using type: [Join.JoinType],
+    public func join(_ tableClause: QueryComponentRepresentable, using type: [Join.JoinType],
                      leftKey: DeclaredField, rightKey: DeclaredField) -> Select {
         var new = self
         new.joins.append(
@@ -87,7 +87,7 @@ public struct Select: SelectQuery {
 }
 
 extension Select {
-    public func asSubquery(alias: String? = nil) -> Subquery {
+    public func asSubquery(_ alias: String? = nil) -> Subquery {
         return Subquery(query: queryComponent, alias: alias)
     }
 }

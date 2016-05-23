@@ -126,9 +126,12 @@ public class Compiler {
 
 
         var stringParts = ["SELECT"]
-
-        let fieldParts = fields.map{ compilePart($0) }.joined(separator: [","])
-        stringParts.append(contentsOf: fieldParts)
+        if fields.isEmpty {
+            stringParts.append("*")
+        } else {
+            let fieldParts = fields.map{ compilePart($0) }.joined(separator: [","])
+            stringParts.append(contentsOf: fieldParts)
+        }
 
         stringParts.append("FROM")
         stringParts.append(contentsOf: compilePart(from))
@@ -144,6 +147,10 @@ public class Compiler {
 
         if (offset != nil || limit != nil) {
             stringParts = offsetLimit(selectQuery: stringParts, offset: offset, limit: limit)
+        }
+        
+        if let groupBy = groupBy {
+            stringParts.append(contentsOf: compilePart(groupBy))
         }
 
         return stringParts
@@ -239,7 +246,7 @@ public class Compiler {
         var stringParts = ["GROUP BY"]
         let fieldParts = fields.map{ compilePart($0) }.joined(separator: [","])
 
-        stringParts.append(contentsOf: stringParts)
+        stringParts.append(contentsOf: fieldParts)
         return stringParts
     }
 
@@ -256,7 +263,12 @@ public class Compiler {
         var stringParts = ["INSERT INTO"]
         stringParts.append(contentsOf: compilePart(into))
         stringParts.append("(")
-        let columnsParts = values.keys.map{ self.compilePart($0.queryComponent) }.joined(separator: [","])
+        let columnsParts = values.keys.map { (field: DeclaredField) -> [String] in
+            var field = field
+            field.tableName = nil
+            return self.compilePart(field.queryComponent)
+        }.joined(separator: [","])
+        
         stringParts.append(contentsOf: columnsParts )
         stringParts.append(contentsOf: [")", "VALUES", "("])
         let valuesParts = values.values.map{ self.compilePart(($0 ?? .Null ).queryComponent) }.joined(separator: [","])
