@@ -12,7 +12,7 @@ struct Artist {
     let id: Int?
     var name: String
     var genre: Int
-    
+    var sex: Int
 }
 
 
@@ -48,66 +48,16 @@ struct Genre: Table {
 
 
 
-//case
-//let cases = Case([
-//        (Event.f(.id)>5 && Event.f(.name) < "asd", "asd"),
-//        (Event.f(.id)<5, "3123")
-//], _else: "32").alias("username")
-
-
-//case as select field
-//let q = Select(cases, "asdA", Event.f(.id).alias("event_id"), from: "nil")
-
-
-
-
-
-
-
-
-
-
-
 
 //let q = Select(Event.f(.id)+"  "+Event.f(.name), from: Event.self)
 
-
-
-
 //let d2 = "asdsa"
 
-//extension QueryComponentRepresentable:StringLiteralConvertible {
-//
-//}
 
 //let q = Select(Event.f(.id), from: "asdasd").filter(field("asdas") == "fdsdasf" && "f" == d2.sqlData )
 
-//print(q.queryComponent)
-
-
-//let q2 = Insert([Event.f(.id): subq, "naame": subq], into: "asd")
-
 
 //let q = Update("table", set: ["name": subq]).filter("asd"==Func.count(d2, "secondarg") && "asd" == "fds2")
-
-//print(Compiler().compile(q))
-//print(Compiler().compile(q2))
-
-
-
-
-
-
-
-
-
-
-
-
-
-//print(q.queryComponent.string)
-
-
 
 
 
@@ -173,10 +123,26 @@ class SQLTests: XCTestCase {
     }
     
     func testSelectOrder() {
-//        let q = Select(event, from: Artist)
+        let q = Select(from: Artist.self).orderBy(.Ascending(Artist.f(.id)), .Descending(Artist.f(.name)))
+        let sql = "SELECT * FROM artists ORDER BY artists.id ASC , artists.name DESC"
+        XCTAssertEqual(compile(q), sql)
     }
     
-//    .orderBy(.Ascending("asd")).limit(1000).offset(12)
+    func testSelectLimit() {
+        let q = Select(from: Artist.self).limit(42)
+        let sql = "SELECT * FROM artists LIMIT 42"
+        XCTAssertEqual(compile(q), sql)
+    }
+    func testSelectOffset() {
+        let q = Select(from: Artist.self).offset(13)
+        let sql = "SELECT * FROM artists OFFSET 13"
+        XCTAssertEqual(compile(q), sql)
+    }
+    func testSelectOffsetLimit() {
+        let q = Select(from: Artist.self).offset(13).limit(42)
+        let sql = "SELECT * FROM artists LIMIT 42 OFFSET 13"
+        XCTAssertEqual(compile(q), sql)
+    }
     
     func testSelectJoin() {
         
@@ -220,6 +186,18 @@ class SQLTests: XCTestCase {
         let sql = "DELETE FROM artists WHERE artists.name = %s"
         XCTAssertEqual(compile(q), sql)
     }
+    
+    
+//    func testCase() {
+//        let cases = Case([
+//                             Artist.f(.sex)==1: "man",
+//                             Artist.f(.sex)==2: "woman",
+//                             Artist.f(.sex)<0: "cat",
+//        ], _else: "don't know").alias("sex")
+//        let q = Select(cases, from:"nil")
+//        print(compile(q))
+//
+//    }
 }
 
 extension SQLTests {

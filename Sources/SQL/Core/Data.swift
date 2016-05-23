@@ -24,6 +24,26 @@
 
 @_exported import C7
 
+
+
+public struct OrderedDict<Key, Val> : DictionaryLiteralConvertible {
+    let elements: [(Key, Val?)]
+    var keys: [Key] {
+        return elements.map {$0.0}
+    }
+    var values: [Val?] {
+        return elements.map {$0.1}
+    }
+    public init(dictionaryLiteral elements: (Key, Val?)...) {
+        self.elements = elements
+    }
+    public init(elements: [(Key, Val?)]) {
+        self.elements = elements
+    }
+}
+
+
+
 public struct ValueConversionError: ErrorProtocol {
     let description: String
 }

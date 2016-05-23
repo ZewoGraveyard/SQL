@@ -38,7 +38,8 @@ public class Compiler {
             return insert(into: into, values: values, returning: returning)
         case let .update(table, set, condition):
             return update(table: table, set: set, condition: condition)
-
+        case let .orderBy(field):
+            return orderBy(field)
 
         default:
             print("default!!!!!!!!!!!!!!!!!!!!! \(query)")
@@ -144,7 +145,14 @@ public class Compiler {
             stringParts.append("WHERE")
             stringParts.append(contentsOf: compilePart(filter))
         }
+        
+        if !ordersBy.isEmpty {
+            stringParts.append("ORDER BY")
+            let ordersParts = ordersBy.map { compilePart($0) }.joined(separator: [","])
+            stringParts.append(contentsOf: ordersParts)
 
+        }
+        
         if (offset != nil || limit != nil) {
             stringParts = offsetLimit(selectQuery: stringParts, offset: offset, limit: limit)
         }
@@ -156,11 +164,15 @@ public class Compiler {
         return stringParts
     }
 
-    func ordersBy(ordersBy: [QueryComponent]) {
+    func orderBy(_ field: OrderBy) -> [String] {
+        switch field {
+        case let .Ascending(column):
+            return compilePart(column.queryComponent) + ["ASC"]
+        case let .Descending(column):
+            return compilePart(column.queryComponent) + ["DESC"]
+        }
 
     }
-
-
     func compileCondition(_ condition: Condition) -> [String] {
         func statementWithKeyValue(_ key: QueryComponentRepresentable, _ op: String, _ value: QueryComponentRepresentable) -> [String] {
             var stringParts: [String] = []

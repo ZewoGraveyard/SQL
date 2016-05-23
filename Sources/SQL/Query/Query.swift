@@ -97,8 +97,8 @@ extension Offset: IntegerLiteralConvertible {
 }
 
 public enum OrderBy: QueryComponentRepresentable {
-    case Ascending(String)
-    case Descending(String)
+    case Ascending(DeclaredField)
+    case Descending(DeclaredField)
 
     public var queryComponent: QueryComponent {
         return .orderBy(orderBy: self)
