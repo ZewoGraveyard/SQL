@@ -63,7 +63,7 @@ public struct Select: SelectQuery {
         return new
     }
 
-    public func select(fields: QueryComponentRepresentable...) -> Select {
+    public func select(_ fields: QueryComponentRepresentable...) -> Select {
         return self.select(fields: fields)
     }
 

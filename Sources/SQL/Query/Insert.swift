@@ -28,13 +28,13 @@ public struct Insert: InsertQuery {
     public var returning: [DeclaredField]
 
 
-//    public init<T: Table>(_ valuesByField: [T.Field : SQLDataRepresentable?], into table: T.Type) {
-//        var newValuesByField = [DeclaredField: SQLDataRepresentable?]()
-//        for (key, value) in valuesByField {
-//            newValuesByField[T.field(key)] = value
-//        }
-//        self.init(newValuesByField, into: table.tableName)
-//    }
+    public init<T: Table>(_ valuesByField: [T.Field : SQLDataRepresentable?], into table: T.Type) {
+        var newValuesByField = [DeclaredField: SQLDataRepresentable?]()
+        for (key, value) in valuesByField {
+            newValuesByField[T.field(key)] = value
+        }
+        self.init(newValuesByField, into: table.tableName)
+    }
 
     public init(_ valuesByField: [DeclaredField : SQLData?], into tableName: String) {
         self.tableName = tableName

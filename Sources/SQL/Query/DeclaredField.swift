@@ -145,7 +145,7 @@ public extension DeclaredField {
 ////        return tableName + "__" + unqualifiedName
 //    }
 //
-    public func alias(newAliasName: String) -> DeclaredField {
+    public func alias(_ newAliasName: String) -> DeclaredField {
         var new = self
         new.aliasName = newAliasName
         return new
