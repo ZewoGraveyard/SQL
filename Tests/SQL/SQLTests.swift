@@ -196,11 +196,16 @@ class SQLTests: XCTestCase {
         let sql = "INSERT INTO artists ( id , genre_id ) VALUES ( %s , %s ) RETURNING artists.id as id"
         XCTAssertEqual(compile(q), sql)
     }
+    func testInsert2() {
+        let q = Insert([Artist.f(.id): 12, Artist.f(.genreId): 12], into: Artist.tableName)
+        let sql = "INSERT INTO artists ( id , genre_id ) VALUES ( %s , %s ) RETURNING artists.id as id"
+        XCTAssertEqual(compile(q), sql)
+    }
     
     func testInsertSubquery() {
         let genreId = Select(.id, from: Genre.self).asSubquery()
         let q = Insert([.id: 12, .genreId: genreId], into: Artist.self)
-        let sql = "INSERT INTO artists ( id , event_id ) VALUES ( %s , ( SELECT genres.id FROM genres ) ) RETURNING artists.id as id"
+        let sql = "INSERT INTO artists ( id , genre_id ) VALUES ( %s , ( SELECT genres.id FROM genres ) ) RETURNING artists.id as id"
         XCTAssertEqual(compile(q), sql)
         
     }

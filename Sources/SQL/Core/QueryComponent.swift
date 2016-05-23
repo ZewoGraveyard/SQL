@@ -45,7 +45,7 @@ public indirect enum QueryComponent {
     case offset(Int)
     case limit(Int)
     case delete(from: QueryComponent, filter: QueryComponent?)
-    case insert(into: QueryComponent, values: [DeclaredField: SQLData?], returning: [QueryComponent])
+    case insert(into: QueryComponent, values: ValuesList, returning: [QueryComponent])
     case update(table: QueryComponent, set: [DeclaredField: SQLData?], filter: QueryComponent?)
     case sql(String)
     case caseClause

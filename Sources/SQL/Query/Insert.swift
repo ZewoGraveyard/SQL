@@ -22,35 +22,46 @@
 //// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //// SOFTWARE.
 //
+public typealias ValuesList = OrderedDict<DeclaredField, SQLData>
+
+public struct OrderedDict<Key, Val> : DictionaryLiteralConvertible {
+    let elements: [(Key, Val?)]
+    var keys: [Key] {
+        return elements.map {$0.0}
+    }
+    var values: [Val?] {
+        return elements.map {$0.1}
+    }
+    public init(dictionaryLiteral elements: (Key, Val?)...) {
+        self.elements = elements
+    }
+    public init(elements: [(Key, Val?)]) {
+        self.elements = elements
+    }
+}
+
 public struct Insert: InsertQuery {
     public let tableName: String
-    public let valuesByField: [DeclaredField: SQLData?]
+    public let valuesByField: ValuesList
     public var returning: [DeclaredField]
 
 
-    public init<T: Table>(_ valuesByField: [T.Field : SQLDataRepresentable?], into table: T.Type) {
-        var newValuesByField = [DeclaredField: SQLDataRepresentable?]()
-        for (key, value) in valuesByField {
-            newValuesByField[T.field(key)] = value
-        }
-        self.init(newValuesByField, into: table.tableName)
+    public init<T: Table>(_ valuesByField: OrderedDict<T.Field, SQLDataRepresentable>, into table: T.Type) {
+        let newValues = valuesByField.elements.map {(T.field($0.0), $0.1?.sqlData)}
+        let values = OrderedDict(elements: newValues)
+        self.init(values, into: table.tableName)
     }
 
-    public init(_ valuesByField: [DeclaredField : SQLData?], into tableName: String) {
+    public init(_ valuesByField: OrderedDict<DeclaredField, SQLDataRepresentable>, into tableName: String) {
+        let newValues = valuesByField.elements.map {($0.0, $0.1?.sqlData)}
+        let values = OrderedDict(elements: newValues)
+        self.init(values, into: tableName)
+    }
+    
+    public init(_ valuesByField: OrderedDict<DeclaredField, SQLData>, into tableName: String) {
         self.tableName = tableName
         self.valuesByField = valuesByField
         self.returning = [DeclaredField(name: "id", tableName: tableName, alias: "id")]
-    }
-
-    public init(_ valuesByField: [DeclaredField : SQLDataRepresentable?], into tableName: String) {
-
-        var dict = [DeclaredField: SQLData?]()
-
-        for (key, value) in valuesByField {
-            dict[key] = value?.sqlData
-        }
-
-        self.init(dict, into: tableName)
     }
 
 }
@@ -88,7 +99,7 @@ public struct Insert: InsertQuery {
 //
 
 public protocol InsertQuery : TableQuery {
-    var valuesByField: [DeclaredField: SQLData?] { get }
+    var valuesByField: ValuesList { get }
     var returning: [DeclaredField] { get }
 }
 

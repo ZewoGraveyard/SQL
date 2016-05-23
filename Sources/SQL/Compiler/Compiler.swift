@@ -259,7 +259,7 @@ public class Compiler {
         }
         return stringParts
     }
-    func insert(into: QueryComponent, values: [DeclaredField: SQLData?], returning: [QueryComponent]) -> [String] {
+    func insert(into: QueryComponent, values: ValuesList, returning: [QueryComponent]) -> [String] {
         var stringParts = ["INSERT INTO"]
         stringParts.append(contentsOf: compilePart(into))
         stringParts.append("(")
