@@ -25,24 +25,19 @@
 public struct Update: UpdateQuery {
     public let tableName: String
 
-    public var valuesByField: [DeclaredField: SQLData?]
+    public var valuesByField: ValuesList
 
     public var condition: Condition?
 
-    public init(_ tableName: String, set valuesByField: [DeclaredField : SQLData?] = [:]) {
+    public init<T: Table>(_ table: T.Type, set valuesByField: OrderedDict<T.Field, SQLDataRepresentable>) {
+        let newValues = valuesByField.elements.map {(T.field($0.0), $0.1)}
+        let values = OrderedDict(elements: newValues)
+        self.init(table.tableName, set: values)
+    }
+    
+    public init(_ tableName: String, set valuesByField: ValuesList) {
         self.tableName = tableName
         self.valuesByField = valuesByField
-    }
-
-    public init(_ tableName: String, set valuesByField: [DeclaredField : SQLDataRepresentable?] = [:]) {
-
-        var dict = [DeclaredField: SQLData?]()
-
-        for (key, value) in valuesByField {
-            dict[key] = value?.sqlData
-        }
-
-        self.init(tableName, set: dict)
     }
 }
 
@@ -87,17 +82,13 @@ public struct Update: UpdateQuery {
 //}
 //
 public protocol UpdateQuery: FilteredQuery, TableQuery {
-    var valuesByField: [DeclaredField: SQLData?] { get set }
+    var valuesByField: ValuesList { get set }
 }
 //
 public extension UpdateQuery {
 
-    public mutating func set(_ value: SQLData?, forField field: DeclaredField) {
-        valuesByField[field] = value
-    }
-
     public mutating func set(_ value: SQLDataConvertible?, forField field: DeclaredField) {
-        self.set(value?.sqlData, forField: field)
+        valuesByField[field] = value
     }
 
     public var queryComponent: QueryComponent {

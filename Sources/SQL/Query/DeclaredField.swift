@@ -51,6 +51,7 @@ extension DeclaredField: StringLiteralConvertible {
     }
 }
 
+
 extension DeclaredField: Hashable {
     public var hashValue: Int {
         return name.hashValue

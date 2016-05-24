@@ -26,8 +26,8 @@
 
 
 
-public struct OrderedDict<Key, Val> : DictionaryLiteralConvertible {
-    let elements: [(Key, Val?)]
+public struct OrderedDict<Key: Hashable, Val> : DictionaryLiteralConvertible {
+    var elements: [(Key, Val?)]
     var keys: [Key] {
         return elements.map {$0.0}
     }
@@ -39,6 +39,19 @@ public struct OrderedDict<Key, Val> : DictionaryLiteralConvertible {
     }
     public init(elements: [(Key, Val?)]) {
         self.elements = elements
+    }
+    public subscript(key: Key) -> Val? {
+        get {
+            for (k,v) in elements {
+                if key == k {
+                    return v
+                }
+            }
+            return nil
+        }
+        set(newValue) {
+            elements.append((key, newValue))
+        }
     }
 }
 

@@ -283,7 +283,7 @@ public class Compiler {
         
         stringParts.append(contentsOf: columnsParts )
         stringParts.append(contentsOf: [")", "VALUES", "("])
-        let valuesParts = values.values.map{ self.compilePart(($0 ?? .Null ).queryComponent) }.joined(separator: [","])
+        let valuesParts = values.values.map{ self.compilePart(($0?.sqlData ?? .Null ).queryComponent) }.joined(separator: [","])
         stringParts.append(contentsOf: valuesParts)
         stringParts.append(")")
         if !returning.isEmpty {
@@ -299,11 +299,11 @@ public class Compiler {
         return stringParts
     }
 
-    func update(table: QueryComponent, set: [DeclaredField: SQLData?], condition: QueryComponent?) -> [String] {
+    func update(table: QueryComponent, set: ValuesList, condition: QueryComponent?) -> [String] {
         var stringParts = ["UPDATE"]
         stringParts.append(contentsOf: compilePart(table))
         stringParts.append("SET")
-        let components: [QueryComponent] = set.map { .parts([ $0.queryComponent, "=", ($1 ?? .Null).queryComponent ]) }
+        let components: [QueryComponent] = set.elements.map { .parts([ $0.0.queryComponent, "=", ($0.1?.sqlData ?? .Null).queryComponent ]) }
         let valuesParts = components.map{ compilePart($0) }.joined(separator: [","])
         stringParts.append(contentsOf: valuesParts)
         if let condition = condition {

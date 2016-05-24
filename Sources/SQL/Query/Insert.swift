@@ -22,7 +22,7 @@
 //// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //// SOFTWARE.
 //
-public typealias ValuesList = OrderedDict<DeclaredField, SQLData>
+public typealias ValuesList = OrderedDict<DeclaredField, SQLDataRepresentable>
 
 
 
@@ -33,18 +33,12 @@ public struct Insert: InsertQuery {
 
 
     public init<T: Table>(_ valuesByField: OrderedDict<T.Field, SQLDataRepresentable>, into table: T.Type) {
-        let newValues = valuesByField.elements.map {(T.field($0.0), $0.1?.sqlData)}
+        let newValues = valuesByField.elements.map {(T.field($0.0), $0.1)}
         let values = OrderedDict(elements: newValues)
         self.init(values, into: table.tableName)
     }
-
-    public init(_ valuesByField: OrderedDict<DeclaredField, SQLDataRepresentable>, into tableName: String) {
-        let newValues = valuesByField.elements.map {($0.0, $0.1?.sqlData)}
-        let values = OrderedDict(elements: newValues)
-        self.init(values, into: tableName)
-    }
     
-    public init(_ valuesByField: OrderedDict<DeclaredField, SQLData>, into tableName: String) {
+    public init(_ valuesByField: ValuesList, into tableName: String) {
         self.tableName = tableName
         self.valuesByField = valuesByField
         self.returning = [DeclaredField(name: "id", tableName: tableName, alias: "id")]

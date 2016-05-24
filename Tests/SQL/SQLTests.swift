@@ -57,7 +57,7 @@ struct Genre: Table {
 //let q = Select(Event.f(.id), from: "asdasd").filter(field("asdas") == "fdsdasf" && "f" == d2.sqlData )
 
 
-//let q = Update("table", set: ["name": subq]).filter("asd"==Func.count(d2, "secondarg") && "asd" == "fds2")
+
 
 
 
@@ -186,6 +186,47 @@ class SQLTests: XCTestCase {
         let sql = "DELETE FROM artists WHERE artists.name = %s"
         XCTAssertEqual(compile(q), sql)
     }
+    
+    
+    func testUpdateGeneric() {
+        let q = Update(Artist.self, set: [.name: "Taylor Swift"])
+        let sql = "UPDATE artists SET artists.name = %s"
+        XCTAssertEqual(compile(q), sql)
+    }
+    
+    func testUpdateLiteral() {
+        let q = Update(Artist.tableName, set: [Artist.f(.name): "Taylor Swift"])
+        let sql = "UPDATE artists SET artists.name = %s"
+        XCTAssertEqual(compile(q), sql)
+    }
+    func testUpdateVariable() {
+        let name = "Taylor Swift"
+        let q = Update(Artist.tableName, set: [Artist.f(.name): name])
+        let sql = "UPDATE artists SET artists.name = %s"
+        XCTAssertEqual(compile(q), sql)
+    }
+    
+    func testUpdateNilVariable() {
+        let name: String? = nil
+        let q = Update(Artist.tableName, set: [Artist.f(.name): name])
+        let sql = "UPDATE artists SET artists.name = NULL"
+        XCTAssertEqual(compile(q), sql)
+    }
+    
+    func testUpdateNilLiteral() {
+        let q = Update(Artist.tableName, set: [Artist.f(.name): nil])
+        let sql = "UPDATE artists SET artists.name = NULL"
+        XCTAssertEqual(compile(q), sql)
+    }
+    
+    func testUpdateSubquery() {
+        let genre = Select(.id, from: Genre.self).asSubquery()
+        let q = Update(Artist.tableName, set: [Artist.f(.name): genre])
+        let sql = "UPDATE artists SET artists.name = ( SELECT genres.id FROM genres )"
+        XCTAssertEqual(compile(q), sql)
+    }
+    
+    
     
     
 //    func testCase() {
