@@ -22,13 +22,8 @@ extension Artist: Table {
         case name = "name"
         case genreId = "genre_id"
         case sex
-//        case salary1, salary2, salary3
     }
-    
-    // Table name corresponding to your model
     static let tableName: String = "artists"
-    
-    // The field for the primary key of the model
     static let fieldForPrimaryKey: Field = .id
     
     
@@ -64,17 +59,13 @@ struct Genre: Table {
 
 //todo:
 //relations
-//select subquery -done
+
 //count
 //func
 //case -done
 //columns types, binding, numberfromlalal
 //column_property !!
 //bundles
-//group by -done
-//aliasing query -done
-
-//join query --dpone
 
 let compiler = Compiler()
 
@@ -83,12 +74,8 @@ func compile(_ query: QueryComponentRepresentable) -> String {
 }
 
 
-class SQLTests: XCTestCase {
-//    init() {
-    
-//    }
-    func testSelect() {
-//         Pass table name as type, field as .field
+class SelectTests: XCTestCase {
+    func testSelectGeneric() {
         let q = Select(.name, .genreId, from: Artist.self)
         let sql = "SELECT artists.name , artists.genre_id FROM artists"
         XCTAssertEqual(compile(q), sql)
@@ -103,7 +90,7 @@ class SQLTests: XCTestCase {
         XCTAssertEqual(compile(q), sql)
     }
     func testChainingSelect() {
-        let q = Select(.name, from: Artist.self).select("field", "otherfield")
+        let q = Select(.name, from: Artist.self).select(field("field"), field("otherfield"))
         let sql = "SELECT artists.name , field , otherfield FROM artists"
         XCTAssertEqual(compile(q), sql)
 
@@ -155,8 +142,8 @@ class SQLTests: XCTestCase {
         XCTAssertEqual(compile(q), sql)
 
     }
-    
-    
+}
+class InsertTests: XCTestCase {
     func testInsert() {
         let q = Insert([.id: 12, .genreId: 12], into: Artist.self)
         let sql = "INSERT INTO artists ( id , genre_id ) VALUES ( %s , %s ) RETURNING artists.id as id"
@@ -175,7 +162,8 @@ class SQLTests: XCTestCase {
         XCTAssertEqual(compile(q), sql)
         
     }
-    
+}
+class DeleteTests: XCTestCase {
     func testDelete() {
         let q = Delete(from: "table")
         let sql = "DELETE FROM table"
@@ -186,8 +174,8 @@ class SQLTests: XCTestCase {
         let sql = "DELETE FROM artists WHERE artists.name = %s"
         XCTAssertEqual(compile(q), sql)
     }
-    
-    
+}
+class UpdateTests: XCTestCase {
     func testUpdateGeneric() {
         let q = Update(Artist.self, set: [.name: "Taylor Swift"])
         let sql = "UPDATE artists SET artists.name = %s"
@@ -226,9 +214,34 @@ class SQLTests: XCTestCase {
         XCTAssertEqual(compile(q), sql)
     }
     
+}
+class ConditionsTests: XCTestCase {
+    func testConditionsBindVariable() {
+        let v = "asd2"
+        let q = Select(from: Artist.self).filter(field("asd")==v)
+        let sql = "SELECT * FROM artists WHERE asd = %s"
+        XCTAssertEqual(compile(q), sql)
+    }
     
+    func testConditionsBindLiteral() {
+        let q = Select(from: Artist.self).filter(field("asd")=="asd2")
+        let sql = "SELECT * FROM artists WHERE asd = %s"
+        XCTAssertEqual(compile(q), sql)
+    }
     
+    func testConditionsOtherField() {
+        let q = Select(from: Artist.self).filter(field("asd")==field("asd2"))
+        let sql = "SELECT * FROM artists WHERE asd = asd2"
+        XCTAssertEqual(compile(q), sql)
+    }
     
+    func testConditionsBindSubquery() {
+        let subq = Select(from: Artist.self).asSubquery()
+        let q = Select(from: Artist.self).filter(field("asd")==subq)
+        let sql = "SELECT * FROM artists WHERE asd = ( SELECT * FROM artists )"
+        XCTAssertEqual(compile(q), sql)
+    }
+}
 //    func testCase() {
 //        let cases = Case([
 //                             Artist.f(.sex)==1: "man",
@@ -239,12 +252,3 @@ class SQLTests: XCTestCase {
 //        print(compile(q))
 //
 //    }
-}
-
-extension SQLTests {
-    static var allTests: [(String, SQLTests -> () throws -> Void)] {
-        return [
-//           ("testReality", testReality),
-        ]
-    }
-}

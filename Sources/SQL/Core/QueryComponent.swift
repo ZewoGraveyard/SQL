@@ -87,11 +87,13 @@ public protocol QueryComponentRepresentable {
 //}
 //
 //
-extension String: QueryComponentRepresentable {
-    public var queryComponent: QueryComponent {
-        return .sql(self)
-    }
-}
+
+//extension String: QueryComponentRepresentable {
+//    public var queryComponent: QueryComponent {
+//        return .sql(self)
+//    }
+//}
+
 //
 //
 //extension queryComponent: StringInterpolationConvertible {

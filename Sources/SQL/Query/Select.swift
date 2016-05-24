@@ -52,11 +52,6 @@ public struct Select: SelectQuery {
     }
 
 
-    public init(from tableName: String) {
-        self.init(fields: [], from: tableName)
-    }
-
-
     public func select(fields: [QueryComponentRepresentable]) -> Select {
         var new = self
         new.fields.append(contentsOf: fields)
