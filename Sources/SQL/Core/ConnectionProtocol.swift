@@ -111,23 +111,19 @@ public extension ConnectionProtocol {
         }
     }
     
+    func execute(_ statement: String) throws -> Result {
+        return try execute(statement, parameters: nil)
+    }
+    
     public func execute(_ select: Select) throws -> Result {
         return try execute(composeStatement(select), parameters: select.sqlParameters)
     }
-
-    public func execute<T: SQLStringRepresentable where T: SQLPrametersRepresentable>(_ statement: T) throws -> Result {
-        return try execute(statement.sqlString, parameters: statement.sqlParameters)
+    
+    public func execute(_ statement: String, parameters: [ValueConvertible?]) throws -> Result {
+        return try execute(statement, parameters: parameters.map { $0?.sqlValue })
     }
     
-    public func execute(_ statement: SQLStringRepresentable) throws -> Result {
-        return try execute(statement.sqlString, parameters: nil)
-    }
-    
-    public func execute(_ statement: SQLStringRepresentable, parameters: [ValueConvertible?]) throws -> Result {
-        return try execute(statement.sqlString, parameters: parameters.map { $0?.sqlValue })
-    }
-    
-    public func execute(_ statement: SQLStringRepresentable, parameters: ValueConvertible?...) throws -> Result {
+    public func execute(_ statement: String, parameters: ValueConvertible?...) throws -> Result {
         return try execute(statement, parameters: parameters)
     }
 

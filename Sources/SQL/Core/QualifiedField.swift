@@ -46,11 +46,6 @@ extension QualifiedField: SQLStringRepresentable {
     }
 }
 
-extension QualifiedField: SelectReference {
-    public var selectReference: Select.Reference {
-        return .string(qualifiedName)
-    }
-}
 
 //prefix operator % {}
 //public prefix func % (_ name: String) -> QualifiedField {

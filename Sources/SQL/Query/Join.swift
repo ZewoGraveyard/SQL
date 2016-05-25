@@ -25,14 +25,7 @@ public struct Join {
 
 extension Join: SQLStringRepresentable {
     public var sqlString: String {
-        return [
-                type,
-                "ON",
-                leftKey,
-                "=",
-                rightKey
-                   ]
-            .sqlStringJoined(separator: " ")
+        return "\(type.sqlString) ON \(leftKey.sqlString) = \(rightKey.sqlString)"
     }
 }
 

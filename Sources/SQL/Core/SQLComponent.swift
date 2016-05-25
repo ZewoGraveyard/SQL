@@ -14,13 +14,15 @@ extension SQLStringRepresentable {
     public var description: String {
         return sqlString
     }
+}
 
+public extension String {
     public func sqlStringWithEscapedPlaceholdersUsingPrefix(_ prefix: String, suffix: String? = nil, transformer: (Int) -> String) -> String {
         
-        var strings = sqlString.split(byString: "%@")
+        var strings = split(byString: "%@")
         
         if strings.count == 1 {
-            return sqlString
+            return self
         }
         
         var newStrings = [String]()
@@ -41,11 +43,6 @@ extension SQLStringRepresentable {
     }
 }
 
-extension String: SQLStringRepresentable {
-    public var sqlString: String {
-        return self
-    }
-}
 
 public protocol SQLPrametersRepresentable {
     var sqlParameters: [Value?] { get }

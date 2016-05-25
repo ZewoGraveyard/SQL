@@ -6,26 +6,22 @@
 //
 //
 
-public protocol SelectReference {
-    var selectReference: Select.Reference { get }
+public protocol SelectComponentConvertible {
+    var sqlSelectComponent: Select.Component { get }
 }
 
-extension String: SelectReference {
-    public var selectReference: Select.Reference {
-        return .string(self)
-    }
-}
 
 public class Select: PredicatedQuery {
-    public enum Reference {
-        case string(SQLStringRepresentable)
-        case subquery(Select, alias: SQLStringRepresentable)
+    public enum Component {
+        case field(QualifiedField)
+        case string(String)
+        case subquery(Select, alias: String)
     }
     
     public var order: [Order] = []
     
-    public var fields: [Reference]
-    public let from: [Reference]
+    public var fields: [Component]
+    public let from: [Component]
     
     public var limit: Int? = nil
     public var offset: Int? = nil
@@ -36,22 +32,21 @@ public class Select: PredicatedQuery {
     
     // Default initializers
     
-    public func subqueryNamed(_ alias: SQLStringRepresentable) -> Reference {
+    public func subqueryNamed(_ alias: String) -> Component {
         return .subquery(self, alias: alias)
     }
     
-    public init(_ fields: [SelectReference], from source: [SelectReference]) {
-        self.fields = fields.map { $0.selectReference }
-        self.from = source.map { $0.selectReference }
+    public init(_ fields: [SelectComponentConvertible], from source: [SelectComponentConvertible]) {
+        self.fields = fields.map { $0.sqlSelectComponent }
+        self.from = source.map { $0.sqlSelectComponent }
     }
     
-    public convenience init(_ fields: SelectReference..., from source: SelectReference) {
+    public convenience init(_ fields: SelectComponentConvertible..., from source: SelectComponentConvertible) {
         self.init(fields, from: [source])
     }
-
     
-    public func extend(_ fields: SelectReference...) -> Select {
-        self.fields += fields.map { $0.selectReference }
+    public func extend(_ fields: SelectComponentConvertible...) -> Select {
+        self.fields += fields.map { $0.sqlSelectComponent }
         return self
     }
     
@@ -91,20 +86,48 @@ public class Select: PredicatedQuery {
     
 }
 
-extension Select.Reference: SQLPrametersRepresentable {
+extension Select.Component: SQLPrametersRepresentable {
     public var sqlParameters: [Value?] {
         switch self {
         case .string:
             return []
         case .subquery(let select, _):
             return select.sqlParameters
+        case .field:
+            return []
         }
     }
 }
 
-extension Select.Reference: SelectReference {
-    public var selectReference: Select.Reference {
+extension Select.Component: StringLiteralConvertible {
+    public init(stringLiteral value: String) {
+        self = .string(value)
+    }
+    
+    public init(extendedGraphemeClusterLiteral value: String) {
+        self = .string(value)
+    }
+    
+    public init(unicodeScalarLiteral value: String) {
+        self = .string(value)
+    }
+}
+
+extension Select.Component: SelectComponentConvertible {
+    public var sqlSelectComponent: Select.Component {
         return self
+    }
+}
+
+extension QualifiedField: SelectComponentConvertible {
+    public var sqlSelectComponent: Select.Component {
+        return .string(qualifiedName)
+    }
+}
+
+extension String: SelectComponentConvertible {
+    public var sqlSelectComponent: Select.Component {
+        return .string(self)
     }
 }
 
