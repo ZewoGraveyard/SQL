@@ -7,9 +7,15 @@
 //
 
 
-public protocol SQLComponent {
+public protocol SQLComponent: CustomStringConvertible {
     var sqlString: String { get }
     var sqlParameters: [Value?] { get }
+}
+
+extension SQLComponent {
+    public var description: String {
+        return sqlString
+    }
 }
 
 public extension SQLComponent {

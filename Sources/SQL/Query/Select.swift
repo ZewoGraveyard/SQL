@@ -14,7 +14,7 @@ public class Select {
     
     var top: Top? = nil
     
-    var order: [Order]? = nil
+    var order: [Order] = []
     
     public var fields: [SQLComponent]
     public let from: [SQLComponent]
@@ -33,12 +33,23 @@ public class Select {
         self.from = source
     }
     
+    public init(_ fields: SQLComponent..., from source: SQLComponent) {
+        self.fields = fields
+        self.from = [source]
+    }
+    
     // SELECT TOP initializers
     
     public init(top: Top, _ fields: [SQLComponent], from source: [SQLComponent]) {
         self.top = top
         self.fields = fields
         self.from = source
+    }
+    
+    public init(top: Top, _ fields: SQLComponent..., from source: SQLComponent) {
+        self.top = top
+        self.fields = fields
+        self.from = [source]
     }
     
     public func filter(_ predicate: Predicate) -> Select {
@@ -52,9 +63,7 @@ public class Select {
     }
     
     public func order(_ value: Order...) -> Select {
-        var new = self.order ?? []
-        new += value
-        self.order = new
+        order += value
         return self
     }
     
@@ -108,14 +117,17 @@ extension Select: SQLComponent {
         components.append(fields.sqlStringJoined(separator: ", "))
         components.append("FROM")
         components.append(from.sqlStringJoined(separator: ", "))
-        components.append(joins.sqlStringJoined(separator: " "))
-        components.append("WHERE")
+        
+        if !joins.isEmpty {
+            components.append(joins.sqlStringJoined(separator: " "))
+        }
     
         if let predicate = predicate {
+            components.append("WHERE")
             components.append(predicate)
         }
         
-        if let order = order {
+        if !order.isEmpty {
             components.append(order.sqlStringJoined(separator: ", "))
         }
         
@@ -124,7 +136,7 @@ extension Select: SQLComponent {
         }
         
         if let offset = offset {
-            components.append("LIMIT \(offset)")
+            components.append("OFFSET \(offset)")
         }
         
         return components.sqlStringJoined(separator: " ", isolate: true)

@@ -23,14 +23,18 @@ class SQLTests: XCTestCase {
     func testSelectQuey() {
         
         
-        let select = User.select(.id, .username).limit(10).offset(10).order(.asc(User.field(.id)))
-        let selectTop = User.select(top: .percent(10), .id, .username)
+        print(User.select(.id, .username).limit(10).offset(10).order(.asc(User.field(.id))))
+        print(
+            User.select(top: .percent(10), .id, .username)
             .join(.inner(Order.tableName), on: Order.field(.id), equals: User.field(.id))
             .limit(10)
             .offset(10)
+            )
+        
+        
+        
+        print(Select("id", Select("count(*)", from: "orders"), from: "id").filter("id" == 2))
 
-        print(select.sqlString)
-        print(selectTop.sqlString)
         
     }
 }
