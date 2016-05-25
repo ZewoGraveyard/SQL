@@ -1,10 +1,10 @@
-#if os(Linux)
-
-import XCTest
-@testable import SQLTestSuite
-
-XCTMain([
-    testCase(SQLTests.allTests)
-])
-
-#endif
+//#if os(Linux)
+//
+//import XCTest
+//@testable import SQLTestSuite
+//
+//XCTMain([
+//    testCase(SQLTests.allTests)
+//])
+//
+//#endif

@@ -56,7 +56,7 @@ public protocol ConnectionProtocol: class {
 
     var internalStatus: InternalStatus { get }
 
-    func execute(_ statement: QueryComponents) throws -> Result
+    func execute(_ statement: String, parameters: [Value?]?) throws -> Result
 
     func begin() throws
 
@@ -73,8 +73,6 @@ public protocol ConnectionProtocol: class {
     init(_ info: ConnectionInfo)
     
     var mostRecentError: Error? { get }
-    
-    func executeInsertQuery<T: SQLDataConvertible>(query: InsertQuery, returningPrimaryKeyForField primaryKey: DeclaredField) throws -> T
 }
 
 public extension ConnectionProtocol {
@@ -110,20 +108,13 @@ public extension ConnectionProtocol {
         }
     }
     
-    public func execute(_ statement: QueryComponents) throws -> Result {
-        return try execute(statement)
+    
+    public func execute<T: SQLStringRepresentable>(_ statement: T) throws -> Result {
+        return try execute(statement.sqlString, parameters: statement.sqlParameters)
     }
     
-    public func execute(_ statement: String, parameters: [SQLDataConvertible?] = []) throws -> Result {
-        return try execute(QueryComponents(statement, values: parameters.map { $0?.sqlData }))
-    }
-    
-    public func execute(_ statement: String, parameters: SQLDataConvertible?...) throws -> Result {
-        return try execute(statement, parameters: parameters)
-    }
-
-    public func execute(_ convertible: QueryComponentsConvertible) throws -> Result {
-        return try execute(convertible.queryComponents)
+    func execute(_ statement: String) throws -> Result {
+        return try execute(statement, parameters: nil)
     }
 
     public func begin() throws {

@@ -1,147 +1,146 @@
-// Select.swift
 //
-// The MIT License (MIT)
+//  Select.swift
+//  SQL
 //
-// Copyright (c) 2016 Formbound
+//  Created by David Ask on 23/05/16.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
 
-
-public struct Select: SelectQuery {
-    public let fields: [DeclaredField]
+public class Select {
+    public enum Top {
+        case number(Int)
+        case percent(Int)
+    }
     
-    public let tableName: String
+    var top: Top? = nil
     
-    public var condition: Condition? = nil
+    var order: [Order]? = nil
+    
+    public var fields: [SQLStringRepresentable]
+    public let from: [SQLStringRepresentable]
+    
+    public var limit: Int? = nil
+    public var offset: Int? = nil
+    
+    public var predicate: Predicate? = nil
     
     public var joins: [Join] = []
     
-    public var offset: Offset? = nil
+    // Default initializers
     
-    public var limit: Limit? = nil
-    
-    public var orderBy: [OrderBy] = []
-    
-    public init(_ fields: [DeclaredField], from tableName: String) {
-        self.tableName = tableName
+    public init(_ fields: [SQLStringRepresentable], from source: [SQLStringRepresentable]) {
         self.fields = fields
+        self.from = source
     }
     
-    public init(from tableName: String) {
-        self.tableName = tableName
-        self.fields = []
+    // SELECT TOP initializers
+    
+    public init(top: Top, _ fields: [SQLStringRepresentable], from source: [SQLStringRepresentable]) {
+        self.top = top
+        self.fields = fields
+        self.from = source
     }
     
-    public init(_ fields: [String], from tableName: String) {
-        self.init(fields.map { DeclaredField(name: $0) }, from: tableName)
+    public func filter(_ predicate: Predicate) -> Select {
+        self.predicate = predicate
+        return self
     }
     
-    public func join(_ tableName: String, using type: [Join.JoinType], leftKey: String, rightKey: String) -> Select {
-        var new = self
-        new.joins.append(
-            Join(tableName, type: type, leftKey: leftKey, rightKey: rightKey)
+    public func extend(_ fields: SQLStringRepresentable...) -> Select {
+        self.fields += fields
+        return self
+    }
+    
+    public func order(_ value: Order...) -> Select {
+        var new = self.order ?? []
+        new += value
+        self.order = new
+        return self
+    }
+    
+    public func limit(_ value: Int) -> Select {
+        limit = value
+        return self
+    }
+    
+    public func offset(_ value: Int) -> Select {
+        offset = value
+        return self
+    }
+    
+    public func join(_ joinType: Join.`Type`, on leftKey: SQLStringRepresentable, equals rightKey: SQLStringRepresentable) -> Select {
+        
+        joins.append(
+            Join(
+                type: joinType,
+                leftKey: leftKey,
+                rightKey: rightKey
+            )
         )
         
-        return new
+        return self
     }
     
-    public func join(_ tableName: String, using type: Join.JoinType, leftKey: String, rightKey: String) -> Select {
-        return join(tableName, using: [type], leftKey: leftKey, rightKey: rightKey)
+}
+
+extension Select.Top: SQLStringRepresentable {
+    public var sqlString: String {
+        switch self {
+        case .number(let num):
+            return "TOP \(num)"
+        case .percent(let percent):
+            return "TOP \(percent)%"
+        }
     }
 }
 
-public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
-    public typealias ModelType = T
-    
-    public var tableName: String {
-        return T.tableName
-    }
-    
-    public let fields: [DeclaredField]
-    
-    public var condition: Condition? = nil
-    
-    public var joins: [Join] = []
-    
-    public var offset: Offset? = nil
-    
-    public var limit: Limit? = nil
-    
-    public var orderBy: [OrderBy] = []
-    
-    public func join<R: Model>(_ model: R.Type, using type: [Join.JoinType], leftKey: ModelType.Field, rightKey: R.Field) -> ModelSelect<T> {
-        var new = self
-        new.joins.append(
-            Join(R.tableName, type: type, leftKey: ModelType.field(leftKey).qualifiedName, rightKey: R.field(rightKey).qualifiedName)
-        )
+extension Select: SQLStringRepresentable {
+    public var sqlString: String {
         
-        return new
-    }
-    
-    public func join<R: Model>(_ model: R.Type, using type: Join.JoinType, leftKey: ModelType.Field, rightKey: R.Field) -> ModelSelect<T> {
-        return join(model, using: [type], leftKey: leftKey, rightKey: rightKey)
-    }
-
-    public init(_ fields: [DeclaredField]? = nil) {
-        self.fields = fields ?? T.selectFields.map { T.field($0) }
-    }
-}
-
-public protocol SelectQuery: FilteredQuery, FetchQuery {
-    var joins: [Join] { get set }
-    
-    var fields: [DeclaredField] { get }
-}
-
-public extension SelectQuery {
-    
-    public var queryComponents: QueryComponents {
-        var components = QueryComponents(components: [
-            "SELECT",
-            fields.isEmpty ? "*" : fields.queryComponentsForSelectingFields(useQualifiedNames: true, useAliasing: true, isolateQueryComponents: false),
-            "FROM",
-            QueryComponents(tableName)
-            ]
-        )
+        var components = [SQLStringRepresentable]()
         
-        if !joins.isEmpty {
-            components.append(joins.queryComponents)
+        components.append("SELECT")
+        
+        if let top = top {
+            components.append(top)
         }
         
-        if let condition = condition {
-            components.append("WHERE")
-            components.append(condition.queryComponents)
+        components.append(fields.sqlStringJoined(separator: ", "))
+        components.append("FROM")
+        components.append(from.sqlStringJoined(separator: ", "))
+        components.append(joins.sqlStringJoined(separator: " "))
+        components.append("WHERE")
+    
+        if let predicate = predicate {
+            components.append(predicate)
         }
         
-        if !orderBy.isEmpty {
-            components.append("ORDER BY")
-            components.append(orderBy.queryComponents(mergedByString: ","))
+        if let order = order {
+            components.append(order.sqlStringJoined(separator: ", "))
         }
         
         if let limit = limit {
-            components.append(limit.queryComponents)
+            components.append("LIMIT \(limit)")
         }
         
         if let offset = offset {
-            components.append(offset.queryComponents)
+            components.append("LIMIT \(offset)")
         }
         
-        return components
+        return components.sqlStringJoined(separator: " ", isolate: true)
+    }
+    
+    public var sqlParameters: [Value?] {
+        var parameters = [Value?]()
+        
+        parameters += fields.flatMap { $0.sqlParameters }
+        parameters += from.flatMap { $0.sqlParameters }
+        parameters += joins.flatMap { $0.sqlParameters }
+        
+        if let predicate = predicate {
+            parameters += predicate.sqlParameters
+        }
+        
+        return parameters
     }
 }

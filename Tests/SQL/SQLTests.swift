@@ -1,16 +1,37 @@
 import XCTest
 @testable import SQL
 
+struct User: Table {
+    enum Field: String {
+        case id = "id"
+        case username = "username"
+    }
+    
+    static var tableName: String = "users"
+}
+
+struct Order: Table {
+    enum Field: String {
+        case id = "id"
+        case userId = "user_id"
+    }
+    
+    static var tableName: String = "orders"
+}
+
 class SQLTests: XCTestCase {
-    func testReality() {
-        XCTAssert(2 + 2 == 4, "Something is severely wrong here.")
+    func testSelectQuey() {
+        
+        
+        let select = User.select(.id, .username).limit(10).offset(10).order(.asc(User.field(.id)))
+        let selectTop = User.select(top: .percent(10), .id, .username)
+            .join(.inner(Order.tableName), on: Order.field(.id), equals: User.field(.id))
+            .limit(10)
+            .offset(10)
+
+        print(select.sqlString)
+        print(selectTop.sqlString)
+        
     }
 }
 
-extension SQLTests {
-    static var allTests: [(String, SQLTests -> () throws -> Void)] {
-        return [
-           ("testReality", testReality),
-        ]
-    }
-}

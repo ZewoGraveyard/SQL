@@ -42,8 +42,8 @@ public protocol RowProtocol: CustomStringConvertible {
 }
 
 public enum RowProtocolError: ErrorProtocol {
-    case ExpectedField(DeclaredField)
-    case UnexpectedNilValue(DeclaredField)
+    case expectedQualifiedField(QualifiedField)
+    case unexpectedNilValue(QualifiedField)
 }
 
 public extension RowProtocol {
@@ -54,7 +54,7 @@ public extension RowProtocol {
     
     // MARK: - Data
     
-    public func data(_ field: DeclaredField) throws -> Data? {
+    public func data(_ field: QualifiedField) throws -> Data? {
         
         /*
          Supplying a fielName can done either
@@ -83,31 +83,31 @@ public extension RowProtocol {
         }
         
         guard let result = data else {
-            throw RowProtocolError.ExpectedField(field)
+            throw RowProtocolError.expectedQualifiedField(field)
         }
         return result
     }
     
-    public func data(_ field: DeclaredField) throws -> Data {
+    public func data(_ field: QualifiedField) throws -> Data {
         guard let data: Data = try data(field) else {
-            throw RowProtocolError.UnexpectedNilValue(field)
+            throw RowProtocolError.unexpectedNilValue(field)
         }
         
         return data
     }
     
     public func data(_ field: String) throws -> Data {
-        let field = DeclaredField(name: field)
+        let field = QualifiedField(field)
         guard let data: Data = try data(field) else {
-            throw RowProtocolError.UnexpectedNilValue(field)
+            throw RowProtocolError.unexpectedNilValue(field)
         }
         
         return data
     }
     
-    // MARK: - SQLDataConvertible
+    // MARK: - ValueConvertible
     
-    public func value<T: SQLDataConvertible>(_ field: DeclaredField) throws -> T? {
+    public func value<T: ValueConvertible>(_ field: QualifiedField) throws -> T? {
         guard let data: Data = try data(field) else {
             return nil
         }
@@ -115,9 +115,9 @@ public extension RowProtocol {
         return try T(rawSQLData: data)
     }
     
-    public func value<T: SQLDataConvertible>(_ field: DeclaredField) throws -> T {
+    public func value<T: ValueConvertible>(_ field: QualifiedField) throws -> T {
         guard let data: Data = try data(field) else {
-            throw RowProtocolError.UnexpectedNilValue(field)
+            throw RowProtocolError.unexpectedNilValue(field)
         }
         
         return try T(rawSQLData: data)
@@ -126,15 +126,15 @@ public extension RowProtocol {
     // MARK - String support
     
     public func data(field: String) throws -> Data? {
-        return try data(DeclaredField(name: field))
+        return try data(QualifiedField(field))
     }
     
-    public func value<T: SQLDataConvertible>(_ field: String) throws -> T? {
-        return try value(DeclaredField(name: field))
+    public func value<T: ValueConvertible>(_ field: String) throws -> T? {
+        return try value(QualifiedField(field))
     }
     
-    public func value<T: SQLDataConvertible>(_ field: String) throws -> T {
-        return try value(DeclaredField(name: field))
+    public func value<T: ValueConvertible>(_ field: String) throws -> T {
+        return try value(QualifiedField(field))
     }
     
     
