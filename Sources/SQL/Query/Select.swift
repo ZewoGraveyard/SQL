@@ -16,8 +16,8 @@ public class Select {
     
     var order: [Order]? = nil
     
-    public var fields: [SQLStringRepresentable]
-    public let from: [SQLStringRepresentable]
+    public var fields: [SQLComponent]
+    public let from: [SQLComponent]
     
     public var limit: Int? = nil
     public var offset: Int? = nil
@@ -28,14 +28,14 @@ public class Select {
     
     // Default initializers
     
-    public init(_ fields: [SQLStringRepresentable], from source: [SQLStringRepresentable]) {
+    public init(_ fields: [SQLComponent], from source: [SQLComponent]) {
         self.fields = fields
         self.from = source
     }
     
     // SELECT TOP initializers
     
-    public init(top: Top, _ fields: [SQLStringRepresentable], from source: [SQLStringRepresentable]) {
+    public init(top: Top, _ fields: [SQLComponent], from source: [SQLComponent]) {
         self.top = top
         self.fields = fields
         self.from = source
@@ -46,7 +46,7 @@ public class Select {
         return self
     }
     
-    public func extend(_ fields: SQLStringRepresentable...) -> Select {
+    public func extend(_ fields: SQLComponent...) -> Select {
         self.fields += fields
         return self
     }
@@ -68,7 +68,7 @@ public class Select {
         return self
     }
     
-    public func join(_ joinType: Join.`Type`, on leftKey: SQLStringRepresentable, equals rightKey: SQLStringRepresentable) -> Select {
+    public func join(_ joinType: Join.`Type`, on leftKey: SQLComponent, equals rightKey: SQLComponent) -> Select {
         
         joins.append(
             Join(
@@ -83,7 +83,7 @@ public class Select {
     
 }
 
-extension Select.Top: SQLStringRepresentable {
+extension Select.Top: SQLComponent {
     public var sqlString: String {
         switch self {
         case .number(let num):
@@ -94,10 +94,10 @@ extension Select.Top: SQLStringRepresentable {
     }
 }
 
-extension Select: SQLStringRepresentable {
+extension Select: SQLComponent {
     public var sqlString: String {
         
-        var components = [SQLStringRepresentable]()
+        var components = [SQLComponent]()
         
         components.append("SELECT")
         

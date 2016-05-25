@@ -17,12 +17,12 @@ public extension Table where Self.Field.RawValue == String {
     }
     
     public static func select(_ fields: Field...) -> Select {
-        let fields: [SQLStringRepresentable] = fields.map { self.field($0) }
+        let fields: [SQLComponent] = fields.map { self.field($0) }
         return Select(fields, from: [tableName])
     }
     
     public static func select(top: Select.Top, _ fields: Field...) -> Select {
-        let fields: [SQLStringRepresentable] = fields.map { self.field($0) }
+        let fields: [SQLComponent] = fields.map { self.field($0) }
         return Select(top: top, fields, from: [tableName])
     }
 }

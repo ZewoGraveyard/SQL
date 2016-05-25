@@ -109,7 +109,7 @@ public extension ConnectionProtocol {
     }
     
     
-    public func execute<T: SQLStringRepresentable>(_ statement: T) throws -> Result {
+    public func execute<T: SQLComponent>(_ statement: T) throws -> Result {
         return try execute(statement.sqlString, parameters: statement.sqlParameters)
     }
     
