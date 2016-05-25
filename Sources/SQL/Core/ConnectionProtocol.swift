@@ -115,7 +115,7 @@ public extension ConnectionProtocol {
         return try execute(composeStatement(select), parameters: select.sqlParameters)
     }
 
-    public func execute(_ statement: SQLComponent) throws -> Result {
+    public func execute<T: SQLStringRepresentable where T: SQLPrametersRepresentable>(_ statement: T) throws -> Result {
         return try execute(statement.sqlString, parameters: statement.sqlParameters)
     }
     

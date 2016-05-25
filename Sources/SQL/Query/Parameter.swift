@@ -13,7 +13,7 @@ public enum Parameter {
     case function(Function)
 }
 
-extension Parameter: SQLComponent {
+extension Parameter: SQLStringRepresentable, SQLPrametersRepresentable {
     public var sqlString: String {
         switch self {
         case .field(let field):

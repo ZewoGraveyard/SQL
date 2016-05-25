@@ -14,7 +14,7 @@ public indirect enum Predicate {
     case boolean(Bool)
 }
 
-extension Predicate: SQLComponent {
+extension Predicate: SQLStringRepresentable, SQLPrametersRepresentable {
     public var sqlString: String {
         switch self {
         case .expression(let left, let op, let right):

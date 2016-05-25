@@ -6,7 +6,7 @@
 //
 //
 
-public protocol SQLStringRepresentable {
+public protocol SQLStringRepresentable: CustomStringConvertible {
     var sqlString: String { get }
 }
 
@@ -51,13 +51,6 @@ public protocol SQLPrametersRepresentable {
     var sqlParameters: [Value?] { get }
 }
 
-
-public protocol SQLComponent: SQLStringRepresentable, SQLPrametersRepresentable, CustomStringConvertible {
-    
-    
-}
-
-
 public extension Sequence where Iterator.Element: SQLStringRepresentable {
     public func sqlStringJoined(separator: String? = nil, isolate: Bool = false) -> String {
         return map { $0 as SQLStringRepresentable }.sqlStringJoined(separator: separator, isolate: isolate)
@@ -83,45 +76,7 @@ public extension Sequence where Iterator.Element: SQLPrametersRepresentable {
 }
 
 public extension Sequence where Iterator.Element == SQLPrametersRepresentable {
-
     public var sqlParameters: [Value?] {
         return flatMap { $0.sqlParameters }
     }
 }
-
-//
-//public struct SQLArray: SQL {
-//    public let representables: [SQL]
-//    public var separator: String?
-//    public var isolated: Bool = false
-//    
-//    public var sqlString: String {
-//        let str = representables.map { $0.sqlString }.joined(separator: separator ?? "")
-//        
-//        if(isolated) {
-//            return "(\(str))"
-//        }
-//        
-//        return str
-//    }
-//    
-//    public func isolateInPlace() -> SQLArray {
-//        var new = self
-//        new.isolate()
-//        return new
-//    }
-//    
-//    public mutating func isolate() {
-//        isolated = true
-//    }
-//    
-//    public var sqlParameters: [Value?] {
-//        return representables.flatMap { $0.sqlParameters }
-//    }
-//    
-//    public init(_ representables: [SQL], separator: String? = nil) {
-//        self.representables = representables
-//        self.separator = separator
-//    }
-//
-//}
