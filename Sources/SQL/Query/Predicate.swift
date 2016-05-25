@@ -50,7 +50,9 @@ public prefix func ! (predicate: Predicate) -> Predicate {
     return .not(predicate)
 }
 
-// Field
+// MARK: Equal operator
+
+// QualifiedField
 
 public func == (lhs: QualifiedField, rhs: QualifiedField) -> Predicate {
     return .expression(left: .field(lhs), operator: .equal, right: .field(rhs))
@@ -80,11 +82,41 @@ public func == <T: ValueConvertible>(lhs: Function, rhs: T) -> Predicate {
     return .expression(left: .function(lhs), operator: .equal, right: .value(rhs.sqlValue))
 }
 
-// Select
+// MARK: GreaterThan operator
 
-public func == (lhs: QualifiedField, rhs: Select) -> Predicate {
-    return .expression(left: .field(lhs), operator: .equal, right: .subquery(rhs))
+// QualifiedField
+
+public func > (lhs: QualifiedField, rhs: QualifiedField) -> Predicate {
+    return .expression(left: .field(lhs), operator: .equal, right: .field(rhs))
 }
+
+public func > <T: ValueConvertible>(lhs: QualifiedField, rhs: T) -> Predicate {
+    return .expression(left: .field(lhs), operator: .equal, right: .value(rhs.sqlValue))
+}
+
+// String
+
+public func > (lhs: String, rhs: QualifiedField) -> Predicate {
+    return .expression(left: .field(QualifiedField(lhs)), operator: .equal, right: .field(rhs))
+}
+
+public func > <T: ValueConvertible>(lhs: String, rhs: T) -> Predicate {
+    return .expression(left: .field(QualifiedField(lhs)), operator: .equal, right: .value(rhs.sqlValue))
+}
+
+// Function
+
+public func > (lhs: Function, rhs: QualifiedField) -> Predicate {
+    return .expression(left: .function(lhs), operator: .equal, right: .field(rhs))
+}
+
+public func > <T: ValueConvertible>(lhs: Function, rhs: T) -> Predicate {
+    return .expression(left: .function(lhs), operator: .equal, right: .value(rhs.sqlValue))
+}
+
+
+
+// MARK: Compound predicate
 
 public func && (lhs: Predicate, rhs: Predicate) -> Predicate {
     return .and([lhs, rhs])
@@ -92,4 +124,22 @@ public func && (lhs: Predicate, rhs: Predicate) -> Predicate {
 
 public func || (lhs: Predicate, rhs: Predicate) -> Predicate {
     return .or([lhs, rhs])
+}
+
+// Predicated query
+
+public protocol PredicatedQuery: class {
+    var predicate: Predicate? { get set }
+}
+
+public extension PredicatedQuery {
+    public func filter(_ value: Predicate) -> Self {
+        guard let existing = predicate else {
+            predicate = value
+            return self
+        }
+        
+        predicate = .and([existing, value])
+        return self
+    }
 }

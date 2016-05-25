@@ -10,18 +10,11 @@ public enum Function {
     case sum(QualifiedField)
 }
 
-extension Function: SQLComponent {
+extension Function: SQLStringRepresentable {
     public var sqlString: String {
         switch self {
         case .sum(let field):
             return "sum(\(field.sqlString))"
-        }
-    }
-    
-    public var sqlParameters: [Value?] {
-        switch self {
-        case .sum(let field):
-            return field.sqlParameters
         }
     }
 }

@@ -8,22 +8,22 @@
 
 public struct Join {
     public enum `Type` {
-        case inner(SQLComponent)
-        case outer(SQLComponent)
+        case inner(SQLStringRepresentable)
+        case outer(SQLStringRepresentable)
     }
     
-    public let leftKey: SQLComponent
-    public let rightKey: SQLComponent
+    public let leftKey: SQLStringRepresentable
+    public let rightKey: SQLStringRepresentable
     public let type: Type
     
-    public init(type: `Type`, leftKey: SQLComponent, rightKey: SQLComponent) {
+    public init(type: `Type`, leftKey: SQLStringRepresentable, rightKey: SQLStringRepresentable) {
         self.type = type
         self.leftKey = leftKey
         self.rightKey = rightKey
     }
 }
 
-extension Join: SQLComponent {
+extension Join: SQLStringRepresentable {
     public var sqlString: String {
         return [
                 type,
@@ -36,7 +36,7 @@ extension Join: SQLComponent {
     }
 }
 
-extension Join.`Type`: SQLComponent {
+extension Join.`Type`: SQLStringRepresentable {
     public var sqlString: String {
         switch self {
         case .inner(let table):

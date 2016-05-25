@@ -55,7 +55,7 @@ public protocol ConnectionProtocol: class {
     func close()
 
     var internalStatus: InternalStatus { get }
-
+    
     func execute(_ statement: String, parameters: [Value?]?) throws -> Result
 
     func begin() throws
@@ -73,6 +73,9 @@ public protocol ConnectionProtocol: class {
     init(_ info: ConnectionInfo)
     
     var mostRecentError: Error? { get }
+    
+    func composeStatement(_ select: Select) -> String
+    
 }
 
 public extension ConnectionProtocol {
@@ -108,13 +111,24 @@ public extension ConnectionProtocol {
         }
     }
     
-    
-    public func execute<T: SQLComponent>(_ statement: T) throws -> Result {
+    public func execute(_ select: Select) throws -> Result {
+        return try execute(composeStatement(select), parameters: select.sqlParameters)
+    }
+
+    public func execute(_ statement: SQLComponent) throws -> Result {
         return try execute(statement.sqlString, parameters: statement.sqlParameters)
     }
     
-    func execute(_ statement: String) throws -> Result {
-        return try execute(statement, parameters: nil)
+    public func execute(_ statement: SQLStringRepresentable) throws -> Result {
+        return try execute(statement.sqlString, parameters: nil)
+    }
+    
+    public func execute(_ statement: SQLStringRepresentable, parameters: [ValueConvertible?]) throws -> Result {
+        return try execute(statement.sqlString, parameters: parameters.map { $0?.sqlValue })
+    }
+    
+    public func execute(_ statement: SQLStringRepresentable, parameters: ValueConvertible?...) throws -> Result {
+        return try execute(statement, parameters: parameters)
     }
 
     public func begin() throws {

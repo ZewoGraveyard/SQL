@@ -6,18 +6,26 @@
 //
 //
 
-public class Select {
-    public enum Top {
-        case number(Int)
-        case percent(Int)
+public protocol SelectReference {
+    var selectReference: Select.Reference { get }
+}
+
+extension String: SelectReference {
+    public var selectReference: Select.Reference {
+        return .string(self)
+    }
+}
+
+public class Select: PredicatedQuery {
+    public enum Reference {
+        case string(SQLStringRepresentable)
+        case subquery(Select, alias: SQLStringRepresentable)
     }
     
-    var top: Top? = nil
+    public var order: [Order] = []
     
-    var order: [Order] = []
-    
-    public var fields: [SQLComponent]
-    public let from: [SQLComponent]
+    public var fields: [Reference]
+    public let from: [Reference]
     
     public var limit: Int? = nil
     public var offset: Int? = nil
@@ -28,42 +36,33 @@ public class Select {
     
     // Default initializers
     
-    public init(_ fields: [SQLComponent], from source: [SQLComponent]) {
-        self.fields = fields
-        self.from = source
+    public func subqueryNamed(_ alias: SQLStringRepresentable) -> Reference {
+        return .subquery(self, alias: alias)
     }
     
-    public init(_ fields: SQLComponent..., from source: SQLComponent) {
-        self.fields = fields
-        self.from = [source]
+    public init(_ fields: [SelectReference], from source: [SelectReference]) {
+        self.fields = fields.map { $0.selectReference }
+        self.from = source.map { $0.selectReference }
     }
     
-    // SELECT TOP initializers
-    
-    public init(top: Top, _ fields: [SQLComponent], from source: [SQLComponent]) {
-        self.top = top
-        self.fields = fields
-        self.from = source
+    public convenience init(_ fields: SelectReference..., from source: SelectReference) {
+        self.init(fields, from: [source])
     }
+
     
-    public init(top: Top, _ fields: SQLComponent..., from source: SQLComponent) {
-        self.top = top
-        self.fields = fields
-        self.from = [source]
-    }
-    
-    public func filter(_ predicate: Predicate) -> Select {
-        self.predicate = predicate
-        return self
-    }
-    
-    public func extend(_ fields: SQLComponent...) -> Select {
-        self.fields += fields
+    public func extend(_ fields: SelectReference...) -> Select {
+        self.fields += fields.map { $0.selectReference }
         return self
     }
     
     public func order(_ value: Order...) -> Select {
         order += value
+        return self
+    }
+    
+    public var first: Select {
+        limit = 1
+        offset = 0
         return self
     }
     
@@ -77,7 +76,7 @@ public class Select {
         return self
     }
     
-    public func join(_ joinType: Join.`Type`, on leftKey: SQLComponent, equals rightKey: SQLComponent) -> Select {
+    public func join(_ joinType: Join.`Type`, on leftKey: SQLStringRepresentable, equals rightKey: SQLStringRepresentable) -> Select {
         
         joins.append(
             Join(
@@ -92,62 +91,30 @@ public class Select {
     
 }
 
-extension Select.Top: SQLComponent {
-    public var sqlString: String {
+extension Select.Reference: SQLPrametersRepresentable {
+    public var sqlParameters: [Value?] {
         switch self {
-        case .number(let num):
-            return "TOP \(num)"
-        case .percent(let percent):
-            return "TOP \(percent)%"
+        case .string:
+            return []
+        case .subquery(let select, _):
+            return select.sqlParameters
         }
     }
 }
 
-extension Select: SQLComponent {
-    public var sqlString: String {
-        
-        var components = [SQLComponent]()
-        
-        components.append("SELECT")
-        
-        if let top = top {
-            components.append(top)
-        }
-        
-        components.append(fields.sqlStringJoined(separator: ", "))
-        components.append("FROM")
-        components.append(from.sqlStringJoined(separator: ", "))
-        
-        if !joins.isEmpty {
-            components.append(joins.sqlStringJoined(separator: " "))
-        }
-    
-        if let predicate = predicate {
-            components.append("WHERE")
-            components.append(predicate)
-        }
-        
-        if !order.isEmpty {
-            components.append(order.sqlStringJoined(separator: ", "))
-        }
-        
-        if let limit = limit {
-            components.append("LIMIT \(limit)")
-        }
-        
-        if let offset = offset {
-            components.append("OFFSET \(offset)")
-        }
-        
-        return components.sqlStringJoined(separator: " ", isolate: true)
+extension Select.Reference: SelectReference {
+    public var selectReference: Select.Reference {
+        return self
     }
-    
+}
+
+
+extension Select: SQLPrametersRepresentable {
     public var sqlParameters: [Value?] {
         var parameters = [Value?]()
         
         parameters += fields.flatMap { $0.sqlParameters }
         parameters += from.flatMap { $0.sqlParameters }
-        parameters += joins.flatMap { $0.sqlParameters }
         
         if let predicate = predicate {
             parameters += predicate.sqlParameters

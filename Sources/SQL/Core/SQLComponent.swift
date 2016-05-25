@@ -6,41 +6,65 @@
 //
 //
 
-
-public protocol SQLComponent: CustomStringConvertible {
+public protocol SQLStringRepresentable {
     var sqlString: String { get }
-    var sqlParameters: [Value?] { get }
 }
 
-extension SQLComponent {
+extension SQLStringRepresentable {
     public var description: String {
         return sqlString
     }
-}
 
-public extension SQLComponent {
-    var sqlParameters: [Value?] {
-        return []
+    public func sqlStringWithEscapedPlaceholdersUsingPrefix(_ prefix: String, suffix: String? = nil, transformer: (Int) -> String) -> String {
+        
+        var strings = sqlString.split(byString: "%@")
+        
+        if strings.count == 1 {
+            return sqlString
+        }
+        
+        var newStrings = [String]()
+        
+        for i in 0..<strings.count - 1 {
+            newStrings.append(strings[i])
+            newStrings.append(prefix)
+            newStrings.append(transformer(i))
+            
+            if let suffix = suffix {
+                newStrings.append(suffix)
+            }
+        }
+        
+        newStrings.append(strings.last!)
+        
+        return newStrings.joined(separator: "")
     }
 }
 
-extension String: SQLComponent {
+extension String: SQLStringRepresentable {
     public var sqlString: String {
         return self
     }
 }
 
-public extension Sequence where Iterator.Element: SQLComponent {
-    public func sqlStringJoined(separator: String? = nil, isolate: Bool = false) -> String {
-        return map { $0 as SQLComponent }.sqlStringJoined(separator: separator, isolate: isolate)
-    }
+public protocol SQLPrametersRepresentable {
+    var sqlParameters: [Value?] { get }
+}
+
+
+public protocol SQLComponent: SQLStringRepresentable, SQLPrametersRepresentable, CustomStringConvertible {
     
-    public var sqlParameters: [Value?] {
-        return map { $0 as SQLComponent }.sqlParameters
+    
+}
+
+
+public extension Sequence where Iterator.Element: SQLStringRepresentable {
+    public func sqlStringJoined(separator: String? = nil, isolate: Bool = false) -> String {
+        return map { $0 as SQLStringRepresentable }.sqlStringJoined(separator: separator, isolate: isolate)
     }
 }
 
-public extension Sequence where Iterator.Element == SQLComponent {
+public extension Sequence where Iterator.Element == SQLStringRepresentable {
     public func sqlStringJoined(separator: String? = nil, isolate: Bool = false) -> String {
         let string = map { $0.sqlString }.joined(separator: separator ?? "")
         
@@ -50,7 +74,16 @@ public extension Sequence where Iterator.Element == SQLComponent {
         
         return string
     }
-    
+}
+
+public extension Sequence where Iterator.Element: SQLPrametersRepresentable {
+    public var sqlParameters: [Value?] {
+        return map { $0 as SQLPrametersRepresentable }.sqlParameters
+    }
+}
+
+public extension Sequence where Iterator.Element == SQLPrametersRepresentable {
+
     public var sqlParameters: [Value?] {
         return flatMap { $0.sqlParameters }
     }

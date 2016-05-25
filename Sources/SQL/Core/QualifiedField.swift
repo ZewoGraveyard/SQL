@@ -40,9 +40,15 @@ public extension QualifiedField {
     }
 }
 
-extension QualifiedField: SQLComponent {
+extension QualifiedField: SQLStringRepresentable {
     public var sqlString: String {
         return qualifiedName
+    }
+}
+
+extension QualifiedField: SelectReference {
+    public var selectReference: Select.Reference {
+        return .string(qualifiedName)
     }
 }
 
