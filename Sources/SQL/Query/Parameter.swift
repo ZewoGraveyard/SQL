@@ -10,29 +10,28 @@ public enum Parameter {
     
     case field(QualifiedField)
     case value(Value?)
+    case values([Value?])
     case function(Function)
+    case query(Select)
 }
 
-extension Parameter: SQLStringRepresentable, SQLPrametersRepresentable {
-    public var sqlString: String {
-        switch self {
-        case .field(let field):
-            return field.sqlString
-        case .value:
-            return "%@"
-        case .function(let function):
-            return function.sqlString
-        }
-    }
-    
+extension Parameter: SQLPrametersRepresentable {
     public var sqlParameters: [Value?] {
         switch self {
         case .field:
             return []
         case .value(let value):
             return [value]
+        case .values(let values):
+            return values
         case .function:
             return []
+        case .query(let select):
+            return select.sqlParameters
         }
     }
+}
+
+public protocol ParameterConvertible {
+    var sqlParameter: Parameter { get }
 }

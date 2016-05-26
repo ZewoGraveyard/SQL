@@ -11,25 +11,9 @@ public indirect enum Predicate {
     case and([Predicate])
     case or([Predicate])
     case not(Predicate)
-    case boolean(Bool)
 }
 
-extension Predicate: SQLStringRepresentable, SQLPrametersRepresentable {
-    public var sqlString: String {
-        switch self {
-        case .expression(let left, let op, let right):
-            return "\(left.sqlString) \(op.sqlString) \(right.sqlString)"
-        case .and(let predicates):
-            return predicates.sqlStringJoined(separator: " AND ", isolate: true)
-        case .or(let predicates):
-            return predicates.sqlStringJoined(separator: " OR ", isolate: true)
-        case .not(let predicate):
-            return "NOT \(predicate.sqlString)"
-        case .boolean(let bool):
-            return bool ? "1" : "0"
-        }
-    }
-    
+extension Predicate: SQLPrametersRepresentable {
     public var sqlParameters: [Value?] {
         switch self {
         case .expression(let left, _, let right):
@@ -40,8 +24,6 @@ extension Predicate: SQLStringRepresentable, SQLPrametersRepresentable {
             return predicates.flatMap { $0.sqlParameters }
         case .not(let predicate):
             return predicate.sqlParameters
-        case .boolean:
-            return []
         }
     }
 }
@@ -50,70 +32,66 @@ public prefix func ! (predicate: Predicate) -> Predicate {
     return .not(predicate)
 }
 
-// MARK: Equal operator
 
-// QualifiedField
-
-public func == (lhs: QualifiedField, rhs: QualifiedField) -> Predicate {
-    return .expression(left: .field(lhs), operator: .equal, right: .field(rhs))
+public func == (lhs: ParameterConvertible, rhs: ParameterConvertible) -> Predicate {
+    return .expression(left: lhs.sqlParameter, operator: .equal, right: rhs.sqlParameter)
 }
 
-public func == <T: ValueConvertible>(lhs: QualifiedField, rhs: T) -> Predicate {
-    return .expression(left: .field(lhs), operator: .equal, right: .value(rhs.sqlValue))
+public func > (lhs: ParameterConvertible, rhs: ParameterConvertible) -> Predicate {
+    return .expression(left: lhs.sqlParameter, operator: .greaterThan, right: rhs.sqlParameter)
 }
 
-// String
-
-public func == (lhs: String, rhs: QualifiedField) -> Predicate {
-    return .expression(left: .field(QualifiedField(lhs)), operator: .equal, right: .field(rhs))
+public func < (lhs: ParameterConvertible, rhs: ParameterConvertible) -> Predicate {
+    return .expression(left: lhs.sqlParameter, operator: .lessThan, right: rhs.sqlParameter)
 }
 
-public func == <T: ValueConvertible>(lhs: String, rhs: T) -> Predicate {
-    return .expression(left: .field(QualifiedField(lhs)), operator: .equal, right: .value(rhs.sqlValue))
+public func >= (lhs: ParameterConvertible, rhs: ParameterConvertible) -> Predicate {
+    return .expression(left: lhs.sqlParameter, operator: .greaterThanOrEqual, right: rhs.sqlParameter)
 }
 
-// Function
-
-public func == (lhs: Function, rhs: QualifiedField) -> Predicate {
-    return .expression(left: .function(lhs), operator: .equal, right: .field(rhs))
+public func <= (lhs: ParameterConvertible, rhs: ParameterConvertible) -> Predicate {
+    return .expression(left: lhs.sqlParameter, operator: .lessThanOrEqual, right: rhs.sqlParameter)
 }
 
-public func == <T: ValueConvertible>(lhs: Function, rhs: T) -> Predicate {
-    return .expression(left: .function(lhs), operator: .equal, right: .value(rhs.sqlValue))
+// Contains
+
+extension ParameterConvertible {
+    public func contains(_ values: [ValueConvertible?]) -> Predicate {
+        return contains(values.map { $0?.sqlValue })
+    }
+    
+    public func contains(_ values: ValueConvertible?...) -> Predicate {
+        return contains(values)
+    }
+    
+    public func contains(_ values: [Value?]) -> Predicate {
+        return .expression(left: self.sqlParameter, operator: .contains, right: .values(values))
+    }
+    
+    public func contains(_ values: Value?...) -> Predicate {
+        return contains(values)
+    }
 }
 
-// MARK: GreaterThan operator
+// Contains
 
-// QualifiedField
-
-public func > (lhs: QualifiedField, rhs: QualifiedField) -> Predicate {
-    return .expression(left: .field(lhs), operator: .equal, right: .field(rhs))
+extension ParameterConvertible {
+    public func containedIn(_ values: [ValueConvertible?]) -> Predicate {
+        return containedIn(values.map { $0?.sqlValue })
+    }
+    
+    public func containedIn(_ values: ValueConvertible?...) -> Predicate {
+        return containedIn(values)
+    }
+    
+    public func containedIn(_ values: [Value?]) -> Predicate {
+        return .expression(left: self.sqlParameter, operator: .containedIn, right: .values(values))
+    }
+    
+    public func containedIn(_ values: Value?...) -> Predicate {
+        return containedIn(values)
+    }
 }
-
-public func > <T: ValueConvertible>(lhs: QualifiedField, rhs: T) -> Predicate {
-    return .expression(left: .field(lhs), operator: .equal, right: .value(rhs.sqlValue))
-}
-
-// String
-
-public func > (lhs: String, rhs: QualifiedField) -> Predicate {
-    return .expression(left: .field(QualifiedField(lhs)), operator: .equal, right: .field(rhs))
-}
-
-public func > <T: ValueConvertible>(lhs: String, rhs: T) -> Predicate {
-    return .expression(left: .field(QualifiedField(lhs)), operator: .equal, right: .value(rhs.sqlValue))
-}
-
-// Function
-
-public func > (lhs: Function, rhs: QualifiedField) -> Predicate {
-    return .expression(left: .function(lhs), operator: .equal, right: .field(rhs))
-}
-
-public func > <T: ValueConvertible>(lhs: Function, rhs: T) -> Predicate {
-    return .expression(left: .function(lhs), operator: .equal, right: .value(rhs.sqlValue))
-}
-
 
 
 // MARK: Compound predicate

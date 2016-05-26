@@ -45,6 +45,7 @@ public protocol ConnectionProtocol: class {
     associatedtype Result: ResultProtocol
     associatedtype Error: ErrorProtocol
     associatedtype ConnectionInfo: ConnectionInfoProtocol
+    associatedtype Composer: QueryComposer
     
     var logger: Logger? { get set }
     
@@ -74,7 +75,7 @@ public protocol ConnectionProtocol: class {
     
     var mostRecentError: Error? { get }
     
-    func composeStatement(_ select: Select) -> String
+    
     
 }
 
@@ -116,7 +117,7 @@ public extension ConnectionProtocol {
     }
     
     public func execute(_ select: Select) throws -> Result {
-        return try execute(composeStatement(select), parameters: select.sqlParameters)
+        return try execute(Composer.composeStatement(select), parameters: select.sqlParameters)
     }
     
     public func execute(_ statement: String, parameters: [ValueConvertible?]) throws -> Result {

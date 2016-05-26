@@ -24,6 +24,12 @@ public struct QualifiedField {
     }
 }
 
+extension QualifiedField: ParameterConvertible {
+    public var sqlParameter: Parameter {
+        return .field(self)
+    }
+}
+
 public extension QualifiedField {
     public var qualifiedName: String {
         guard let tableName = tableName else {
@@ -46,6 +52,15 @@ extension QualifiedField: SQLStringRepresentable {
     }
 }
 
+extension QualifiedField: Hashable {
+    public var hashValue: Int {
+        return qualifiedName.hashValue
+    }
+}
+
+public func == (lhs: QualifiedField, rhs: QualifiedField) -> Bool {
+    return lhs.hashValue == rhs.hashValue
+}
 
 //prefix operator % {}
 //public prefix func % (_ name: String) -> QualifiedField {

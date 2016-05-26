@@ -10,12 +10,12 @@ public protocol SelectComponentConvertible {
     var sqlSelectComponent: Select.Component { get }
 }
 
-
 public class Select: PredicatedQuery {
     public enum Component {
         case field(QualifiedField)
         case string(String)
         case subquery(Select, alias: String)
+        case function(Function, alias: String)
     }
     
     public var order: [Order] = []
@@ -30,9 +30,7 @@ public class Select: PredicatedQuery {
     
     public var joins: [Join] = []
     
-    // Default initializers
-    
-    public func subqueryNamed(_ alias: String) -> Component {
+    public func subquery(as alias: String) -> Component {
         return .subquery(self, alias: alias)
     }
     
@@ -71,7 +69,7 @@ public class Select: PredicatedQuery {
         return self
     }
     
-    public func join(_ joinType: Join.`Type`, on leftKey: SQLStringRepresentable, equals rightKey: SQLStringRepresentable) -> Select {
+    public func join(_ joinType: Join.`Type`, on leftKey: QualifiedField, equals rightKey: QualifiedField) -> Select {
         
         joins.append(
             Join(
@@ -95,7 +93,15 @@ extension Select.Component: SQLPrametersRepresentable {
             return select.sqlParameters
         case .field:
             return []
+        case .function:
+            return []
         }
+    }
+}
+
+extension Select: ParameterConvertible {
+    public var sqlParameter: Parameter {
+        return .query(self)
     }
 }
 

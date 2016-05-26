@@ -31,10 +31,16 @@ public enum Value {
     case data(Data)
 }
 
-public protocol ValueConvertible {
+public protocol ValueConvertible: ParameterConvertible {
     var sqlValue: Value { get }
 
     init(rawSQLData: Data) throws
+}
+
+extension ValueConvertible {
+    public var sqlParameter: Parameter {
+        return .value(self.sqlValue)
+    }
 }
 
 

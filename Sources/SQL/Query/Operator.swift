@@ -14,6 +14,8 @@ public enum Operator {
     
     case lessThan
     case lessThanOrEqual
+    case contains
+    case containedIn
 }
 
 extension Operator: SQLStringRepresentable {
@@ -29,6 +31,12 @@ extension Operator: SQLStringRepresentable {
             return "<"
         case .lessThanOrEqual:
             return "<="
+        case .contains:
+            return "CONTAINS"
+        case .containedIn:
+            return "IN"
         }
     }
 }
+
+
