@@ -32,7 +32,7 @@ public extension Query {
 }
 
 public protocol TableQuery: Query {
-    var tableName: String { get }
+    var source: Source { get }
 }
 
 //public protocol ModelQuery: TableQuery {
@@ -299,24 +299,22 @@ public struct Join: QueryComponentRepresentable {
 }
 
 
-public struct Subquery: QueryComponentRepresentable {
-    private let query: QueryComponent
+public struct Subquery {
+    private let query: Select
     let alias: String?
-    public init(query: QueryComponent, alias: String?) {
+    public init(query: Select, alias: String?) {
         self.query = query
         self.alias = alias
     }
     public func field(_ name: String) -> DeclaredField {
         return DeclaredField(name: name, tableName: alias)
     }
-    public var queryComponent: QueryComponent {
-        return .subquery(query: query, alias: alias)
-    }
+    
 }
 
 //
-extension Subquery: SQLDataRepresentable {
-    public var sqlData: SQLData {
-        return .Query(self.queryComponent)
-    }
-}
+//extension Subquery: SQLDataRepresentable {
+//    public var sqlData: SQLData {
+//        return .Query(self.queryComponent)
+//    }
+//}

@@ -23,24 +23,24 @@
 //// SOFTWARE.
 //
 
-public protocol DeleteQuery: FilteredQuery, TableQuery {}
-
-
-public struct Delete: DeleteQuery {
-
-    public let tableName: String
-    public var condition: Condition? = nil
-
-    public init(from tableName: String) {
-        self.tableName = tableName
-    }
-}
-
-extension DeleteQuery {
-    public var queryComponent: QueryComponent {
-        return .delete(from: .table(name: tableName, alias: nil), filter: condition?.queryComponent)
-    }
-}
+//public protocol DeleteQuery: FilteredQuery, TableQuery {}
+//
+//
+//public struct Delete: DeleteQuery {
+//
+//    public var source: Source
+//    public var condition: Condition? = nil
+//
+//    public init(from tableName: String) {
+//        self.source = tableName.source
+//    }
+//}
+//
+//extension DeleteQuery {
+//    public var queryComponent: QueryComponent {
+//        return .delete(from: .table(name: tableName, alias: nil), filter: condition?.queryComponent)
+//    }
+//}
 
 
 //public struct ModelDelete<T: Model>: DeleteQuery {

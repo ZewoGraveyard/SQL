@@ -72,7 +72,7 @@ extension QueryComponent: ArrayLiteralConvertible {
 }
 
 public protocol QueryComponentRepresentable {
-    var queryComponent: QueryComponent { get }
+//    var queryComponent: QueryComponent { get }
 }
 
 

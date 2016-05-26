@@ -5,7 +5,7 @@
 
 
 
-public class MysqlCompiler: Compiler {
+//public class MysqlCompiler: Compiler {
 //    override func offsetLimit(selectQuery: [String], offset: QueryComponent?, limit: QueryComponent?,
 //                              ordersBy: [QueryComponent]) -> [String] {
 
@@ -19,4 +19,4 @@ public class MysqlCompiler: Compiler {
 //        return stringParts
 //    }
 
-}
+//}

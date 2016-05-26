@@ -21,8 +21,8 @@ public func FunctionFactory(_ functionName: String) -> (QueryComponentRepresenta
 
     func function(args: QueryComponentRepresentable...) -> ColumnProperty {
         var parts: [QueryComponent] = [.sql(functionName), "("]
-        let argsParts = args.map { [$0.queryComponent] }.joined(separator: [","])
-        parts.append(contentsOf: argsParts)
+//        let argsParts = args.map { [$0.queryComponent] }.joined(separator: [","])
+//        parts.append(contentsOf: argsParts)
         parts.append(")")
         return ColumnProperty(parts)
     }

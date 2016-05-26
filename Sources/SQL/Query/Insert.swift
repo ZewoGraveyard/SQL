@@ -24,27 +24,27 @@
 //
 public typealias ValuesList = OrderedDict<DeclaredField, SQLDataRepresentable>
 
-
-
-public struct Insert: InsertQuery {
-    public let tableName: String
-    public let valuesByField: ValuesList
-    public var returning: [DeclaredField]
-
-
-    public init<T: Table>(_ valuesByField: OrderedDict<T.Field, SQLDataRepresentable>, into table: T.Type) {
-        let newValues = valuesByField.elements.map {(T.field($0.0), $0.1)}
-        let values = OrderedDict(elements: newValues)
-        self.init(values, into: table.tableName)
-    }
-    
-    public init(_ valuesByField: ValuesList, into tableName: String) {
-        self.tableName = tableName
-        self.valuesByField = valuesByField
-        self.returning = [DeclaredField(name: "id", tableName: tableName, alias: "id")]
-    }
-
-}
+//
+//
+//public struct Insert: InsertQuery {
+//    public let source: Source
+//    public let valuesByField: ValuesList
+//    public var returning: [DeclaredField]
+//
+//
+//    public init<T: Table>(_ valuesByField: OrderedDict<T.Field, SQLDataRepresentable>, into table: T.Type) {
+//        let newValues = valuesByField.elements.map {(T.field($0.0), $0.1)}
+//        let values = OrderedDict(elements: newValues)
+//        self.init(values, into: table.tableName)
+//    }
+//    
+//    public init(_ valuesByField: ValuesList, into tableName: String) {
+//        self.source = tableName.source
+//        self.valuesByField = valuesByField
+//        self.returning = [DeclaredField(name: "id", tableName: tableName, alias: "id")]
+//    }
+//
+//}
 //
 //public struct ModelInsert<T: Model>: InsertQuery {
 //    public typealias ModelType = T
@@ -78,15 +78,15 @@ public struct Insert: InsertQuery {
 //}
 //
 
-public protocol InsertQuery : TableQuery {
-    var valuesByField: ValuesList { get }
-    var returning: [DeclaredField] { get }
-}
+//public protocol InsertQuery : TableQuery {
+//    var valuesByField: ValuesList { get }
+//    var returning: [DeclaredField] { get }
+//}
 
 
-extension InsertQuery {
-    public var queryComponent: QueryComponent {
-        return .insert(into: .table(name: tableName, alias: nil), values: valuesByField,
-                returning: returning.map{ $0.queryComponent })
-    }
-}
+//extension InsertQuery {
+//    public var queryComponent: QueryComponent {
+//        return .insert(into: .table(name: tableName, alias: nil), values: valuesByField,
+//                returning: returning.map{ $0.queryComponent })
+//    }
+//}

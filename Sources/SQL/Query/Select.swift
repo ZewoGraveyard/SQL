@@ -22,11 +22,53 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+public enum Field {
+    case column(DeclaredField), subquery(Subquery)
+}
+
+
+public protocol FieldRepresentable {
+    var field: Field { get }
+}
+
+extension DeclaredField: FieldRepresentable {
+    public var field: Field {
+        return .column(self)
+    }
+}
+
+extension Subquery: FieldRepresentable {
+    public var field: Field {
+        return .subquery(self)
+    }
+}
+
+public enum Source {
+    case table(name: String), subquery(Subquery)
+}
+
+public protocol SourceRepresentable {
+    var source: Source { get }
+}
+
+
+extension String: SourceRepresentable {
+    public var source: Source {
+        return .table(name: self)
+    }
+}
+
+extension Subquery: SourceRepresentable {
+    public var source: Source {
+        return .subquery(self)
+    }
+}
+
 
 public struct Select: SelectQuery {
-    public private(set) var fields: [QueryComponentRepresentable]
+    public private(set) var fields: [Field]
     
-    public let tableName: String
+    public let source: Source
 
     public var condition: Condition? = nil
     public var joins: [Join] = []
@@ -37,13 +79,13 @@ public struct Select: SelectQuery {
     public var group: GroupBy? = nil
 
 
-    public init(fields: [QueryComponentRepresentable], from tableName: String) {
-        self.tableName = tableName
-        self.fields = fields
+    public init(fields: [FieldRepresentable], from source: SourceRepresentable) {
+        self.source = source.source
+        self.fields = fields.map {$0.field}
     }
 
-    public init(_ fields: QueryComponentRepresentable..., from tableName: String) {
-        self.init(fields: fields, from: tableName)
+    public init(_ fields: FieldRepresentable..., from source: SourceRepresentable) {
+        self.init(fields: fields, from: source)
     }
 
 
@@ -52,13 +94,13 @@ public struct Select: SelectQuery {
     }
 
 
-    public func select(fields: [QueryComponentRepresentable]) -> Select {
+    public func select(fields: [FieldRepresentable]) -> Select {
         var new = self
-        new.fields.append(contentsOf: fields)
+        new.fields.append(contentsOf: fields.map{$0.field} )
         return new
     }
 
-    public func select(_ fields: QueryComponentRepresentable...) -> Select {
+    public func select(_ fields: FieldRepresentable...) -> Select {
         return self.select(fields: fields)
     }
 
@@ -66,9 +108,9 @@ public struct Select: SelectQuery {
     public func join(_ tableClause: QueryComponentRepresentable, using type: [Join.JoinType],
                      leftKey: DeclaredField, rightKey: DeclaredField) -> Select {
         var new = self
-        new.joins.append(
-            Join(tableClause.queryComponent, type: type, leftKey: leftKey, rightKey: rightKey)
-        )
+//        new.joins.append(
+//            Join(tableClause.queryComponent, type: type, leftKey: leftKey, rightKey: rightKey)
+//        )
         return new
     }
 //
@@ -83,7 +125,7 @@ public struct Select: SelectQuery {
 
 extension Select {
     public func asSubquery(_ alias: String? = nil) -> Subquery {
-        return Subquery(query: queryComponent, alias: alias)
+        return Subquery(query: self, alias: alias)
     }
 }
 
@@ -129,22 +171,23 @@ extension Select {
 public protocol SelectQuery: FilteredQuery, FetchQuery {
     var joins: [Join] { get set }
 //
-    var fields: [QueryComponentRepresentable] { get }
+    var fields: [Field] { get }
 }
 
-public extension SelectQuery {
-    public var queryComponent: QueryComponent {
-        let fieldsComponents: [QueryComponent] = fields.map{$0.queryComponent}
-        return .select(fields: fieldsComponents,
-                from: .table(name: tableName, alias: nil),
-                joins: joins.map{$0.queryComponent},
-                filter: condition?.queryComponent,
-                ordersBy: orderBy.map{ $0.queryComponent },
-                offset: offset?.queryComponent,
-                limit: limit?.queryComponent,
-                groupBy: group?.queryComponent,
-                having: nil
-        )
-    }
-}
+//public extension SelectQuery {
+//    public var queryComponent: QueryComponent {
+//        let fieldsComponents: [QueryComponent] = fields.map{$0.queryComponent}
+//        return .select(fields: fieldsComponents,
+//                from: .table(name: tableName, alias: nil),
+//                joins: joins.map{$0.queryComponent},
+//                filter: condition?.queryComponent,
+//                ordersBy: orderBy.map{ $0.queryComponent },
+//                offset: offset?.queryComponent,
+//                limit: limit?.queryComponent,
+//                groupBy: group?.queryComponent,
+//                having: nil
+//        )
+//    }
+//}
 
+//

@@ -4,7 +4,7 @@
 public struct DeclaredField: CustomStringConvertible {
     public let name: String
     public var tableName: String?
-    private var aliasName: String?
+    public var aliasName: String?
     public init(name: String, tableName: String? = nil, alias aliasName: String? = nil) {
         self.name = name
         self.tableName = tableName
