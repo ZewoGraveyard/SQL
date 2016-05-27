@@ -55,31 +55,14 @@ public extension RowProtocol {
     // MARK: - Data
     
     public func data(_ field: QualifiedField) throws -> Data? {
-        
-        /*
-         Supplying a fielName can done either
-         1. Qualified, e.g. 'users.id'
-         2. Non-qualified e.g. 'id'
-         
-         A statement will cast qualified fields from 'users.id' to 'users__id'
-         
-         Because of this, a given field name must be checked for three type of keys
-         
-         */
-        let fieldCandidates = [
-            field.unqualifiedName,
-            field.alias,
-            field.qualifiedName
-        ]
-        
+    
         var data: Data??
         
-        for fieldNameCandidate in fieldCandidates {
-            data = dataByfield[fieldNameCandidate]
-            
-            if data != nil {
-                break
-            }
+        if let alias = field.alias {
+            data = dataByfield[alias]
+        }
+        else {
+            data = dataByfield[field.unqualifiedName]
         }
         
         guard let result = data else {
@@ -138,7 +121,7 @@ public extension RowProtocol {
     }
     
     
-    public var description: String {        
+    public var description: String {
         return dataByfield.map {
             (key, value) in
             
@@ -147,7 +130,7 @@ public extension RowProtocol {
             }
             
             return "\(key): \(value)"
-        }.joined(separator: ", ")
-
+            }.joined(separator: ", ")
+        
     }
 }

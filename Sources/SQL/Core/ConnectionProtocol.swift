@@ -116,8 +116,16 @@ public extension ConnectionProtocol {
         return try execute(statement, parameters: nil)
     }
     
-    public func execute(_ select: Select) throws -> Result {
-        return try execute(Composer.composeStatement(select), parameters: select.sqlParameters)
+    public func execute(_ query: Select) throws -> Result {
+        return try execute(Composer.composeStatement(query), parameters: query.sqlParameters)
+    }
+    
+    public func execute(_ query: Update) throws -> Result {
+        return try execute(Composer.composeStatement(query), parameters: query.sqlParameters)
+    }
+    
+    public func execute(_ query: Insert) throws -> Result {
+        return try execute(Composer.composeStatement(query), parameters: query.sqlParameters)
     }
     
     public func execute(_ statement: String, parameters: [ValueConvertible?]) throws -> Result {

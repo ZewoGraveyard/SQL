@@ -20,11 +20,11 @@ public class Select: PredicatedQuery {
     
     public var order: [Order] = []
     
-    public var fields: [Component]
+    private(set) public var fields: [Component]
     public let from: [Component]
     
-    public var limit: Int? = nil
-    public var offset: Int? = nil
+    private(set) public var limit: Int? = nil
+    private(set) public var offset: Int? = nil
     
     public var predicate: Predicate? = nil
     

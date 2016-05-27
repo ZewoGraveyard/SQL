@@ -25,7 +25,7 @@ public struct Join {
 
 extension Join: SQLStringRepresentable {
     public var sqlString: String {
-        return "\(type.sqlString) ON \(leftKey.sqlString) = \(rightKey.sqlString)"
+        return "\(type.sqlString) ON \(leftKey.qualifiedName) = \(rightKey.qualifiedName)"
     }
 }
 

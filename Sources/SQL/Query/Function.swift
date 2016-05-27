@@ -14,7 +14,7 @@ extension Function: SQLStringRepresentable {
     public var sqlString: String {
         switch self {
         case .sum(let field):
-            return "sum(\(field.sqlString))"
+            return "sum(\(field.qualifiedName))"
         }
     }
 }

@@ -10,8 +10,9 @@
 public struct QualifiedField {
     public let unqualifiedName: String
     public var tableName: String?
+    public var alias: String?
     
-    public init(_ name: String) {
+    public init(_ name: String, alias: String? = nil) {
         let components = name.split(separator: ".")
         if components.count == 2, let tableName = components.first, let fieldName = components.last {
             self.unqualifiedName = fieldName
@@ -21,6 +22,14 @@ public struct QualifiedField {
             self.unqualifiedName = name
             self.tableName = nil
         }
+        
+        self.alias = alias
+    }
+    
+    func alias(_ alias: String) -> QualifiedField {
+        var new = self
+        new.alias = alias
+        return new
     }
 }
 
@@ -36,19 +45,6 @@ public extension QualifiedField {
             return unqualifiedName
         }
         return tableName + "." + unqualifiedName
-    }
-    
-    public var alias: String {
-        guard let tableName = tableName else {
-            return unqualifiedName
-        }
-        return tableName + "__" + unqualifiedName
-    }
-}
-
-extension QualifiedField: SQLStringRepresentable {
-    public var sqlString: String {
-        return qualifiedName
     }
 }
 

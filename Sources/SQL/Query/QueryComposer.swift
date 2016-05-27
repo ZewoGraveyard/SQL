@@ -7,7 +7,12 @@
 //
 
 public protocol QueryComposer {
-    static func composeStatement(_ select: Select) -> String   
+    
+    static func composeStatement(_ statement: Select) -> String
+    
+    static func composeStatement(_ statement: Update) -> String
+    
+    static func composeStatement(_ statement: Insert) -> String
 }
 
 public extension QueryComposer {
@@ -38,7 +43,7 @@ public extension QueryComposer {
     static func composeParameter(_ parameter: Parameter) -> String {
         switch parameter {
         case .field(let field):
-            return field.sqlString
+            return field.qualifiedName
         case .function(let function):
             return function.sqlString
         case .query(let select):
