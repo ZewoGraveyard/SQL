@@ -24,6 +24,7 @@
 
 @_exported import String
 
+
 public struct Row: RowProtocol {
     
     public var dataByfield: [String: Data?]

@@ -6,6 +6,7 @@
 //
 //
 
+
 public protocol Table {
     associatedtype Field: RawRepresentable, Hashable
     static var tableName: String { get }
@@ -42,5 +43,13 @@ public extension Table where Self.Field.RawValue == String {
         }
         
         return Insert(tableName, values: translated)
+    }
+    
+    public static func delete(where predicate: Predicate) -> Delete {
+        return Delete(from: tableName).filter(predicate)
+    }
+    
+    public static func delete() -> Delete {
+        return Delete(from: tableName)
     }
 }

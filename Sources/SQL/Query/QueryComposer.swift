@@ -13,6 +13,8 @@ public protocol QueryComposer {
     static func composeStatement(_ statement: Update) -> String
     
     static func composeStatement(_ statement: Insert) -> String
+    
+    static func composeStatement(_ statement: Delete) -> String
 }
 
 public extension QueryComposer {

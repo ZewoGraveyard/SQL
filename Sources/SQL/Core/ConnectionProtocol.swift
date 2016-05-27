@@ -128,6 +128,10 @@ public extension ConnectionProtocol {
         return try execute(Composer.composeStatement(query), parameters: query.sqlParameters)
     }
     
+    public func execute(_ query: Delete) throws -> Result {
+        return try execute(Composer.composeStatement(query), parameters: query.sqlParameters)
+    }
+    
     public func execute(_ statement: String, parameters: [ValueConvertible?]) throws -> Result {
         return try execute(statement, parameters: parameters.map { $0?.sqlValue })
     }
