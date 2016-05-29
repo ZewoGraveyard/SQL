@@ -6,11 +6,11 @@
 //
 //
 
-public protocol SQLStatementStringConvertible: CustomStringConvertible {
+public protocol StatementStringRepresentable: CustomStringConvertible {
     var sqlString: String { get }
 }
 
-extension SQLStatementStringConvertible {
+extension StatementStringRepresentable {
     public var description: String {
         return sqlString
     }
@@ -44,17 +44,17 @@ public extension String {
 }
 
 
-public protocol SQLStatementParameterListConvertible {
+public protocol StatementParameterListConvertible {
     var sqlParameters: [Value?] { get }
 }
 
-public extension Sequence where Iterator.Element: SQLStatementStringConvertible {
+public extension Sequence where Iterator.Element: StatementStringRepresentable {
     public func sqlStringJoined(separator: String? = nil, isolate: Bool = false) -> String {
-        return map { $0 as SQLStatementStringConvertible }.sqlStringJoined(separator: separator, isolate: isolate)
+        return map { $0 as StatementStringRepresentable }.sqlStringJoined(separator: separator, isolate: isolate)
     }
 }
 
-public extension Sequence where Iterator.Element == SQLStatementStringConvertible {
+public extension Sequence where Iterator.Element == StatementStringRepresentable {
     public func sqlStringJoined(separator: String? = nil, isolate: Bool = false) -> String {
         let string = map { $0.sqlString }.joined(separator: separator ?? "")
         
@@ -66,13 +66,13 @@ public extension Sequence where Iterator.Element == SQLStatementStringConvertibl
     }
 }
 
-public extension Sequence where Iterator.Element: SQLStatementParameterListConvertible {
+public extension Sequence where Iterator.Element: StatementParameterListConvertible {
     public var sqlParameters: [Value?] {
-        return map { $0 as SQLStatementParameterListConvertible }.sqlParameters
+        return map { $0 as StatementParameterListConvertible }.sqlParameters
     }
 }
 
-public extension Sequence where Iterator.Element == SQLStatementParameterListConvertible {
+public extension Sequence where Iterator.Element == StatementParameterListConvertible {
     public var sqlParameters: [Value?] {
         return flatMap { $0.sqlParameters }
     }

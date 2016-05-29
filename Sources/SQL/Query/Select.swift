@@ -84,7 +84,7 @@ public class Select: PredicatedQuery {
     
 }
 
-extension Select.Component: SQLStatementParameterListConvertible {
+extension Select.Component: StatementParameterListConvertible {
     public var sqlParameters: [Value?] {
         switch self {
         case .string:
@@ -138,7 +138,7 @@ extension String: SelectComponentConvertible {
 }
 
 
-extension Select: SQLStatementParameterListConvertible {
+extension Select: StatementParameterListConvertible {
     public var sqlParameters: [Value?] {
         var parameters = [Value?]()
         

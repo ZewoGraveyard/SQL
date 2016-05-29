@@ -13,7 +13,7 @@ public indirect enum Predicate {
     case not(Predicate)
 }
 
-extension Predicate: SQLStatementParameterListConvertible {
+extension Predicate: StatementParameterListConvertible {
     public var sqlParameters: [Value?] {
         switch self {
         case .expression(let left, _, let right):

@@ -16,7 +16,7 @@ public class Delete: PredicatedQuery {
     }
 }
 
-extension Delete: SQLStatementParameterListConvertible {
+extension Delete: StatementParameterListConvertible {
     public var sqlParameters: [Value?] {
         if let predicate = predicate {
             return predicate.sqlParameters

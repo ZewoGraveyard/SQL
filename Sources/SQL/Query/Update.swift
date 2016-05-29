@@ -30,7 +30,7 @@ public class Update: PredicatedQuery {
     }
 }
 
-extension Update: SQLStatementParameterListConvertible {
+extension Update: StatementParameterListConvertible {
     public var sqlParameters: [Value?] {
         var parameters = [Value?]()
         

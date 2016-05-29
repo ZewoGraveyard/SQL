@@ -40,7 +40,7 @@ public class Insert {
     }
 }
 
-extension Insert: SQLStatementParameterListConvertible {
+extension Insert: StatementParameterListConvertible {
     public var sqlParameters: [Value?] {
         return Array(valuesByField.values)
     }

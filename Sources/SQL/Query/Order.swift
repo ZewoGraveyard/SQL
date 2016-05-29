@@ -8,11 +8,11 @@
 
 
 public enum Order {
-    case asc(SQLStatementStringConvertible)
-    case desc(SQLStatementStringConvertible)
+    case asc(StatementStringRepresentable)
+    case desc(StatementStringRepresentable)
 }
 
-extension Order: SQLStatementStringConvertible {
+extension Order: StatementStringRepresentable {
     public var sqlString: String {
         switch self {
         case .asc(let representable):

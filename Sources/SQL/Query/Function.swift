@@ -10,7 +10,7 @@ public enum Function {
     case sum(QualifiedField)
 }
 
-extension Function: SQLStatementStringConvertible {
+extension Function: StatementStringRepresentable {
     public var sqlString: String {
         switch self {
         case .sum(let field):
