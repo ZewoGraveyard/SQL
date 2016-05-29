@@ -6,18 +6,18 @@
 //
 //
 
-public protocol QueryComposer {
+public protocol DriverProtocol {
     
-    static func composeStatement(_ statement: Select) -> String
+    static func renderStatement(_ statement: Select) -> String
     
-    static func composeStatement(_ statement: Update) -> String
+    static func renderStatement(_ statement: Update) -> String
     
-    static func composeStatement(_ statement: Insert) -> String
+    static func renderStatement(_ statement: Insert) -> String
     
-    static func composeStatement(_ statement: Delete) -> String
+    static func renderStatement(_ statement: Delete) -> String
 }
 
-public extension QueryComposer {
+public extension DriverProtocol {
     static func composePredicate(_ predicate: Predicate) -> String {
         switch predicate {
         case .expression(let left, let op, let right):
@@ -49,7 +49,7 @@ public extension QueryComposer {
         case .function(let function):
             return function.sqlString
         case .query(let select):
-            return composeStatement(select)
+            return renderStatement(select)
         case .value:
             return "%@"
         case .values(let values):

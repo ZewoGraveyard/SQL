@@ -15,7 +15,7 @@ public enum Parameter {
     case query(Select)
 }
 
-extension Parameter: SQLPrametersRepresentable {
+extension Parameter: SQLStatementParameterListConvertible {
     public var sqlParameters: [Value?] {
         switch self {
         case .field:

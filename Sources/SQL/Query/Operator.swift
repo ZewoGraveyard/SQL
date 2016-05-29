@@ -18,7 +18,7 @@ public enum Operator {
     case containedIn
 }
 
-extension Operator: SQLStringRepresentable {
+extension Operator: SQLStatementStringConvertible {
     public var sqlString: String {
         switch self {
         case .equal:

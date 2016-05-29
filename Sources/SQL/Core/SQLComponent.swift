@@ -6,11 +6,11 @@
 //
 //
 
-public protocol SQLStringRepresentable: CustomStringConvertible {
+public protocol SQLStatementStringConvertible: CustomStringConvertible {
     var sqlString: String { get }
 }
 
-extension SQLStringRepresentable {
+extension SQLStatementStringConvertible {
     public var description: String {
         return sqlString
     }
@@ -44,17 +44,17 @@ public extension String {
 }
 
 
-public protocol SQLPrametersRepresentable {
+public protocol SQLStatementParameterListConvertible {
     var sqlParameters: [Value?] { get }
 }
 
-public extension Sequence where Iterator.Element: SQLStringRepresentable {
+public extension Sequence where Iterator.Element: SQLStatementStringConvertible {
     public func sqlStringJoined(separator: String? = nil, isolate: Bool = false) -> String {
-        return map { $0 as SQLStringRepresentable }.sqlStringJoined(separator: separator, isolate: isolate)
+        return map { $0 as SQLStatementStringConvertible }.sqlStringJoined(separator: separator, isolate: isolate)
     }
 }
 
-public extension Sequence where Iterator.Element == SQLStringRepresentable {
+public extension Sequence where Iterator.Element == SQLStatementStringConvertible {
     public func sqlStringJoined(separator: String? = nil, isolate: Bool = false) -> String {
         let string = map { $0.sqlString }.joined(separator: separator ?? "")
         
@@ -66,13 +66,13 @@ public extension Sequence where Iterator.Element == SQLStringRepresentable {
     }
 }
 
-public extension Sequence where Iterator.Element: SQLPrametersRepresentable {
+public extension Sequence where Iterator.Element: SQLStatementParameterListConvertible {
     public var sqlParameters: [Value?] {
-        return map { $0 as SQLPrametersRepresentable }.sqlParameters
+        return map { $0 as SQLStatementParameterListConvertible }.sqlParameters
     }
 }
 
-public extension Sequence where Iterator.Element == SQLPrametersRepresentable {
+public extension Sequence where Iterator.Element == SQLStatementParameterListConvertible {
     public var sqlParameters: [Value?] {
         return flatMap { $0.sqlParameters }
     }

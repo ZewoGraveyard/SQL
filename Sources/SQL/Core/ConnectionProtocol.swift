@@ -45,7 +45,7 @@ public protocol ConnectionProtocol: class {
     associatedtype Result: ResultProtocol
     associatedtype Error: ErrorProtocol
     associatedtype ConnectionInfo: ConnectionInfoProtocol
-    associatedtype Composer: QueryComposer
+    associatedtype Driver: DriverProtocol
     
     var logger: Logger? { get set }
     
@@ -117,19 +117,19 @@ public extension ConnectionProtocol {
     }
     
     public func execute(_ query: Select) throws -> Result {
-        return try execute(Composer.composeStatement(query), parameters: query.sqlParameters)
+        return try execute(Driver.renderStatement(query), parameters: query.sqlParameters)
     }
     
     public func execute(_ query: Update) throws -> Result {
-        return try execute(Composer.composeStatement(query), parameters: query.sqlParameters)
+        return try execute(Driver.renderStatement(query), parameters: query.sqlParameters)
     }
     
     public func execute(_ query: Insert) throws -> Result {
-        return try execute(Composer.composeStatement(query), parameters: query.sqlParameters)
+        return try execute(Driver.renderStatement(query), parameters: query.sqlParameters)
     }
     
     public func execute(_ query: Delete) throws -> Result {
-        return try execute(Composer.composeStatement(query), parameters: query.sqlParameters)
+        return try execute(Driver.renderStatement(query), parameters: query.sqlParameters)
     }
     
     public func execute(_ statement: String, parameters: [ValueConvertible?]) throws -> Result {

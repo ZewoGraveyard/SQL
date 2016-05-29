@@ -23,13 +23,13 @@ public struct Join {
     }
 }
 
-extension Join: SQLStringRepresentable {
+extension Join: SQLStatementStringConvertible {
     public var sqlString: String {
         return "\(type.sqlString) ON \(leftKey.qualifiedName) = \(rightKey.qualifiedName)"
     }
 }
 
-extension Join.`Type`: SQLStringRepresentable {
+extension Join.`Type`: SQLStatementStringConvertible {
     public var sqlString: String {
         switch self {
         case .inner(let table):
