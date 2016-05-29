@@ -141,7 +141,7 @@ extension Artist: Model {
 ```
 
 ```swift
-let rockArtists = try Artist.fetch(where: Artist.field(.genre) == "Rock", in: connection)
+let rockArtists = try Artist.fetch(where: Artist.field(.genre) == "Rock", connection: connection)
 
 for artist in rockArtists {
 	artist.genre = "Rock 'n Roll"
@@ -149,7 +149,7 @@ for artist in rockArtists {
 }
 
 let newArtist = Artist(name: "Elijah Blake", genre: "Hip-hop")
-try newArtist.create(in: connection) // save() also works
+try newArtist.create(connection: connection) // save() also works
 
 ```
 

@@ -57,7 +57,7 @@ public extension Model where Self.Field.RawValue == String {
         return field(primaryKeyField)
     }
     
-    func create<T: ConnectionProtocol>(in connection: T) throws -> Self {
+    func create<T: ConnectionProtocol>(connection: T) throws -> Self {
         guard !persisted else {
             throw ModelError("Cannot insert an already persisted model")
         }
@@ -71,7 +71,7 @@ public extension Model where Self.Field.RawValue == String {
         return self
     }
     
-    func update<T: ConnectionProtocol>(in connection: T) throws -> Self {
+    func update<T: ConnectionProtocol>(connection: T) throws -> Self {
         guard persisted else {
             throw ModelError("Cannot update a non-persisted model")
         }
@@ -84,17 +84,17 @@ public extension Model where Self.Field.RawValue == String {
         return self
     }
     
-    func save<T: ConnectionProtocol>(in connection: T) throws -> Self {
+    func save<T: ConnectionProtocol>(connection: T) throws -> Self {
         if persisted {
-            try update(in: connection)
+            try update(connection: connection)
         }
         else {
-            try create(in: connection)
+            try create(connection: connection)
         }
         return self
     }
     
-    func delete<T: ConnectionProtocol>(in connection: T) throws {
+    func delete<T: ConnectionProtocol>(connection: T) throws {
         guard let primaryKey = primaryKey else {
             throw ModelError("Cannot delete a non-persisted model")
         }
@@ -102,7 +102,7 @@ public extension Model where Self.Field.RawValue == String {
         try connection.execute(Self.delete(where: Self.qualifiedPrimaryKeyField == primaryKey))
     }
     
-    public static func get<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(_ pk: PrimaryKey, in connection: T) throws -> Self? {
+    public static func get<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(_ pk: PrimaryKey, connection: T) throws -> Self? {
         guard let row = try connection.execute(select().filter(qualifiedPrimaryKeyField == pk).first).first else {
             return nil
         }
@@ -110,7 +110,7 @@ public extension Model where Self.Field.RawValue == String {
         return try Self.init(row: row)
     }
     
-    public static func fetch<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(where predicate: Predicate, limit: Int? = 0, offset: Int? = 0, in connection: T) throws -> [Self] {
+    public static func fetch<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(where predicate: Predicate, limit: Int? = 0, offset: Int? = 0, connection: T) throws -> [Self] {
         let select = Self.select().filter(predicate)
         
         if let limit = limit {
