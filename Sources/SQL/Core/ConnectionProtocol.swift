@@ -85,11 +85,11 @@ public extension ConnectionProtocol {
         try self.init(ConnectionInfo(uri))
     }
 
-    public func transaction(block: (Void) throws -> Void) throws {
+    public func transaction(handler: (Void) throws -> Void) throws {
         try begin()
-
+        
         do {
-            try block()
+            try handler()
             try commit()
         }
         catch {
