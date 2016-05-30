@@ -52,6 +52,8 @@ public extension DriverProtocol {
             return renderStatement(select)
         case .value:
             return "%@"
+        case .null:
+            return "%@"
         case .values(let values):
             return values.map { _ in "%@" }.joined(separator: ", ")
         }

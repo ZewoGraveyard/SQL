@@ -33,24 +33,24 @@ public prefix func ! (predicate: Predicate) -> Predicate {
 }
 
 
-public func == (lhs: ParameterConvertible, rhs: ParameterConvertible) -> Predicate {
-    return .expression(left: lhs.sqlParameter, operator: .equal, right: rhs.sqlParameter)
+public func == (lhs: ParameterConvertible?, rhs: ParameterConvertible?) -> Predicate {
+    return .expression(left: lhs?.sqlParameter ?? .null, operator: .equal, right: rhs?.sqlParameter ?? .null)
 }
 
-public func > (lhs: ParameterConvertible, rhs: ParameterConvertible) -> Predicate {
-    return .expression(left: lhs.sqlParameter, operator: .greaterThan, right: rhs.sqlParameter)
+public func > (lhs: ParameterConvertible?, rhs: ParameterConvertible?) -> Predicate {
+    return .expression(left: lhs?.sqlParameter ?? .null, operator: .greaterThan, right: rhs?.sqlParameter ?? .null)
 }
 
-public func < (lhs: ParameterConvertible, rhs: ParameterConvertible) -> Predicate {
-    return .expression(left: lhs.sqlParameter, operator: .lessThan, right: rhs.sqlParameter)
+public func < (lhs: ParameterConvertible?, rhs: ParameterConvertible?) -> Predicate {
+    return .expression(left: lhs?.sqlParameter ?? .null, operator: .lessThan, right: rhs?.sqlParameter ?? .null)
 }
 
-public func >= (lhs: ParameterConvertible, rhs: ParameterConvertible) -> Predicate {
-    return .expression(left: lhs.sqlParameter, operator: .greaterThanOrEqual, right: rhs.sqlParameter)
+public func >= (lhs: ParameterConvertible?, rhs: ParameterConvertible?) -> Predicate {
+    return .expression(left: lhs?.sqlParameter ?? .null, operator: .greaterThanOrEqual, right: rhs?.sqlParameter ?? .null)
 }
 
-public func <= (lhs: ParameterConvertible, rhs: ParameterConvertible) -> Predicate {
-    return .expression(left: lhs.sqlParameter, operator: .lessThanOrEqual, right: rhs.sqlParameter)
+public func <= (lhs: ParameterConvertible?, rhs: ParameterConvertible?) -> Predicate {
+    return .expression(left: lhs?.sqlParameter ?? .null, operator: .lessThanOrEqual, right: rhs?.sqlParameter ?? .null)
 }
 
 // Contains
@@ -90,6 +90,14 @@ extension ParameterConvertible {
     
     public func containedIn(_ values: Value?...) -> Predicate {
         return containedIn(values)
+    }
+    
+    public func isNull() -> Predicate {
+        return .expression(left: self.sqlParameter, operator: .equal, right: .null)
+    }
+    
+    public func isNotNulll() -> Predicate {
+        return .not(isNull())
     }
 }
 

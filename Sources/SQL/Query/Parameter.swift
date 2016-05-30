@@ -6,13 +6,14 @@
 //
 //
 
-public enum Parameter {
+public enum Parameter{
     
     case field(QualifiedField)
     case value(Value?)
     case values([Value?])
     case function(Function)
     case query(Select)
+    case null
 }
 
 extension Parameter: StatementParameterListConvertible {
@@ -28,6 +29,8 @@ extension Parameter: StatementParameterListConvertible {
             return []
         case .query(let select):
             return select.sqlParameters
+        case .null:
+            return [nil]
         }
     }
 }
