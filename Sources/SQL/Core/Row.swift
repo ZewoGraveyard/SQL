@@ -25,6 +25,10 @@
 @_exported import String
 
 
+public protocol RowConvertible {
+    init(row: Row) throws
+}
+
 public struct Row: RowProtocol {
     
     public var dataByfield: [String: Data?]

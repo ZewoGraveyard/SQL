@@ -6,22 +6,11 @@
 //
 //
 
-public struct ModelError: ErrorProtocol {
-    public let description: String
-    
-    public init(_ description: String) {
-        self.description = description
-    }
-}
-
-public protocol Model: Table, Equatable {
-    associatedtype PrimaryKey: ValueConvertible, Hashable
-    
-    var primaryKey: PrimaryKey? { get set }
-    
+public protocol ModelProtocol: Table, RowConvertible {
+    associatedtype PrimaryKey: Hashable, ValueConvertible
     static var primaryKeyField: Field { get }
     
-    var serialize: [Field: ValueConvertible?] { get }
+    func serialize() -> [Field: ValueConvertible?]
     
     func willSave()
     func didSave()
@@ -37,131 +26,9 @@ public protocol Model: Table, Equatable {
     
     func willRefresh()
     func didRefresh()
-    
-    func validate() throws
-    
-    init(row: Row) throws
 }
 
-public func == <L: Model, R: Model>(lhs: L, rhs: R) -> Bool {
-    guard let lpk = lhs.primaryKey, rpk = rhs.primaryKey else {
-        return false
-    }
-    
-    return "\(L.tableName).\(lpk.hashValue)" == "\(R.tableName).\(rpk.hashValue)"
-}
-
-public extension Model where Self.Field.RawValue == String {
-    
-    static var qualifiedPrimaryKeyField: QualifiedField {
-        return field(primaryKeyField)
-    }
-    
-    mutating func create<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(connection: T) throws -> Self {
-        guard !persisted else {
-            throw ModelError("Cannot insert an already persisted model")
-        }
-        
-        try connection.transaction {
-            self.willSave()
-            self.willCreate()
-            let result = try connection.execute(Self.insert(self.serialize).returning(Self.qualifiedPrimaryKeyField))
-            
-            guard let pk: PrimaryKey = try result.first?.value(Self.qualifiedPrimaryKeyField) else {
-                throw ModelError("Failed to retreieve primary key from insert statement")
-            }
-            
-            self.primaryKey = pk
-            
-            self.didCreate()
-            self.didSave()
-            try self.refresh(connection: connection)
-            
-        }
-
-        return self
-    }
-    
-    mutating func refresh<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(connection: T) throws -> Self {
-        guard let pk = primaryKey else {
-            throw ModelError("Cannot refresh a non-persisted model")
-        }
-        
-        willRefresh()
-        guard let refreshed = try Self.get(pk, connection: connection) else {
-            throw ModelError("Failed to re-fetch model with primary key \(pk)")
-        }
-        
-        self = refreshed
-        didRefresh()
-        return self
-    }
-    
-    mutating func update<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(connection: T) throws -> Self {
-        guard persisted else {
-            throw ModelError("Cannot update a non-persisted model")
-        }
-        
-        willSave()
-        willUpdate()
-        try connection.execute(Self.update(serialize))
-        try refresh(connection: connection)
-        didUpdate()
-        didSave()
-        return self
-    }
-    
-    mutating func save<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(connection: T) throws -> Self {
-        if persisted {
-            return try update(connection: connection)
-        }
-        else {
-            return try create(connection: connection)
-        }
-    }
-    
-    mutating func delete<T: ConnectionProtocol>(connection: T) throws {
-        guard let pk = primaryKey else {
-            throw ModelError("Cannot delete a non-persisted model")
-        }
-        
-        try connection.execute(Self.delete(where: Self.qualifiedPrimaryKeyField == pk))
-        primaryKey = nil
-    }
-    
-    public static func get<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(_ pk: PrimaryKey, connection: T) throws -> Self? {
-        guard let row = try connection.execute(select().filter(qualifiedPrimaryKeyField == pk).first).first else {
-            return nil
-        }
-        
-        return try Self.init(row: row)
-    }
-    
-    public static func fetch<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(where predicate: Predicate? = nil, limit: Int? = 0, offset: Int? = 0, connection: T) throws -> [Self] {
-        let select = Self.select()
-        
-        if let predicate = predicate {
-            select.filter(predicate)
-        }
-        
-        if let limit = limit {
-            select.limit(limit)
-        }
-        
-        if let offset = offset {
-            select.offset(offset)
-        }
-        
-        return try connection.execute(select).map { try Self(row: $0) }
-    }
-}
-
-public extension Model {
-    
-    public var persisted: Bool {
-        return primaryKey != nil
-    }
-    
+public extension ModelProtocol {
     public func willSave() {}
     public func didSave() {}
     
@@ -176,6 +43,143 @@ public extension Model {
     
     public func willRefresh() {}
     public func didRefresh() {}
+}
+
+public extension ModelProtocol where Field.RawValue == String {
+    static var qualifiedPrimaryKeyField: QualifiedField {
+        return field(primaryKeyField)
+    }
+}
+
+
+public struct EntityError: ErrorProtocol {
+    public let description: String
     
-    public func validate() throws {}
+    public init(_ description: String) {
+        self.description = description
+    }
+}
+
+public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>: Equatable {
+    
+    internal var primaryKey: Model.PrimaryKey?
+    public var model: Model
+    
+    public init(model: Model, primaryKey: Model.PrimaryKey? = nil) {
+        self.model = model
+        self.primaryKey = primaryKey
+    }
+    
+    public var persisted: Bool {
+        return primaryKey != nil
+    }
+    
+    public static func get<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(_ pk: Model.PrimaryKey, connection: T) throws -> Entity? {
+        guard let row = try connection.execute(Model.select().filter(Model.qualifiedPrimaryKeyField == pk).first).first else {
+            return nil
+        }
+        
+        
+        return Entity(model: try Model.init(row: row), primaryKey: try row.value(Model.qualifiedPrimaryKeyField))
+    }
+    
+    public static func fetchAll<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(connection: T) throws -> [Entity] {
+        return try fetch(where: nil, limit: nil, offset: nil, connection: connection)
+    }
+    
+    public static func fetch<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(where predicate: Predicate? = nil, limit: Int? = 0, offset: Int? = 0, connection: T) throws -> [Entity] {
+        let select = Model.select()
+        
+        if let predicate = predicate {
+            select.filter(predicate)
+        }
+        
+        if let limit = limit {
+            select.limit(limit)
+        }
+        
+        if let offset = offset {
+            select.offset(offset)
+        }
+        
+        return try connection.execute(select).map { Entity(model: try Model.init(row: $0), primaryKey: try $0.value(Model.qualifiedPrimaryKeyField)) }
+    }
+    
+    mutating public func delete<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(connection: T) throws {
+        guard let pk = primaryKey else {
+            throw EntityError("Cannot delete a non-persisted model")
+        }
+
+        try connection.execute(Model.delete(where: Model.qualifiedPrimaryKeyField == pk))
+        primaryKey = nil
+    }
+    
+    mutating public func refresh<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(connection: T) throws {
+        guard let pk = primaryKey else {
+            throw EntityError("Cannot refresh a non-persisted model")
+        }
+        
+        model.willRefresh()
+        guard let refreshed = try self.dynamicType.get(pk, connection: connection) else {
+            throw EntityError("Failed to re-fetch model with primary key \(pk)")
+        }
+        
+        self = refreshed
+        model.didRefresh()
+    }
+    
+    mutating public func create<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(connection: T) throws {
+        guard !persisted else {
+            throw EntityError("Cannot insert an already persisted model")
+        }
+        
+        try connection.transaction {
+            self.model.willSave()
+            self.model.willCreate()
+            
+            let result = try connection.execute(Model.insert(self.model.serialize()).returning(Model.qualifiedPrimaryKeyField))
+            
+            guard let pk: Model.PrimaryKey = try result.first?.value(Model.qualifiedPrimaryKeyField) else {
+                throw EntityError("Failed to retreieve primary key from insert statement")
+            }
+            
+            self.primaryKey = pk
+            
+            self.model.didCreate()
+            self.model.didSave()
+            try self.refresh(connection: connection)
+            
+        }
+    }
+    
+    mutating public func update<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(connection: T) throws {
+        guard persisted else {
+            throw EntityError("Cannot update a non-persisted model")
+        }
+        
+        model.willSave()
+        model.willUpdate()
+        try connection.execute(Model.update(model.serialize()))
+        try refresh(connection: connection)
+        model.didUpdate()
+        model.didSave()
+    }
+    
+    mutating public func save<T: ConnectionProtocol where T.Result.Iterator.Element == Row>(connection: T) throws {
+        if persisted {
+            try update(connection: connection)
+        }
+        else {
+            try create(connection: connection)
+        }
+    }
+}
+
+
+public func == <M: ModelProtocol>(lhs: Entity<M>, rhs: Entity<M>) -> Bool {
+    guard let lpk = lhs.primaryKey, rpk = rhs.primaryKey else {
+        return false
+    }
+    
+    return "\(lhs.model.dynamicType.tableName).\(lpk.hashValue)" == "\(rhs.model.dynamicType.tableName).\(rpk.hashValue)"
 }
