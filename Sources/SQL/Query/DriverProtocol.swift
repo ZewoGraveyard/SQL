@@ -49,7 +49,7 @@ public extension DriverProtocol {
         case .function(let function):
             return function.sqlString
         case .query(let select):
-            return renderStatement(select)
+            return "\(renderStatement(select))"
         case .value:
             return "%@"
         case .null:
