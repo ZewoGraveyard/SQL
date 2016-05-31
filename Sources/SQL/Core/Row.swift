@@ -26,24 +26,17 @@
 
 
 public protocol RowConvertible {
-    init(row: Row) throws
+    init<T: RowProtocol>(row: T) throws
 }
 
-public struct Row: RowProtocol {
-    
-    public var dataByfield: [String: Data?]
-    
-    public init(dataByfield: [String: Data?]) {
-        self.dataByfield = dataByfield
-    }
-}
 
-public protocol RowProtocol: CustomStringConvertible {
-    init(dataByfield: [String: Data?])
+public protocol RowProtocol {
+    associatedtype Result: ResultProtocol
     
-    var fields: [String] { get }
+    var result: Result { get }
+    var index: Int { get }
     
-    var dataByfield: [String: Data?] { get }
+    func data(_ field: QualifiedField) throws -> Data?
 }
 
 public enum RowProtocolError: ErrorProtocol {
@@ -53,27 +46,23 @@ public enum RowProtocolError: ErrorProtocol {
 
 public extension RowProtocol {
     
-    public var fields: [String] {
-        return Array(dataByfield.keys)
-    }
-    
-    // MARK: - Data
-    
     public func data(_ field: QualifiedField) throws -> Data? {
-    
-        var data: Data??
+        
+        let fieldName: String
+        
         
         if let alias = field.alias {
-            data = dataByfield[alias]
+            fieldName = alias
         }
         else {
-            data = dataByfield[field.unqualifiedName]
+            fieldName = field.unqualifiedName
         }
         
-        guard let result = data else {
+        guard let fieldIndex = result.index(ofFieldByName: fieldName) else {
             throw RowProtocolError.expectedQualifiedField(field)
         }
-        return result
+        
+        return result.data(atRow: index, forFieldIndex: fieldIndex)
     }
     
     public func data(_ field: QualifiedField) throws -> Data {
@@ -123,19 +112,5 @@ public extension RowProtocol {
     
     public func value<T: ValueConvertible>(_ field: String) throws -> T {
         return try value(QualifiedField(field))
-    }
-    
-    
-    public var description: String {
-        return dataByfield.map {
-            (key, value) in
-            
-            guard let value = value else {
-                return "NULL"
-            }
-            
-            return "\(key): \(value)"
-            }.joined(separator: ", ")
-        
     }
 }

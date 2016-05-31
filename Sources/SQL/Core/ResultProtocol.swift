@@ -27,50 +27,31 @@ public protocol ResultStatus {
 }
 
 public protocol ResultProtocol: Collection {
-    associatedtype FieldInfoProtocolType: FieldInfoProtocol
-    associatedtype Iterator: RowIteratorProtocol = RowIterator
+    associatedtype FieldInfo: FieldInfoProtocol
 
     func clear()
 
-    var fields: [FieldInfoProtocolType] { get }
+    var fieldsByName: [String: FieldInfo] { get }
 
-    subscript(index: Int) -> Row { get }
+    subscript(index: Int) -> Iterator.Element { get }
 
     var count: Int { get }
-}
-
-public protocol RowIteratorProtocol: IteratorProtocol {
-    associatedtype Element: RowProtocol = Row
-}
-
-public struct RowIterator: RowIteratorProtocol {
-    public typealias Element = Row
-
-    let block: (Void) -> Element?
-    var index: Int = 0
-
-    init(block: (Void) -> Element?) {
-        self.block = block
-    }
-
-    public func next() -> Element? {
-        return block()
-    }
+    
+    func data(atRow rowIndex: Int, forFieldIndex fieldIndex: Int) -> Data?
 }
 
 extension ResultProtocol {
-
-    public func makeIterator() -> RowIterator {
-        var index = 0
-        return RowIterator {
-            if index < 0 || index >= self.count {
-                return nil
-            }
-
-            let row = self[index]
-            index += 1
-            return row
+    
+    public var fields: [FieldInfo] {
+        return Array(fieldsByName.values)
+    }
+    
+    public func index(ofFieldByName name: String) -> Int? {
+        guard let field = fieldsByName[name] else {
+            return nil
         }
+        
+        return field.index
     }
 
     public var startIndex: Int {
