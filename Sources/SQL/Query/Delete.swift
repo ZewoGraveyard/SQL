@@ -6,7 +6,7 @@
 //
 //
 
-public class Delete: PredicatedQuery {
+public struct Delete: PredicatedQuery {
     public var predicate: Predicate? = nil
     
     public let tableName: String

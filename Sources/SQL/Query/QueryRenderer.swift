@@ -6,18 +6,18 @@
 //
 //
 
-public protocol DriverProtocol {
+public protocol QueryRendererProtocol {
     
     static func renderStatement(_ statement: Select) -> String
     
     static func renderStatement(_ statement: Update) -> String
     
-    static func renderStatement(_ statement: Insert) -> String
+    static func renderStatement(_ statement: Insert, forReturningInsertedRows returnInsertedRows: Bool) -> String
     
     static func renderStatement(_ statement: Delete) -> String
 }
 
-public extension DriverProtocol {
+public extension QueryRendererProtocol {
     static func composePredicate(_ predicate: Predicate) -> String {
         switch predicate {
         case .expression(let left, let op, let right):

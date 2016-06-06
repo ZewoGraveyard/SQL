@@ -74,7 +74,13 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
     }
     
     public static func get<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(_ pk: Model.PrimaryKey, connection: T) throws -> Entity? {
-        guard let row = try connection.execute(Model.select().filter(Model.qualifiedPrimaryKeyField == pk).first).first else {
+        
+        var select = Model.select()
+        select.filter(Model.qualifiedPrimaryKeyField == pk)
+        select.limit(1)
+        select.offset(0)
+        
+        guard let row = try connection.execute(select).first else {
             return nil
         }
         
@@ -86,7 +92,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
     }
     
     public static func fetch<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(where predicate: Predicate? = nil, limit: Int? = 0, offset: Int? = 0, connection: T) throws -> [Entity] {
-        let select = Model.select()
+        var select = Model.select()
         
         if let predicate = predicate {
             select.filter(predicate)
@@ -134,14 +140,19 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
         try connection.transaction {
             try self.model.willSave()
             try self.model.willCreate()
+
+            let result = try connection.execute(Model.insert(self.model.serialize()), returnInsertedRows: true)
             
-            let result = try connection.execute(Model.insert(self.model.serialize()).returning(Model.qualifiedPrimaryKeyField))
+            guard let row = result.first else {
+                throw EntityError("Failed to retreieve row from insert result")
+            }
             
-            guard let pk: Model.PrimaryKey = try result.first?.value(Model.qualifiedPrimaryKeyField) else {
-                throw EntityError("Failed to retreieve primary key from insert statement")
+            guard let pk: Model.PrimaryKey = try row.value(Model.qualifiedPrimaryKeyField) else {
+                throw EntityError("Failed to retreieve primary key from insert")
             }
             
             self.primaryKey = pk
+            self.model = try Model(row: row)
             
             self.model.didCreate()
             self.model.didSave()

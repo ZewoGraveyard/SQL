@@ -32,7 +32,10 @@ public extension Table where Self.Field.RawValue == String {
             translated[field(key)] = value
         }
         
-        return Update(tableName).set(translated)
+        var update = Update(tableName)
+        update.set(translated)
+        
+        return update
     }
     
     public static func insert(_ dict: [Field: ValueConvertible?]) -> Insert {
@@ -46,7 +49,7 @@ public extension Table where Self.Field.RawValue == String {
     }
     
     public static func delete(where predicate: Predicate) -> Delete {
-        return Delete(from: tableName).filter(predicate)
+        return Delete(from: tableName).filtered(predicate)
     }
     
     public static func delete() -> Delete {

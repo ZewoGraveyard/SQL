@@ -40,12 +40,13 @@ public protocol ConnectionInfoProtocol {
     init(_ uri: URI) throws
 }
 
+
 public protocol ConnectionProtocol: class {
     associatedtype InternalStatus
     associatedtype Result: ResultProtocol
     associatedtype Error: ErrorProtocol
     associatedtype ConnectionInfo: ConnectionInfoProtocol
-    associatedtype Driver: DriverProtocol
+    associatedtype QueryRenderer: QueryRendererProtocol
     
     var logger: Logger? { get set }
     
@@ -74,9 +75,6 @@ public protocol ConnectionProtocol: class {
     init(_ info: ConnectionInfo)
     
     var mostRecentError: Error? { get }
-    
-    
-    
 }
 
 public extension ConnectionProtocol {
@@ -117,19 +115,19 @@ public extension ConnectionProtocol {
     }
     
     public func execute(_ query: Select) throws -> Result {
-        return try execute(Driver.renderStatement(query), parameters: query.sqlParameters)
+        return try execute(QueryRenderer.renderStatement(query), parameters: query.sqlParameters)
     }
     
     public func execute(_ query: Update) throws -> Result {
-        return try execute(Driver.renderStatement(query), parameters: query.sqlParameters)
+        return try execute(QueryRenderer.renderStatement(query), parameters: query.sqlParameters)
     }
     
-    public func execute(_ query: Insert) throws -> Result {
-        return try execute(Driver.renderStatement(query), parameters: query.sqlParameters)
+    public func execute(_ query: Insert, returnInsertedRows: Bool = false) throws -> Result {
+        return try execute(QueryRenderer.renderStatement(query, forReturningInsertedRows: returnInsertedRows), parameters: query.sqlParameters)
     }
     
     public func execute(_ query: Delete) throws -> Result {
-        return try execute(Driver.renderStatement(query), parameters: query.sqlParameters)
+        return try execute(QueryRenderer.renderStatement(query), parameters: query.sqlParameters)
     }
     
     public func execute(_ statement: String, parameters: [ValueConvertible?]) throws -> Result {

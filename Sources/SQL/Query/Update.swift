@@ -6,7 +6,7 @@
 //
 //
 
-public class Update: PredicatedQuery {
+public struct Update: PredicatedQuery {
     public var predicate: Predicate? = nil
     
     public private(set) var valuesByField: [QualifiedField: Value?] = [:]
@@ -17,16 +17,14 @@ public class Update: PredicatedQuery {
         self.tableName = tableName
     }
     
-    public func set<T: ValueConvertible>(_ field: QualifiedField, _ value: T?) -> Update {
+    public mutating func set<T: ValueConvertible>(_ field: QualifiedField, _ value: T?) {
         valuesByField[field] = value?.sqlValue
-        return self
     }
     
-    public func set(_ dict: [QualifiedField: ValueConvertible?]) -> Update {
+    public mutating func set(_ dict: [QualifiedField: ValueConvertible?]) {
         for (key, value) in dict {
             valuesByField[key] = value?.sqlValue
         }
-        return self
     }
 }
 

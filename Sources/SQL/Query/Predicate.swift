@@ -114,18 +114,23 @@ public func || (lhs: Predicate, rhs: Predicate) -> Predicate {
 
 // Predicated query
 
-public protocol PredicatedQuery: class {
+public protocol PredicatedQuery {
     var predicate: Predicate? { get set }
 }
 
 public extension PredicatedQuery {
-    public func filter(_ value: Predicate) -> Self {
+    public mutating func filter(_ value: Predicate)  {
         guard let existing = predicate else {
             predicate = value
-            return self
+            return
         }
         
         predicate = .and([existing, value])
-        return self
+    }
+    
+    public func filtered(_ value: Predicate) -> Self {
+        var new = self
+        new.filter(value)
+        return new
     }
 }

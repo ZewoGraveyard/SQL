@@ -10,7 +10,7 @@ public protocol SelectComponentConvertible {
     var sqlSelectComponent: Select.Component { get }
 }
 
-public class Select: PredicatedQuery {
+public struct Select: PredicatedQuery {
     public enum Component {
         case field(QualifiedField)
         case string(String)
@@ -39,38 +39,27 @@ public class Select: PredicatedQuery {
         self.from = source.map { $0.sqlSelectComponent }
     }
     
-    public convenience init(_ fields: SelectComponentConvertible..., from source: SelectComponentConvertible) {
+    public init(_ fields: SelectComponentConvertible..., from source: SelectComponentConvertible) {
         self.init(fields, from: [source])
     }
     
-    public func extend(_ fields: SelectComponentConvertible...) -> Select {
+    public mutating func extend(_ fields: SelectComponentConvertible...) {
         self.fields += fields.map { $0.sqlSelectComponent }
-        return self
     }
     
-    public func order(_ value: Order...) -> Select {
+    public mutating func order(_ value: Order...){
         order += value
-        return self
     }
-    
-    public var first: Select {
-        limit = 1
-        offset = 0
-        return self
-    }
-    
-    public func limit(_ value: Int) -> Select {
+
+    public mutating func limit(_ value: Int) {
         limit = value
-        return self
     }
     
-    public func offset(_ value: Int) -> Select {
+    public mutating func offset(_ value: Int) {
         offset = value
-        return self
     }
     
-    public func join(_ joinType: Join.`Type`, on leftKey: QualifiedField, equals rightKey: QualifiedField) -> Select {
-        
+    public mutating func join(_ joinType: Join.`Type`, on leftKey: QualifiedField, equals rightKey: QualifiedField) {
         joins.append(
             Join(
                 type: joinType,
@@ -78,8 +67,6 @@ public class Select: PredicatedQuery {
                 rightKey: rightKey
             )
         )
-        
-        return self
     }
     
 }
