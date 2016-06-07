@@ -345,6 +345,8 @@ public extension Model {
             throw ModelError(description: "Cannot create an already persisted model.")
         }
         
+        try validate()
+                
         let pk: PrimaryKey = try connection.executeInsertQuery(query: self.dynamicType.insertQuery(values: persistedValuesByField), returningPrimaryKeyForField: self.dynamicType.declaredPrimaryKeyField)
         
         guard let newSelf = try self.dynamicType.get(pk, connection: connection) else {
