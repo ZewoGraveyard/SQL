@@ -8,7 +8,7 @@ class SQLTests: XCTestCase {
 }
 
 extension SQLTests {
-    static var allTests: [(String, SQLTests -> () throws -> Void)] {
+    static var allTests: [(String, (SQLTests) -> () throws -> Void)] {
         return [
            ("testReality", testReality),
         ]
