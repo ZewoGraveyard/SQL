@@ -12,20 +12,20 @@ public protocol ModelProtocol: Table, RowConvertible {
     
     func serialize() -> [Field: ValueConvertible?]
     
-    mutating func willSave() throws
-    mutating func didSave()
+    func willSave() throws
+    func didSave()
     
-    mutating func willUpdate() throws
-    mutating func didUpdate()
+    func willUpdate() throws
+    func didUpdate()
     
-    mutating func willCreate() throws
-    mutating func didCreate()
+    func willCreate() throws
+    func didCreate()
     
-    mutating func willDelete() throws
-    mutating func didDelete()
+    func willDelete() throws
+    func didDelete()
     
-    mutating func willRefresh() throws
-    mutating func didRefresh()
+    func willRefresh() throws
+    func didRefresh()
 }
 
 public extension ModelProtocol {
@@ -61,8 +61,8 @@ public struct EntityError: ErrorProtocol, CustomStringConvertible {
 
 public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>: Equatable {
     
-    internal var primaryKey: Model.PrimaryKey?
-    public var model: Model
+    public let primaryKey: Model.PrimaryKey?
+    public let model: Model
     
     public init(model: Model, primaryKey: Model.PrimaryKey? = nil) {
         self.model = model
@@ -75,10 +75,9 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
     
     public static func get<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(_ pk: Model.PrimaryKey, connection: T) throws -> Entity? {
         
-        var select = Model.select()
-        select.filter(Model.qualifiedPrimaryKeyField == pk)
-        select.limit(1)
-        select.offset(0)
+        var select = Model.select(where: Model.qualifiedPrimaryKeyField == pk)
+        select.limit(to: 1)
+        select.offset(by: 0)
         
         guard let row = try connection.execute(select).first else {
             return nil
@@ -96,33 +95,34 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
     }
     
     public static func fetch<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(where predicate: Predicate? = nil, limit: Int? = 0, offset: Int? = 0, connection: T) throws -> [Entity] {
-        var select = Model.select()
+        var select = Model.select
         
         if let predicate = predicate {
             select.filter(predicate)
         }
         
         if let limit = limit {
-            select.limit(limit)
+            select.limit(to: limit)
         }
         
         if let offset = offset {
-            select.offset(offset)
+            select.offset(by: offset)
         }
         
         return try connection.execute(select).map { Entity(model: try Model.init(row: $0), primaryKey: try $0.value(Model.qualifiedPrimaryKeyField)) }
     }
     
-    mutating public func delete<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws {
+    public func delete<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> Entity {
         guard let pk = primaryKey else {
             throw EntityError("Cannot delete a non-persisted model")
         }
 
         try connection.execute(Model.delete(where: Model.qualifiedPrimaryKeyField == pk))
-        primaryKey = nil
+        
+        return Entity(model: model)
     }
     
-    mutating public func refresh<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws {
+    public func refresh<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> Entity {
         guard let pk = primaryKey else {
             throw EntityError("Cannot refresh a non-persisted model")
         }
@@ -132,16 +132,17 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             throw EntityError("Failed to re-fetch model with primary key \(pk)")
         }
         
-        self = refreshed
-        model.didRefresh()
+        
+        refreshed.model.didRefresh()
+        return refreshed
     }
     
-    mutating public func create<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws {
+    public func create<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> Entity {
         guard !persisted else {
             throw EntityError("Cannot insert an already persisted model")
         }
         
-        try connection.transaction {
+        return try connection.transaction {
             try self.model.willSave()
             try self.model.willCreate()
 
@@ -155,16 +156,16 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
                 throw EntityError("Failed to retreieve primary key from insert")
             }
             
-            self.primaryKey = pk
-            self.model = try Model(row: row)
+            var new = Entity(model: self.model, primaryKey: pk)
             
-            self.model.didCreate()
-            self.model.didSave()
-            try self.refresh(connection: connection)
+            new.model.didCreate()
+            new.model.didSave()
+            new = try new.refresh(connection: connection)
+            return new
         }
     }
     
-    mutating public func update<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws {
+    public func update<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> Entity {
         guard persisted else {
             throw EntityError("Cannot update a non-persisted model")
         }
@@ -172,17 +173,19 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
         try model.willSave()
         try model.willUpdate()
         try connection.execute(Model.update(model.serialize()))
-        try refresh(connection: connection)
-        model.didUpdate()
-        model.didSave()
+        let new = try refresh(connection: connection)
+        new.model.didUpdate()
+        new.model.didSave()
+        
+        return new
     }
     
-    mutating public func save<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws {
+    public func save<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> Entity {
         if persisted {
-            try update(connection: connection)
+            return try update(connection: connection)
         }
         else {
-            try create(connection: connection)
+            return try create(connection: connection)
         }
     }
 }

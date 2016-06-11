@@ -21,7 +21,11 @@ public extension Table where Self.Field.RawValue == String {
         return Select(fields.map { field($0).alias("\(self.tableName)__\($0.rawValue)") }, from: [tableName])
     }
     
-    public static func select() -> Select {
+    public static func select(where predicate: Predicate) -> Select {
+        return select.filtered(predicate)
+    }
+    
+    public static var select: Select {
         return Select("*", from: tableName)
     }
  
@@ -52,7 +56,7 @@ public extension Table where Self.Field.RawValue == String {
         return Delete(from: tableName).filtered(predicate)
     }
     
-    public static func delete() -> Delete {
+    public static var delete: Delete {
         return Delete(from: tableName)
     }
 }

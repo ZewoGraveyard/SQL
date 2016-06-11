@@ -83,12 +83,13 @@ public extension ConnectionProtocol {
         try self.init(ConnectionInfo(uri))
     }
 
-    public func transaction(handler: (Void) throws -> Void) throws {
+    public func transaction<T>(handler: (Void) throws -> T) throws -> T {
         try begin()
         
         do {
-            try handler()
+            let result = try handler()
             try commit()
+            return result
         }
         catch {
             try rollback()

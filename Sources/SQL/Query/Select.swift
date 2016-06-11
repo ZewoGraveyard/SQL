@@ -47,16 +47,44 @@ public struct Select: PredicatedQuery {
         self.fields += fields.map { $0.sqlSelectComponent }
     }
     
-    public mutating func order(_ value: Order...){
+    // MARK: - Order
+    
+    public mutating func order(by value: [Order]) {
         order += value
     }
+    
+    public mutating func order(by value: Order...) {
+        order(by: value)
+    }
+    
+    public func ordered(by value: [Order]) -> Select {
+        var new = self
+        new.order(by: value)
+        return new
+    }
+    
+    public func ordered(by value: Order...) -> Select {
+        return ordered(by: value)
+    }
 
-    public mutating func limit(_ value: Int) {
+    public mutating func limit(to value: Int) {
         limit = value
     }
     
-    public mutating func offset(_ value: Int) {
+    public func limited(to value: Int) -> Select {
+        var new = self
+        new.limit(to: value)
+        return new
+    }
+    
+    public mutating func offset(by value: Int) {
         offset = value
+    }
+    
+    public func offsetted(by value: Int) -> Select {
+        var new = self
+        new.offset(by: value)
+        return new
     }
     
     public mutating func join(_ joinType: Join.`Type`, on leftKey: QualifiedField, equals rightKey: QualifiedField) {
@@ -68,7 +96,6 @@ public struct Select: PredicatedQuery {
             )
         )
     }
-    
 }
 
 extension Select.Component: StatementParameterListConvertible {
