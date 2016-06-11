@@ -43,7 +43,7 @@ public protocol ConnectionInfoProtocol {
 
 public protocol ConnectionProtocol: class {
     associatedtype InternalStatus
-    associatedtype Result: ResultProtocol
+    associatedtype Result: ResultProtocol, CustomStringConvertible
     associatedtype Error: ErrorProtocol
     associatedtype ConnectionInfo: ConnectionInfoProtocol
     associatedtype QueryRenderer: QueryRendererProtocol

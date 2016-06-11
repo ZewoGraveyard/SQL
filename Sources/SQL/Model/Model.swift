@@ -91,6 +91,10 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
         return try fetch(where: nil, limit: nil, offset: nil, connection: connection)
     }
     
+    public static func first<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(where predicate: Predicate? = nil, connection: T) throws -> [Entity] {
+        return try fetch(where: predicate, limit: 1, offset: 0, connection: connection)
+    }
+    
     public static func fetch<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(where predicate: Predicate? = nil, limit: Int? = 0, offset: Int? = 0, connection: T) throws -> [Entity] {
         var select = Model.select()
         
