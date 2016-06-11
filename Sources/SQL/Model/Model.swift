@@ -6,7 +6,7 @@
 //
 //
 
-public protocol ModelProtocol: Table, RowConvertible {
+public protocol Model: Table, RowConvertible {
     associatedtype PrimaryKey: Hashable, ValueConvertible
     static var primaryKeyField: Field { get }
     
@@ -28,7 +28,7 @@ public protocol ModelProtocol: Table, RowConvertible {
     func didRefresh()
 }
 
-public extension ModelProtocol {
+public extension Model {
     public func willSave() throws {}
     public func didSave() {}
     
@@ -45,7 +45,7 @@ public extension ModelProtocol {
     public func didRefresh() {}
 }
 
-public extension ModelProtocol where Field.RawValue == String {
+public extension Model where Field.RawValue == String {
     static var qualifiedPrimaryKeyField: QualifiedField {
         return field(primaryKeyField)
     }
@@ -59,12 +59,12 @@ public struct EntityError: ErrorProtocol, CustomStringConvertible {
     }
 }
 
-public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>: Equatable {
+public struct Entity<M: Model where M.Field.RawValue == String>: Equatable {
     
-    public let primaryKey: Model.PrimaryKey?
-    public let model: Model
+    public let primaryKey: M.PrimaryKey?
+    public let model: M
     
-    public init(model: Model, primaryKey: Model.PrimaryKey? = nil) {
+    public init(model: M, primaryKey: M.PrimaryKey? = nil) {
         self.model = model
         self.primaryKey = primaryKey
     }
@@ -73,9 +73,9 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
         return primaryKey != nil
     }
     
-    public static func get<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(_ pk: Model.PrimaryKey, connection: T) throws -> Entity? {
+    public static func get<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(_ pk: M.PrimaryKey, connection: T) throws -> Entity? {
         
-        var select = Model.select(where: Model.qualifiedPrimaryKeyField == pk)
+        var select = M.select(where: M.qualifiedPrimaryKeyField == pk)
         select.limit(to: 1)
         select.offset(by: 0)
         
@@ -83,7 +83,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             return nil
         }
         
-        return Entity(model: try Model.init(row: row), primaryKey: try row.value(Model.qualifiedPrimaryKeyField))
+        return Entity(model: try M.init(row: row), primaryKey: try row.value(M.qualifiedPrimaryKeyField))
     }
     
     public static func fetchAll<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> [Entity] {
@@ -95,7 +95,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
     }
     
     public static func fetch<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(where predicate: Predicate? = nil, limit: Int? = 0, offset: Int? = 0, connection: T) throws -> [Entity] {
-        var select = Model.select
+        var select = M.select
         
         if let predicate = predicate {
             select.filter(predicate)
@@ -109,7 +109,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             select.offset(by: offset)
         }
         
-        return try connection.execute(select).map { Entity(model: try Model.init(row: $0), primaryKey: try $0.value(Model.qualifiedPrimaryKeyField)) }
+        return try connection.execute(select).map { Entity(model: try M.init(row: $0), primaryKey: try $0.value(M.qualifiedPrimaryKeyField)) }
     }
     
     public func delete<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> Entity {
@@ -117,7 +117,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             throw EntityError("Cannot delete a non-persisted model")
         }
 
-        try connection.execute(Model.delete(where: Model.qualifiedPrimaryKeyField == pk))
+        try connection.execute(M.delete(where: M.qualifiedPrimaryKeyField == pk))
         
         return Entity(model: model)
     }
@@ -146,13 +146,13 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             try self.model.willSave()
             try self.model.willCreate()
 
-            let result = try connection.execute(Model.insert(self.model.serialize()), returnInsertedRows: true)
+            let result = try connection.execute(M.insert(self.model.serialize()), returnInsertedRows: true)
             
             guard let row = result.first else {
                 throw EntityError("Failed to retreieve row from insert result")
             }
             
-            guard let pk: Model.PrimaryKey = try row.value(Model.qualifiedPrimaryKeyField) else {
+            guard let pk: M.PrimaryKey = try row.value(M.qualifiedPrimaryKeyField) else {
                 throw EntityError("Failed to retreieve primary key from insert")
             }
             
@@ -172,7 +172,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
         
         try model.willSave()
         try model.willUpdate()
-        try connection.execute(Model.update(model.serialize()))
+        try connection.execute(M.update(model.serialize()))
         let new = try refresh(connection: connection)
         new.model.didUpdate()
         new.model.didSave()
@@ -191,7 +191,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
 }
 
 
-public func == <M: ModelProtocol>(lhs: Entity<M>, rhs: Entity<M>) -> Bool {
+public func == <M: Model>(lhs: Entity<M>, rhs: Entity<M>) -> Bool {
     guard let lpk = lhs.primaryKey, rpk = rhs.primaryKey else {
         return false
     }
