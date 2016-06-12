@@ -38,7 +38,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
     
     public static func get<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(_ pk: Model.PrimaryKey, connection: T) throws -> Entity? {
         
-        var select = Model.select(where: Model.primaryKeyField == pk)
+        var select = Model.select(where: Model.Field.primaryKey == pk)
         select.limit(to: 1)
         select.offset(by: 0)
         
@@ -48,7 +48,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
         
         let tableRow = TableRow<Model, T.Result.Iterator.Element>(row: row)
         
-        return Entity(model: try Model.init(row: tableRow), primaryKey: try tableRow.value(Model.primaryKeyField))
+        return Entity(model: try Model.init(row: tableRow), primaryKey: try tableRow.value(Model.Field.primaryKey))
     }
     
     public static func fetchAll<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> [Entity] {
@@ -79,7 +79,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             
             let tableRow = TableRow<Model, T.Result.Iterator.Element>(row: row)
             
-            return Entity(model: try Model.init(row: tableRow), primaryKey: try tableRow.value(Model.primaryKeyField))
+            return Entity(model: try Model.init(row: tableRow), primaryKey: try tableRow.value(Model.Field.primaryKey))
         }
     }
     
@@ -88,7 +88,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             throw EntityError("Cannot delete a non-persisted model")
         }
         
-        try connection.execute(Model.delete(where: Model.primaryKeyField == pk))
+        try connection.execute(Model.delete(where: Model.Field.primaryKey == pk))
         
         return Entity(model: model)
     }
@@ -123,7 +123,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
                 throw EntityError("Failed to retreieve row from insert result")
             }
             
-            guard let pk: Model.PrimaryKey = try row.value(Model.primaryKeyField.qualifiedField) else {
+            guard let pk: Model.PrimaryKey = try row.value(Model.Field.primaryKey.qualifiedField) else {
                 throw EntityError("Failed to retreieve primary key from insert")
             }
             

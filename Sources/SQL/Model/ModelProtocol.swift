@@ -23,9 +23,13 @@
 // SOFTWARE.
 
 
+public protocol ModelField: TableField {
+    static var primaryKey: Self { get }
+}
+
 public protocol ModelProtocol: TableProtocol, TableRowConvertible {
     associatedtype PrimaryKey: Hashable, ValueConvertible
-    static var primaryKeyField: Field { get }
+    associatedtype Field: ModelField
     
     func serialize() -> [Field: ValueConvertible?]
     

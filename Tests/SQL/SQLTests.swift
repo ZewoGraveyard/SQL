@@ -12,15 +12,14 @@ struct User {
 extension User: ModelProtocol {
     typealias PrimaryKey = Int
     
-    enum Field: String, TableField {
+    enum Field: String, ModelField {
         case username
         case password
         case id
         
         static let tableName: String = "users"
+        static let primaryKey: Field = .id
     }
-    
-    static let primaryKeyField = Field.id
     
     func serialize() -> [Field : ValueConvertible?] {
         return [
@@ -39,7 +38,9 @@ extension User: ModelProtocol {
 class SQLTests: XCTestCase {
     func testSelectQuey() {
         
-        User.select.filtered(User.Field.id == 1).limited(to: 10)
+        User.select(where: User.Field.id == 1)
+        
+        
       
     }
 }
