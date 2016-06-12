@@ -29,7 +29,6 @@ public protocol RowConvertible {
     init<T: RowProtocol>(row: T) throws
 }
 
-
 public protocol RowProtocol {
     associatedtype Result: ResultProtocol
     
@@ -112,5 +111,30 @@ public extension RowProtocol {
     
     public func value<T: ValueConvertible>(_ field: String) throws -> T {
         return try value(QualifiedField(field))
+    }
+}
+
+public protocol TableRowConvertible: TableProtocol  {
+    init<Row: RowProtocol>(row: TableRow<Self, Row>) throws
+}
+
+public struct TableRow<Table: TableProtocol, Row: RowProtocol> {
+    
+    let table: Table.Type
+    let row: Row
+    
+    init(table: Table.Type, row: Row) {
+        self.table = table
+        self.row = row
+    }
+}
+
+extension TableRow where Table.Field.RawValue == String {
+    public func value<T: ValueConvertible>(_ field: Table.Field) throws -> T {
+        return try row.value(Table.field(field))
+    }
+    
+    public func value<T: ValueConvertible>(_ field: Table.Field) throws -> T? {
+        return try row.value(Table.field(field))
     }
 }

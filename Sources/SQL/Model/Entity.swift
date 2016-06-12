@@ -46,7 +46,9 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             return nil
         }
         
-        return Entity(model: try Model.init(row: row), primaryKey: try row.value(Model.qualifiedPrimaryKeyField))
+        let tableRow = TableRow(table: Model.self, row: row)
+        
+        return Entity(model: try Model.init(row: tableRow), primaryKey: try tableRow.value(Model.primaryKeyField))
     }
     
     public static func fetchAll<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> [Entity] {
@@ -72,7 +74,13 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             select.offset(by: offset)
         }
         
-        return try connection.execute(select).map { Entity(model: try Model.init(row: $0), primaryKey: try $0.value(Model.qualifiedPrimaryKeyField)) }
+        return try connection.execute(select).map {
+            row in
+            
+            let tableRow = TableRow(table: Model.self, row: row)
+            
+            return Entity(model: try Model.init(row: tableRow), primaryKey: try tableRow.value(Model.primaryKeyField))
+        }
     }
     
     public func delete<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> Entity {

@@ -23,7 +23,7 @@
 // SOFTWARE.
 
 
-public protocol ModelProtocol: TableProtocol, RowConvertible {
+public protocol ModelProtocol: TableProtocol, TableRowConvertible {
     associatedtype PrimaryKey: Hashable, ValueConvertible
     static var primaryKeyField: Field { get }
     
