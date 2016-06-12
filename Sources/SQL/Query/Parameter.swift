@@ -22,7 +22,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public enum Parameter{
+public protocol ParameterConvertible {
+    var sqlParameter: Parameter { get }
+}
+
+public enum Parameter {
     
     case field(QualifiedField)
     case value(Value?)
@@ -49,8 +53,4 @@ extension Parameter: StatementParameterListConvertible {
             return [nil]
         }
     }
-}
-
-public protocol ParameterConvertible {
-    var sqlParameter: Parameter { get }
 }

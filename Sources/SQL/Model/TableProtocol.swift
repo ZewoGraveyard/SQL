@@ -23,18 +23,29 @@
 // SOFTWARE.
 
 
-public protocol TableProtocol {
-    associatedtype Field: RawRepresentable, Hashable
+public protocol TableField: RawRepresentable, Hashable, ParameterConvertible {
     static var tableName: String { get }
 }
 
-public extension TableProtocol where Self.Field.RawValue == String {
-    public static func field(_ field: Field) -> QualifiedField {
-        return QualifiedField("\(self.tableName).\(field.rawValue)")
+public extension TableField {
+    public var sqlParameter: Parameter {
+        return .field(qualifiedField)
     }
     
+    public var qualifiedField: QualifiedField {
+        return QualifiedField("\(Self.tableName).\(self.rawValue)", alias: "\(Self.tableName)__\(self.rawValue)")
+    }
+}
+
+public protocol TableProtocol {
+    associatedtype Field: TableField
+    
+}
+
+public extension TableProtocol where Self.Field.RawValue == String {
+    
     public static func select(_ fields: Field...) -> Select {
-        return Select(fields.map { field($0).alias("\(self.tableName)__\($0.rawValue)") }, from: [tableName])
+        return Select(fields.map { $0.qualifiedField }, from: [Field.tableName])
     }
     
     public static func select(where predicate: Predicate) -> Select {
@@ -42,17 +53,17 @@ public extension TableProtocol where Self.Field.RawValue == String {
     }
     
     public static var select: Select {
-        return Select("*", from: tableName)
+        return Select("*", from: Field.tableName)
     }
  
     public static func update(_ dict: [Field: ValueConvertible?]) -> Update {
         var translated = [QualifiedField: ValueConvertible?]()
         
         for (key, value) in dict {
-            translated[field(key)] = value
+            translated[key.qualifiedField] = value
         }
         
-        var update = Update(tableName)
+        var update = Update(Field.tableName)
         update.set(translated)
         
         return update
@@ -62,17 +73,17 @@ public extension TableProtocol where Self.Field.RawValue == String {
         var translated = [QualifiedField: ValueConvertible?]()
         
         for (key, value) in dict {
-            translated[field(key)] = value
+            translated[key.qualifiedField] = value
         }
         
-        return Insert(tableName, values: translated)
+        return Insert(Field.tableName, values: translated)
     }
     
     public static func delete(where predicate: Predicate) -> Delete {
-        return Delete(from: tableName).filtered(predicate)
+        return Delete(from: Field.tableName).filtered(predicate)
     }
     
     public static var delete: Delete {
-        return Delete(from: tableName)
+        return Delete(from: Field.tableName)
     }
 }

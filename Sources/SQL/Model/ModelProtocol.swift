@@ -62,12 +62,6 @@ public extension ModelProtocol {
     public func didRefresh() {}
 }
 
-public extension ModelProtocol where Field.RawValue == String {
-    static var qualifiedPrimaryKeyField: QualifiedField {
-        return field(primaryKeyField)
-    }
-}
-
 public struct EntityError: ErrorProtocol, CustomStringConvertible {
     public let description: String
     

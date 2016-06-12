@@ -38,7 +38,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
     
     public static func get<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(_ pk: Model.PrimaryKey, connection: T) throws -> Entity? {
         
-        var select = Model.select(where: Model.qualifiedPrimaryKeyField == pk)
+        var select = Model.select(where: Model.primaryKeyField == pk)
         select.limit(to: 1)
         select.offset(by: 0)
         
@@ -88,7 +88,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             throw EntityError("Cannot delete a non-persisted model")
         }
         
-        try connection.execute(Model.delete(where: Model.qualifiedPrimaryKeyField == pk))
+        try connection.execute(Model.delete(where: Model.primaryKeyField == pk))
         
         return Entity(model: model)
     }
@@ -123,7 +123,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
                 throw EntityError("Failed to retreieve row from insert result")
             }
             
-            guard let pk: Model.PrimaryKey = try row.value(Model.qualifiedPrimaryKeyField) else {
+            guard let pk: Model.PrimaryKey = try row.value(Model.primaryKeyField.qualifiedField) else {
                 throw EntityError("Failed to retreieve primary key from insert")
             }
             
@@ -167,5 +167,5 @@ public func == <Model: ModelProtocol>(lhs: Entity<Model>, rhs: Entity<Model>) ->
         return false
     }
     
-    return "\(lhs.model.dynamicType.tableName).\(lpk.hashValue)" == "\(rhs.model.dynamicType.tableName).\(rpk.hashValue)"
+    return "\(Model.Field.tableName).\(lpk.hashValue)" == "\(Model.Field.tableName).\(rpk.hashValue)"
 }
