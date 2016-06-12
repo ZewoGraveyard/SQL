@@ -1,4 +1,4 @@
-// Table.swift
+// TableProtocol.swift
 //
 // The MIT License (MIT)
 //
@@ -23,12 +23,12 @@
 // SOFTWARE.
 
 
-public protocol Table {
+public protocol TableProtocol {
     associatedtype Field: RawRepresentable, Hashable
     static var tableName: String { get }
 }
 
-public extension Table where Self.Field.RawValue == String {
+public extension TableProtocol where Self.Field.RawValue == String {
     public static func field(_ field: Field) -> QualifiedField {
         return QualifiedField("\(self.tableName).\(field.rawValue)")
     }

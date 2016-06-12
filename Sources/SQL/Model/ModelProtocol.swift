@@ -1,4 +1,4 @@
-// Model.swift
+// ModelProtocol.swift
 //
 // The MIT License (MIT)
 //
@@ -23,7 +23,7 @@
 // SOFTWARE.
 
 
-public protocol Model: Table, RowConvertible {
+public protocol ModelProtocol: TableProtocol, RowConvertible {
     associatedtype PrimaryKey: Hashable, ValueConvertible
     static var primaryKeyField: Field { get }
     
@@ -45,7 +45,7 @@ public protocol Model: Table, RowConvertible {
     func didRefresh()
 }
 
-public extension Model {
+public extension ModelProtocol {
     public func willSave() throws {}
     public func didSave() {}
     
@@ -62,7 +62,7 @@ public extension Model {
     public func didRefresh() {}
 }
 
-public extension Model where Field.RawValue == String {
+public extension ModelProtocol where Field.RawValue == String {
     static var qualifiedPrimaryKeyField: QualifiedField {
         return field(primaryKeyField)
     }

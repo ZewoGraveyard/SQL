@@ -22,12 +22,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public struct Entity<M: Model where M.Field.RawValue == String>: Equatable {
+public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>: Equatable {
     
-    public let primaryKey: M.PrimaryKey?
-    public let model: M
+    public let primaryKey: Model.PrimaryKey?
+    public let model: Model
     
-    public init(model: M, primaryKey: M.PrimaryKey? = nil) {
+    public init(model: Model, primaryKey: Model.PrimaryKey? = nil) {
         self.model = model
         self.primaryKey = primaryKey
     }
@@ -36,9 +36,9 @@ public struct Entity<M: Model where M.Field.RawValue == String>: Equatable {
         return primaryKey != nil
     }
     
-    public static func get<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(_ pk: M.PrimaryKey, connection: T) throws -> Entity? {
+    public static func get<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(_ pk: Model.PrimaryKey, connection: T) throws -> Entity? {
         
-        var select = M.select(where: M.qualifiedPrimaryKeyField == pk)
+        var select = Model.select(where: Model.qualifiedPrimaryKeyField == pk)
         select.limit(to: 1)
         select.offset(by: 0)
         
@@ -46,7 +46,7 @@ public struct Entity<M: Model where M.Field.RawValue == String>: Equatable {
             return nil
         }
         
-        return Entity(model: try M.init(row: row), primaryKey: try row.value(M.qualifiedPrimaryKeyField))
+        return Entity(model: try Model.init(row: row), primaryKey: try row.value(Model.qualifiedPrimaryKeyField))
     }
     
     public static func fetchAll<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> [Entity] {
@@ -58,7 +58,7 @@ public struct Entity<M: Model where M.Field.RawValue == String>: Equatable {
     }
     
     public static func fetch<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(where predicate: Predicate? = nil, limit: Int? = 0, offset: Int? = 0, connection: T) throws -> [Entity] {
-        var select = M.select
+        var select = Model.select
         
         if let predicate = predicate {
             select.filter(predicate)
@@ -72,7 +72,7 @@ public struct Entity<M: Model where M.Field.RawValue == String>: Equatable {
             select.offset(by: offset)
         }
         
-        return try connection.execute(select).map { Entity(model: try M.init(row: $0), primaryKey: try $0.value(M.qualifiedPrimaryKeyField)) }
+        return try connection.execute(select).map { Entity(model: try Model.init(row: $0), primaryKey: try $0.value(Model.qualifiedPrimaryKeyField)) }
     }
     
     public func delete<T: ConnectionProtocol where T.Result.Iterator.Element: RowProtocol>(connection: T) throws -> Entity {
@@ -80,7 +80,7 @@ public struct Entity<M: Model where M.Field.RawValue == String>: Equatable {
             throw EntityError("Cannot delete a non-persisted model")
         }
         
-        try connection.execute(M.delete(where: M.qualifiedPrimaryKeyField == pk))
+        try connection.execute(Model.delete(where: Model.qualifiedPrimaryKeyField == pk))
         
         return Entity(model: model)
     }
@@ -109,13 +109,13 @@ public struct Entity<M: Model where M.Field.RawValue == String>: Equatable {
             try self.model.willSave()
             try self.model.willCreate()
             
-            let result = try connection.execute(M.insert(self.model.serialize()), returnInsertedRows: true)
+            let result = try connection.execute(Model.insert(self.model.serialize()), returnInsertedRows: true)
             
             guard let row = result.first else {
                 throw EntityError("Failed to retreieve row from insert result")
             }
             
-            guard let pk: M.PrimaryKey = try row.value(M.qualifiedPrimaryKeyField) else {
+            guard let pk: Model.PrimaryKey = try row.value(Model.qualifiedPrimaryKeyField) else {
                 throw EntityError("Failed to retreieve primary key from insert")
             }
             
@@ -135,7 +135,7 @@ public struct Entity<M: Model where M.Field.RawValue == String>: Equatable {
         
         try model.willSave()
         try model.willUpdate()
-        try connection.execute(M.update(model.serialize()))
+        try connection.execute(Model.update(model.serialize()))
         let new = try refresh(connection: connection)
         new.model.didUpdate()
         new.model.didSave()
@@ -154,7 +154,7 @@ public struct Entity<M: Model where M.Field.RawValue == String>: Equatable {
 }
 
 
-public func == <M: Model>(lhs: Entity<M>, rhs: Entity<M>) -> Bool {
+public func == <Model: ModelProtocol>(lhs: Entity<Model>, rhs: Entity<Model>) -> Bool {
     guard let lpk = lhs.primaryKey, rpk = rhs.primaryKey else {
         return false
     }
