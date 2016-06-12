@@ -46,7 +46,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
             return nil
         }
         
-        let tableRow = TableRow(table: Model.self, row: row)
+        let tableRow = TableRow<Model, T.Result.Iterator.Element>(row: row)
         
         return Entity(model: try Model.init(row: tableRow), primaryKey: try tableRow.value(Model.primaryKeyField))
     }
@@ -77,7 +77,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
         return try connection.execute(select).map {
             row in
             
-            let tableRow = TableRow(table: Model.self, row: row)
+            let tableRow = TableRow<Model, T.Result.Iterator.Element>(row: row)
             
             return Entity(model: try Model.init(row: tableRow), primaryKey: try tableRow.value(Model.primaryKeyField))
         }

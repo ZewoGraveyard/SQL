@@ -114,27 +114,38 @@ public extension RowProtocol {
     }
 }
 
-public protocol TableRowConvertible: TableProtocol  {
+public protocol TableRowConvertible: TableProtocol, RowConvertible {
     init<Row: RowProtocol>(row: TableRow<Self, Row>) throws
 }
 
-public struct TableRow<Table: TableProtocol, Row: RowProtocol> {
+extension TableRowConvertible {
+    init<Row: RowProtocol>(row: Row) throws {
+        try self.init(row: TableRow(row: row))
+    }
+}
+
+public struct TableRow<Table: TableProtocol, Row: RowProtocol>: RowProtocol {
+    public var result: Row.Result
+    public var index: Int
+    private let _data: (QualifiedField) throws -> Data?
     
-    let table: Table.Type
-    let row: Row
+    public init(row: Row) {
+        self.result = row.result
+        self.index = row.index
+        self._data = row.data
+    }
     
-    init(table: Table.Type, row: Row) {
-        self.table = table
-        self.row = row
+    public func data(_ field: QualifiedField) throws -> Data? {
+        return try self._data(field)
     }
 }
 
 extension TableRow where Table.Field.RawValue == String {
     public func value<T: ValueConvertible>(_ field: Table.Field) throws -> T {
-        return try row.value(Table.field(field))
+        return try value(Table.field(field))
     }
     
     public func value<T: ValueConvertible>(_ field: Table.Field) throws -> T? {
-        return try row.value(Table.field(field))
+        return try value(Table.field(field))
     }
 }
