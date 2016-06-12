@@ -75,4 +75,3 @@ public extension QueryRendererProtocol {
         }
     }
 }
-

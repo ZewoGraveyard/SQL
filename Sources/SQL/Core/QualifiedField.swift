@@ -73,9 +73,3 @@ extension QualifiedField: Hashable {
 public func == (lhs: QualifiedField, rhs: QualifiedField) -> Bool {
     return lhs.hashValue == rhs.hashValue
 }
-
-//prefix operator % {}
-//public prefix func % (_ name: String) -> QualifiedField {
-//    return QualifiedField(name)
-//}
-//

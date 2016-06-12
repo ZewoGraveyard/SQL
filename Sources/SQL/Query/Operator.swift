@@ -54,5 +54,3 @@ extension Operator: StatementStringRepresentable {
         }
     }
 }
-
-
