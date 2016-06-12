@@ -1,4 +1,4 @@
-// Connection.swift
+// ConnectionProtocol.swift
 //
 // The MIT License (MIT)
 //

@@ -1,4 +1,4 @@
-// Result.swift
+// ResultProtocol.swift
 //
 // The MIT License (MIT)
 //

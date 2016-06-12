@@ -1,4 +1,4 @@
-// Field.swift
+// FieldInfo.swift
 //
 // The MIT License (MIT)
 //

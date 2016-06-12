@@ -1,4 +1,4 @@
-// Row.swift
+// RowProtocol.swift
 //
 // The MIT License (MIT)
 //
