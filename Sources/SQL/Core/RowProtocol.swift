@@ -119,7 +119,7 @@ public protocol TableRowConvertible: TableProtocol, RowConvertible {
 }
 
 extension TableRowConvertible {
-    init<Row: RowProtocol>(row: Row) throws {
+    public init<Row: RowProtocol>(row: Row) throws {
         try self.init(row: TableRow(row: row))
     }
 }

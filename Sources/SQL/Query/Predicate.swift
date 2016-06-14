@@ -150,4 +150,3 @@ public extension PredicatedQuery {
         return new
     }
 }
-
