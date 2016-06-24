@@ -36,24 +36,7 @@ public protocol ConnectionInfoProtocol {
     var username: String? { get }
     var password: String? { get }
     
-    init(host: String, port: Int, databaseName: String, username: String?, password: String?)
     init?(uri: URI)
-}
-
-public extension ConnectionInfoProtocol {
-    public init?(uri: URI) {
-        guard let host = uri.host, port = uri.port, databaseName = uri.path?.trim(["/"]) else {
-            return nil
-        }
-
-        self.init(
-            host: host,
-            port: port,
-            databaseName: databaseName,
-            username: uri.userInfo?.username,
-            password: uri.userInfo?.password
-        )
-    }
 }
 
 public protocol ConnectionProtocol: class {
