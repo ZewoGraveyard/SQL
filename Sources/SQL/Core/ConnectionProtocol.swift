@@ -23,7 +23,6 @@
 // SOFTWARE.
 
 @_exported import URI
-@_exported import Log
 
 
 /**
@@ -37,9 +36,8 @@ public protocol ConnectionInfoProtocol {
     var username: String? { get }
     var password: String? { get }
     
-    init(_ uri: URI) throws
+    init?(uri: URI)
 }
-
 
 public protocol ConnectionProtocol: class {
     associatedtype InternalStatus
@@ -47,8 +45,6 @@ public protocol ConnectionProtocol: class {
     associatedtype Error: ErrorProtocol, CustomStringConvertible
     associatedtype ConnectionInfo: ConnectionInfoProtocol
     associatedtype QueryRenderer: QueryRendererProtocol
-    
-    var logger: Logger? { get set }
     
     var connectionInfo: ConnectionInfo { get }
 
@@ -72,15 +68,18 @@ public protocol ConnectionProtocol: class {
 
     func rollbackToSavePointNamed(_ name: String) throws
 
-    init(_ info: ConnectionInfo)
+    init(info: ConnectionInfo)
     
     var mostRecentError: Error? { get }
 }
 
 public extension ConnectionProtocol {
     
-    public init(_ uri: URI) throws {
-        try self.init(ConnectionInfo(uri))
+    public init?(uri: URI) {
+        guard let info = ConnectionInfo(uri: uri) else {
+            return nil
+        }
+        self.init(info: info)
     }
 
     public func transaction<T>(handler: (Void) throws -> T) throws -> T {
