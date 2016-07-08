@@ -22,84 +22,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public struct Insert: InsertQuery {
+public struct Insert {
+    public let valuesByField: [QualifiedField: Value?]
+    
     public let tableName: String
-    public let valuesByField: [DeclaredField: SQLData?]
     
-    public init(_ valuesByField: [DeclaredField : SQLData?], into tableName: String) {
+    public init(_ tableName: String, values: [QualifiedField: Value?]) {
         self.tableName = tableName
-        self.valuesByField = valuesByField
+        self.valuesByField = values
     }
     
-    public init(_ valuesByField: [DeclaredField : SQLDataConvertible?], into tableName: String) {
-        
-        var dict = [DeclaredField: SQLData?]()
-        
-        for (key, value) in valuesByField {
-            dict[key] = value?.sqlData
-        }
-        
-        self.init(dict, into: tableName)
-    }
-    
-    public init(_ valuesByField: [String : SQLDataConvertible?], into tableName: String) {
-        
-        var dict = [DeclaredField: SQLData?]()
-        
-        for (key, value) in valuesByField {
-            dict[DeclaredField(name: key)] = value?.sqlData
-        }
-        
-        self.init(dict, into: tableName)
-    }
-}
-
-public struct ModelInsert<T: Model>: InsertQuery {
-    public typealias ModelType = T
-    
-    public var tableName: String {
-        return ModelType.tableName
-    }
-    
-    public let valuesByField: [DeclaredField: SQLData?]
-    
-    public init(_ values: [ModelType.Field: SQLData?]) {
-        var dict = [DeclaredField: SQLData?]()
+    public init(_ tableName: String, values: [QualifiedField: ValueConvertible?]) {
+        var transformed = [QualifiedField: Value?]()
         
         for (key, value) in values {
-            dict[ModelType.field(key)] = value
+            transformed[key] = value?.sqlValue
         }
         
-        self.valuesByField = dict
+        self.init(tableName, values: transformed)
     }
-    
-    public init(_ values: [ModelType.Field: SQLDataConvertible?]) {
-        var dict = [DeclaredField: SQLData?]()
-        
-        for (key, value) in values {
-            dict[ModelType.field(key)] = value?.sqlData
-        }
-        
-        self.valuesByField = dict
-    }
-    
 }
 
-public protocol InsertQuery : TableQuery {
-    var valuesByField: [DeclaredField: SQLData?] { get }
-}
-
-extension InsertQuery {
-    public var queryComponents: QueryComponents {
-        return QueryComponents(
-            components: [
-                "INSERT INTO",
-                QueryComponents(tableName),
-                valuesByField.keys.queryComponentsForSelectingFields(useQualifiedNames: false, useAliasing: false, isolateQueryComponents: true),
-                "VALUES",
-                valuesByField.map { $0 }.queryComponentsForValuePlaceHolders(isolated: true)
-            ]
-        )
-        
+extension Insert: StatementParameterListConvertible {
+    public var sqlParameters: [Value?] {
+        return Array(valuesByField.values)
     }
 }

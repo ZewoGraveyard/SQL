@@ -1,4 +1,4 @@
-// Update.swift
+// ModelProtocol.swift
 //
 // The MIT License (MIT)
 //
@@ -22,38 +22,54 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-public struct Update: PredicatedQuery {
-    public var predicate: Predicate? = nil
-    
-    public private(set) var valuesByField: [QualifiedField: Value?] = [:]
-    
-    public let tableName: String
-    
-    public init(_ tableName: String) {
-        self.tableName = tableName
-    }
-    
-    public mutating func set<T: ValueConvertible>(_ field: QualifiedField, _ value: T?) {
-        valuesByField[field] = value?.sqlValue
-    }
-    
-    public mutating func set(_ dict: [QualifiedField: ValueConvertible?]) {
-        for (key, value) in dict {
-            valuesByField[key] = value?.sqlValue
-        }
-    }
+
+public protocol ModelField: TableField {
+    static var primaryKey: Self { get }
 }
 
-extension Update: StatementParameterListConvertible {
-    public var sqlParameters: [Value?] {
-        var parameters = [Value?]()
-        
-        if let predicate = predicate {
-            parameters += predicate.sqlParameters
-        }
-        
-        parameters += valuesByField.values
-        
-        return parameters
+public protocol ModelProtocol: TableProtocol, TableRowConvertible {
+    associatedtype PrimaryKey: Hashable, ValueConvertible
+    associatedtype Field: ModelField
+    
+    func serialize() -> [Field: ValueConvertible?]
+    
+    func willSave() throws
+    func didSave()
+    
+    func willUpdate() throws
+    func didUpdate()
+    
+    func willCreate() throws
+    func didCreate()
+    
+    func willDelete() throws
+    func didDelete()
+    
+    func willRefresh() throws
+    func didRefresh()
+}
+
+public extension ModelProtocol {
+    public func willSave() throws {}
+    public func didSave() {}
+    
+    public func willUpdate() throws {}
+    public func didUpdate() {}
+    
+    public func willCreate() throws {}
+    public func didCreate() {}
+    
+    public func willDelete() throws {}
+    public func didDelete() {}
+    
+    public func willRefresh() throws {}
+    public func didRefresh() {}
+}
+
+public struct EntityError: ErrorProtocol, CustomStringConvertible {
+    public let description: String
+    
+    public init(_ description: String) {
+        self.description = description
     }
 }

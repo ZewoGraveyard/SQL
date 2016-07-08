@@ -1,4 +1,4 @@
-// Field.swift
+// FieldInfo.swift
 //
 // The MIT License (MIT)
 //
@@ -24,6 +24,7 @@
 
 public protocol FieldInfoProtocol: CustomStringConvertible {
     var name: String { get }
+    var index: Int { get }
 }
 
 public extension FieldInfoProtocol {

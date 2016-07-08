@@ -29,8 +29,129 @@ let package = Package(
 
 ## Usage
 
-Consult the [SQL Wiki](https://github.com/Zewo/SQL/wiki)
+Use this package with one of the supported drivers listed above.
 
+### Connecting to a database
+
+```swift
+let connection = try PostgreSQL.Connection(URI("postgres://localhost:5432/swift_test"))
+```
+
+### Executing raw queries
+
+```swift
+try connection.execute("SELECT * FROM artists")
+let result = try connection.execute("SELECT * FROM artists WHERE name = %@", parameters: "Josh Rouse")
+```
+
+### Getting results from queries
+```swift
+let result = try connection.execute("SELECT * FROM artists")
+
+for row in result {
+	let name: String = try result.value("name")
+	let genre: String? = try result.value("genre")
+	print(name)
+}
+```
+
+In the above example, an error will be thrown if `name` and `genre` is not present in the rows returned. An error will also be thrown if a `name` is `NULL` in any row, as the inferred type is non-optional. Note how `genre` will allow for a `NULL` value.
+
+### Tables
+
+You can define tables as such:
+
+```swift
+public class Artist: Table {
+	enum Field: String {
+        case id = "id"
+        case name = "name"
+        case artistId = "artist_id"
+    }
+    
+    static let tableName: String = "artists"
+}
+```
+
+```swift
+Artist.select().filter(Artist.field(.name) == "Josh Rouse")
+Artist.insert([.name: "AC/DC"])
+Artist.update([.name: "AC/DC"]).filter(Artist.field(.genre) == "Rock")
+Artist.delete().filter(Artist.field(.genre) == "Rock")
+```
+
+```swift
+try connection.execute(Artist.select())
+```
+
+### Models
+You can define models, by extending `Table` like so:
+
+```swift
+public final class Artist {
+	let id: Int?
+	let name: String
+	let genre: String
+	
+	init(name: String, genre: String) {
+		self.name = name
+		self.genre = genre
+	}
+}
+
+extension Artist: Model {
+	// Just like `Table`
+	enum Field: String {
+	    case id = "id"
+	    case name = "name"
+	    case genre = "genre"
+	}
+	
+	// Specify a table name
+	static let tableName: String = "artists"
+	
+	// Specify which field is primary
+	static var primaryKeyField: Field = .id
+	
+	// Provide a getter and setter for the primary key
+	var primaryKey: Int? {
+	    get {
+	        return id
+	    }
+	    set {
+	        id = newValue
+	    }
+	}
+	
+	// Specify the values to be persisted
+	var serialize: [Field: ValueConvertible?] {
+	    return [.name: name, .genre: genre]
+	}
+	   
+	// Provide an initializer for the model taking a row 
+	convenience init(row: Row) throws {
+	    try self.init(
+	        name: row.value(Artist.field(.name)),
+	        genre: row.value(Artist.field(.genre))
+	    )
+	    id = try row.value(Artist.field(.id))
+	}
+}
+
+```
+
+```swift
+let rockArtists = try Artist.fetch(where: Artist.field(.genre) == "Rock", connection: connection)
+
+for artist in rockArtists {
+	artist.genre = "Rock 'n Roll"
+	artist.save()
+}
+
+let newArtist = Artist(name: "Elijah Blake", genre: "Hip-hop")
+try newArtist.create(connection: connection) // save() also works
+
+```
 
 ## Support
 

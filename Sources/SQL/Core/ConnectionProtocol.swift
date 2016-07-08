@@ -1,4 +1,4 @@
-// Connection.swift
+// ConnectionProtocol.swift
 //
 // The MIT License (MIT)
 //
@@ -23,7 +23,6 @@
 // SOFTWARE.
 
 @_exported import URI
-@_exported import Log
 
 
 /**
@@ -37,16 +36,15 @@ public protocol ConnectionInfoProtocol {
     var username: String? { get }
     var password: String? { get }
     
-    init(_ uri: URI) throws
+    init?(uri: URI)
 }
 
 public protocol ConnectionProtocol: class {
     associatedtype InternalStatus
     associatedtype Result: ResultProtocol
-    associatedtype Error: ErrorProtocol
+    associatedtype Error: ErrorProtocol, CustomStringConvertible
     associatedtype ConnectionInfo: ConnectionInfoProtocol
-    
-    var logger: Logger? { get set }
+    associatedtype QueryRenderer: QueryRendererProtocol
     
     var connectionInfo: ConnectionInfo { get }
 
@@ -55,8 +53,8 @@ public protocol ConnectionProtocol: class {
     func close()
 
     var internalStatus: InternalStatus { get }
-
-    func execute(_ statement: QueryComponents) throws -> Result
+    
+    func execute(_ statement: String, parameters: [Value?]?) throws -> Result
 
     func begin() throws
 
@@ -70,25 +68,27 @@ public protocol ConnectionProtocol: class {
 
     func rollbackToSavePointNamed(_ name: String) throws
 
-    init(_ info: ConnectionInfo)
+    init(info: ConnectionInfo)
     
     var mostRecentError: Error? { get }
-    
-    func executeInsertQuery<T: SQLDataConvertible>(query: InsertQuery, returningPrimaryKeyForField primaryKey: DeclaredField) throws -> T
 }
 
 public extension ConnectionProtocol {
     
-    public init(_ uri: URI) throws {
-        try self.init(ConnectionInfo(uri))
+    public init?(uri: URI) {
+        guard let info = ConnectionInfo(uri: uri) else {
+            return nil
+        }
+        self.init(info: info)
     }
 
-    public func transaction(block: (Void) throws -> Void) throws {
+    public func transaction<T>(handler: (Void) throws -> T) throws -> T {
         try begin()
-
+        
         do {
-            try block()
+            let result = try handler()
             try commit()
+            return result
         }
         catch {
             try rollback()
@@ -110,20 +110,32 @@ public extension ConnectionProtocol {
         }
     }
     
-    public func execute(_ statement: QueryComponents) throws -> Result {
-        return try execute(statement)
+    func execute(_ statement: String) throws -> Result {
+        return try execute(statement, parameters: nil)
     }
     
-    public func execute(_ statement: String, parameters: [SQLDataConvertible?] = []) throws -> Result {
-        return try execute(QueryComponents(statement, values: parameters.map { $0?.sqlData }))
+    public func execute(_ query: Select) throws -> Result {
+        return try execute(QueryRenderer.renderStatement(query), parameters: query.sqlParameters)
     }
     
-    public func execute(_ statement: String, parameters: SQLDataConvertible?...) throws -> Result {
+    public func execute(_ query: Update) throws -> Result {
+        return try execute(QueryRenderer.renderStatement(query), parameters: query.sqlParameters)
+    }
+    
+    public func execute(_ query: Insert, returnInsertedRows: Bool = false) throws -> Result {
+        return try execute(QueryRenderer.renderStatement(query, forReturningInsertedRows: returnInsertedRows), parameters: query.sqlParameters)
+    }
+    
+    public func execute(_ query: Delete) throws -> Result {
+        return try execute(QueryRenderer.renderStatement(query), parameters: query.sqlParameters)
+    }
+    
+    public func execute(_ statement: String, parameters: [ValueConvertible?]) throws -> Result {
+        return try execute(statement, parameters: parameters.map { $0?.sqlValue })
+    }
+    
+    public func execute(_ statement: String, parameters: ValueConvertible?...) throws -> Result {
         return try execute(statement, parameters: parameters)
-    }
-
-    public func execute(_ convertible: QueryComponentsConvertible) throws -> Result {
-        return try execute(convertible.queryComponents)
     }
 
     public func begin() throws {

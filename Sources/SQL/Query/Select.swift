@@ -22,126 +22,163 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+public protocol SelectComponentConvertible {
+    var sqlSelectComponent: Select.Component { get }
+}
 
-public struct Select: SelectQuery {
-    public let fields: [DeclaredField]
+public struct Select: PredicatedQuery {
+    public enum Component {
+        case field(QualifiedField)
+        case string(String)
+        case subquery(Select, alias: String)
+        case function(Function, alias: String)
+    }
     
-    public let tableName: String
+    public var order: [Order] = []
     
-    public var condition: Condition? = nil
+    private(set) public var fields: [Component]
+    public let from: [Component]
+    
+    private(set) public var limit: Int? = nil
+    private(set) public var offset: Int? = nil
+    
+    public var predicate: Predicate? = nil
     
     public var joins: [Join] = []
     
-    public var offset: Offset? = nil
-    
-    public var limit: Limit? = nil
-    
-    public var orderBy: [OrderBy] = []
-    
-    public init(_ fields: [DeclaredField], from tableName: String) {
-        self.tableName = tableName
-        self.fields = fields
+    public func subquery(as alias: String) -> Component {
+        return .subquery(self, alias: alias)
     }
     
-    public init(from tableName: String) {
-        self.tableName = tableName
-        self.fields = []
+    public init(_ fields: [SelectComponentConvertible], from source: [SelectComponentConvertible]) {
+        self.fields = fields.map { $0.sqlSelectComponent }
+        self.from = source.map { $0.sqlSelectComponent }
     }
     
-    public init(_ fields: [String], from tableName: String) {
-        self.init(fields.map { DeclaredField(name: $0) }, from: tableName)
+    public init(_ fields: SelectComponentConvertible..., from source: SelectComponentConvertible) {
+        self.init(fields, from: [source])
     }
     
-    public func join(_ tableName: String, using type: [Join.JoinType], leftKey: String, rightKey: String) -> Select {
+    public mutating func extend(_ fields: SelectComponentConvertible...) {
+        self.fields += fields.map { $0.sqlSelectComponent }
+    }
+    
+    // MARK: - Order
+    
+    public mutating func order(by value: [Order]) {
+        order += value
+    }
+    
+    public mutating func order(by value: Order...) {
+        order(by: value)
+    }
+    
+    public func ordered(by value: [Order]) -> Select {
         var new = self
-        new.joins.append(
-            Join(tableName, type: type, leftKey: leftKey, rightKey: rightKey)
-        )
-        
+        new.order(by: value)
         return new
     }
     
-    public func join(_ tableName: String, using type: Join.JoinType, leftKey: String, rightKey: String) -> Select {
-        return join(tableName, using: [type], leftKey: leftKey, rightKey: rightKey)
+    public func ordered(by value: Order...) -> Select {
+        return ordered(by: value)
     }
-}
 
-public struct ModelSelect<T: Model>: SelectQuery, ModelQuery {
-    public typealias ModelType = T
-    
-    public var tableName: String {
-        return T.tableName
+    public mutating func limit(to value: Int) {
+        limit = value
     }
     
-    public let fields: [DeclaredField]
-    
-    public var condition: Condition? = nil
-    
-    public var joins: [Join] = []
-    
-    public var offset: Offset? = nil
-    
-    public var limit: Limit? = nil
-    
-    public var orderBy: [OrderBy] = []
-    
-    public func join<R: Model>(_ model: R.Type, using type: [Join.JoinType], leftKey: ModelType.Field, rightKey: R.Field) -> ModelSelect<T> {
+    public func limited(to value: Int) -> Select {
         var new = self
-        new.joins.append(
-            Join(R.tableName, type: type, leftKey: ModelType.field(leftKey).qualifiedName, rightKey: R.field(rightKey).qualifiedName)
-        )
-        
+        new.limit(to: value)
         return new
     }
     
-    public func join<R: Model>(_ model: R.Type, using type: Join.JoinType, leftKey: ModelType.Field, rightKey: R.Field) -> ModelSelect<T> {
-        return join(model, using: [type], leftKey: leftKey, rightKey: rightKey)
+    public mutating func offset(by value: Int) {
+        offset = value
     }
-
-    public init(_ fields: [DeclaredField]? = nil) {
-        self.fields = fields ?? T.selectFields.map { T.field($0) }
+    
+    public func offsetted(by value: Int) -> Select {
+        var new = self
+        new.offset(by: value)
+        return new
     }
-}
-
-public protocol SelectQuery: FilteredQuery, FetchQuery {
-    var joins: [Join] { get set }
     
-    var fields: [DeclaredField] { get }
-}
-
-public extension SelectQuery {
-    
-    public var queryComponents: QueryComponents {
-        var components = QueryComponents(components: [
-            "SELECT",
-            fields.isEmpty ? "*" : fields.queryComponentsForSelectingFields(useQualifiedNames: true, useAliasing: true, isolateQueryComponents: false),
-            "FROM",
-            QueryComponents(tableName)
-            ]
+    public mutating func join(_ joinType: Join.`Type`, on leftKey: QualifiedField, equals rightKey: QualifiedField) {
+        joins.append(
+            Join(
+                type: joinType,
+                leftKey: leftKey,
+                rightKey: rightKey
+            )
         )
+    }
+}
+
+extension Select.Component: StatementParameterListConvertible {
+    public var sqlParameters: [Value?] {
+        switch self {
+        case .string:
+            return []
+        case .subquery(let select, _):
+            return select.sqlParameters
+        case .field:
+            return []
+        case .function:
+            return []
+        }
+    }
+}
+
+extension Select: ParameterConvertible {
+    public var sqlParameter: Parameter {
+        return .query(self)
+    }
+}
+
+extension Select.Component: StringLiteralConvertible {
+    public init(stringLiteral value: String) {
+        self = .string(value)
+    }
+    
+    public init(extendedGraphemeClusterLiteral value: String) {
+        self = .string(value)
+    }
+    
+    public init(unicodeScalarLiteral value: String) {
+        self = .string(value)
+    }
+}
+
+extension Select.Component: SelectComponentConvertible {
+    public var sqlSelectComponent: Select.Component {
+        return self
+    }
+}
+
+extension QualifiedField: SelectComponentConvertible {
+    public var sqlSelectComponent: Select.Component {
+        return .string(qualifiedName)
+    }
+}
+
+extension String: SelectComponentConvertible {
+    public var sqlSelectComponent: Select.Component {
+        return .string(self)
+    }
+}
+
+
+extension Select: StatementParameterListConvertible {
+    public var sqlParameters: [Value?] {
+        var parameters = [Value?]()
         
-        if !joins.isEmpty {
-            components.append(joins.queryComponents)
+        parameters += fields.flatMap { $0.sqlParameters }
+        parameters += from.flatMap { $0.sqlParameters }
+        
+        if let predicate = predicate {
+            parameters += predicate.sqlParameters
         }
         
-        if let condition = condition {
-            components.append("WHERE")
-            components.append(condition.queryComponents)
-        }
-        
-        if !orderBy.isEmpty {
-            components.append("ORDER BY")
-            components.append(orderBy.queryComponents(mergedByString: ","))
-        }
-        
-        if let limit = limit {
-            components.append(limit.queryComponents)
-        }
-        
-        if let offset = offset {
-            components.append(offset.queryComponents)
-        }
-        
-        return components
+        return parameters
     }
 }
