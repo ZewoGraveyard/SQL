@@ -20,8 +20,8 @@ extension User: ModelProtocol {
     
     func serialize() -> [Field : ValueConvertible?] {
         return [
-                   .username: username,
-                   .password: password
+            .username: username,
+            .password: password
         ]
     }
     
@@ -32,13 +32,17 @@ extension User: ModelProtocol {
 }
 
 
-class SQLTests: XCTestCase {
-    func testSelectQuey() {
-        
+public class SQLTests: XCTestCase {
+    //TODO: Add tests
+    func testSelectQuery() {
         User.select(where: User.Field.id == 1)
-        
-        
-      
     }
 }
 
+extension SQLTests {
+    public static var allTests: [(String, (SQLTests) -> () throws -> Void)] {
+        return [
+            ("testSelectQuery", testSelectQuery),
+        ]
+    }
+}
