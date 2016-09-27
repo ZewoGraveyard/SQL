@@ -35,8 +35,8 @@ extension StatementStringRepresentable {
 
 public extension String {
     public func sqlStringWithEscapedPlaceholdersUsingPrefix(_ prefix: String, suffix: String? = nil, transformer: (Int) -> String) -> String {
-        
-        var strings = split(byString: "%@")
+		
+        var strings = components(separatedBy: "%@")
         
         if strings.count == 1 {
             return self

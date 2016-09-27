@@ -135,7 +135,7 @@ extension Select: ParameterConvertible {
     }
 }
 
-extension Select.Component: StringLiteralConvertible {
+extension Select.Component: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
         self = .string(value)
     }

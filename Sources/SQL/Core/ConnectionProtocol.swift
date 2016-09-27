@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-@_exported import URI
+import Core
 
 
 /**
@@ -36,13 +36,13 @@ public protocol ConnectionInfoProtocol {
     var username: String? { get }
     var password: String? { get }
     
-    init?(uri: URI)
+    init?(uri: URL)
 }
 
 public protocol ConnectionProtocol: class {
     associatedtype InternalStatus
     associatedtype Result: ResultProtocol
-    associatedtype Error: ErrorProtocol, CustomStringConvertible
+    associatedtype ErrorAndStringConvertible: Error, CustomStringConvertible
     associatedtype ConnectionInfo: ConnectionInfoProtocol
     associatedtype QueryRenderer: QueryRendererProtocol
     
@@ -70,12 +70,12 @@ public protocol ConnectionProtocol: class {
 
     init(info: ConnectionInfo)
     
-    var mostRecentError: Error? { get }
+    var mostRecentError: ErrorAndStringConvertible? { get }
 }
 
 public extension ConnectionProtocol {
     
-    public init?(uri: URI) {
+    public init?(uri: URL) {
         guard let info = ConnectionInfo(uri: uri) else {
             return nil
         }

@@ -22,8 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-@_exported import String
-
+import Core
 
 public protocol RowConvertible {
     init<T: RowProtocol>(row: T) throws
@@ -38,7 +37,7 @@ public protocol RowProtocol {
     func data(_ field: QualifiedField) throws -> Data?
 }
 
-public enum RowProtocolError: ErrorProtocol {
+public enum RowProtocolError: Error {
     case expectedQualifiedField(QualifiedField)
     case unexpectedNilValue(QualifiedField)
 }

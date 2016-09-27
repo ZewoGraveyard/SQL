@@ -66,7 +66,7 @@ public extension ModelProtocol {
     public func didRefresh() {}
 }
 
-public struct EntityError: ErrorProtocol, CustomStringConvertible {
+public struct EntityError: Error, CustomStringConvertible {
     public let description: String
     
     public init(_ description: String) {
