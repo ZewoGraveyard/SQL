@@ -1,9 +1,6 @@
 import XCTest
 @testable import SQL
 
-
-import SQL
-
 struct User {
     let username: String
     let password: String
