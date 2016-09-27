@@ -22,7 +22,7 @@ import PackageDescription
 
 let package = Package(
     dependencies: [
-        .Package(url: "https://github.com/Zewo/SQL.git", majorVersion: 0, minor: 5),
+        .Package(url: "https://github.com/Zewo/SQL.git", majorVersion: 0, minor: 13),
     ]
 )
 ```
@@ -68,7 +68,7 @@ public class Artist: Table {
         case name = "name"
         case artistId = "artist_id"
     }
-    
+
     static let tableName: String = "artists"
 }
 ```
@@ -92,7 +92,7 @@ public final class Artist {
 	let id: Int?
 	let name: String
 	let genre: String
-	
+
 	init(name: String, genre: String) {
 		self.name = name
 		self.genre = genre
@@ -106,13 +106,13 @@ extension Artist: Model {
 	    case name = "name"
 	    case genre = "genre"
 	}
-	
+
 	// Specify a table name
 	static let tableName: String = "artists"
-	
+
 	// Specify which field is primary
 	static var primaryKeyField: Field = .id
-	
+
 	// Provide a getter and setter for the primary key
 	var primaryKey: Int? {
 	    get {
@@ -122,13 +122,13 @@ extension Artist: Model {
 	        id = newValue
 	    }
 	}
-	
+
 	// Specify the values to be persisted
 	var serialize: [Field: ValueConvertible?] {
 	    return [.name: name, .genre: genre]
 	}
-	   
-	// Provide an initializer for the model taking a row 
+
+	// Provide an initializer for the model taking a row
 	convenience init(row: Row) throws {
 	    try self.init(
 	        name: row.value(Artist.field(.name)),
@@ -169,7 +169,7 @@ This project is released under the MIT license. See [LICENSE](LICENSE) for detai
 
 [swift-badge]: https://img.shields.io/badge/Swift-3.0-orange.svg?style=flat
 [swift-url]: https://swift.org
-[zewo-badge]: https://img.shields.io/badge/Zewo-0.5-FF7565.svg?style=flat
+[zewo-badge]: https://img.shields.io/badge/Zewo-0.13-FF7565.svg?style=flat
 [zewo-url]: http://zewo.io
 [platform-badge]: https://img.shields.io/badge/Platforms-OS%20X%20--%20Linux-lightgray.svg?style=flat
 [platform-url]: https://swift.org
