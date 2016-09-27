@@ -1,27 +1,3 @@
-// Entity.swift
-//
-// The MIT License (MIT)
-//
-// Copyright (c) 2016 Formbound
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
 public protocol EntityProtocol {
     associatedtype Model: ModelProtocol
 
@@ -33,7 +9,7 @@ public protocol PersistedEntityProtocol: EntityProtocol, Equatable {
 }
 
 public extension EntityProtocol where Model.Field.RawValue == String {
-    public static func get<Connection: ConnectionProtocol where Connection.Result.Iterator.Element: RowProtocol>(_ pk: Model.PrimaryKey, connection: Connection) throws -> PersistedEntity<Model>? {
+    public static func get<Connection: ConnectionProtocol> (_ pk: Model.PrimaryKey, connection: Connection) throws -> PersistedEntity<Model>? where Connection.Result.Iterator.Element: RowProtocol {
 
         var select = Model.select(where: Model.Field.primaryKey == pk)
         select.limit(to: 1)
@@ -48,15 +24,15 @@ public extension EntityProtocol where Model.Field.RawValue == String {
         return PersistedEntity(model: try Model.init(row: tableRow), primaryKey: try tableRow.value(Model.Field.primaryKey))
     }
 
-    public static func fetchAll<Connection: ConnectionProtocol where Connection.Result.Iterator.Element: RowProtocol>(connection: Connection) throws -> [PersistedEntity<Model>] {
+    public static func fetchAll<Connection: ConnectionProtocol> (connection: Connection) throws -> [PersistedEntity<Model>] where Connection.Result.Iterator.Element: RowProtocol {
         return try fetch(where: nil, limit: nil, offset: nil, connection: connection)
     }
 
-    public static func first<Connection: ConnectionProtocol where Connection.Result.Iterator.Element: RowProtocol>(where predicate: Predicate? = nil, connection: Connection) throws -> PersistedEntity<Model>? {
+    public static func first<Connection: ConnectionProtocol> (where predicate: Predicate? = nil, connection: Connection) throws -> PersistedEntity<Model>? where Connection.Result.Iterator.Element: RowProtocol {
         return try fetch(where: predicate, limit: 1, offset: 0, connection: connection).first
     }
 
-    public static func fetch<Connection: ConnectionProtocol where Connection.Result.Iterator.Element: RowProtocol>(where predicate: Predicate? = nil, limit: Int? = 0, offset: Int? = 0, connection: Connection) throws -> [PersistedEntity<Model>] {
+    public static func fetch<Connection: ConnectionProtocol> (where predicate: Predicate? = nil, limit: Int? = 0, offset: Int? = 0, connection: Connection) throws -> [PersistedEntity<Model>] where Connection.Result.Iterator.Element: RowProtocol {
         var select = Model.select
 
         if let predicate = predicate {
@@ -80,7 +56,7 @@ public extension EntityProtocol where Model.Field.RawValue == String {
         }
     }
 
-    public func create<Connection: ConnectionProtocol where Connection.Result.Iterator.Element: RowProtocol>(connection: Connection) throws -> PersistedEntity<Model> {
+    public func create<Connection: ConnectionProtocol> (connection: Connection) throws -> PersistedEntity<Model> where Connection.Result.Iterator.Element: RowProtocol {
         return try connection.transaction {
             try self.model.willSave()
             try self.model.willCreate()
@@ -106,22 +82,22 @@ public extension EntityProtocol where Model.Field.RawValue == String {
         }
     }
 
-    public func save<Connection: ConnectionProtocol where Connection.Result.Iterator.Element: RowProtocol>(connection: Connection) throws -> PersistedEntity<Model> {
+    public func save<Connection: ConnectionProtocol> (connection: Connection) throws -> PersistedEntity<Model>  where Connection.Result.Iterator.Element: RowProtocol {
         return try create(connection: connection)
     }
 }
 
 public extension PersistedEntityProtocol where Model.Field.RawValue == String {
-    public func delete<Connection: ConnectionProtocol where Connection.Result.Iterator.Element: RowProtocol>(connection: Connection) throws -> Entity<Model> {
+    public func delete<Connection: ConnectionProtocol> (connection: Connection) throws -> Entity<Model> where Connection.Result.Iterator.Element: RowProtocol {
         try connection.execute(Model.delete(where: Model.Field.primaryKey == self.primaryKey))
 
         return Entity(model: model)
     }
 
-    public func refresh<Connection: ConnectionProtocol where Connection.Result.Iterator.Element: RowProtocol>(connection: Connection) throws -> PersistedEntity<Model> {
+    public func refresh<Connection: ConnectionProtocol> (connection: Connection) throws -> PersistedEntity<Model>  where Connection.Result.Iterator.Element: RowProtocol {
         try model.willRefresh()
 
-        guard let refreshed = try self.dynamicType.get(primaryKey, connection: connection) else {
+        guard let refreshed = try type(of: self).get(primaryKey, connection: connection) else {
             throw EntityError("Failed to re-fetch model with primary key \(primaryKey)")
         }
 
@@ -130,7 +106,7 @@ public extension PersistedEntityProtocol where Model.Field.RawValue == String {
         return refreshed
     }
 
-    public func update<Connection: ConnectionProtocol where Connection.Result.Iterator.Element: RowProtocol>(connection: Connection) throws -> PersistedEntity<Model> {
+    public func update<Connection: ConnectionProtocol> (connection: Connection) throws -> PersistedEntity<Model>  where Connection.Result.Iterator.Element: RowProtocol {
         try model.willSave()
         try model.willUpdate()
 
@@ -143,12 +119,12 @@ public extension PersistedEntityProtocol where Model.Field.RawValue == String {
         return new
     }
 
-    public func save<Connection: ConnectionProtocol where Connection.Result.Iterator.Element: RowProtocol>(connection: Connection) throws -> PersistedEntity<Model> {
+    public func save<Connection: ConnectionProtocol> (connection: Connection) throws -> PersistedEntity<Model>  where Connection.Result.Iterator.Element: RowProtocol {
         return try update(connection: connection)
     }
 }
 
-public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>: EntityProtocol {
+public struct Entity<Model: ModelProtocol> : EntityProtocol where Model.Field.RawValue == String {
     public let model: Model
 
     public init(model: Model) {
@@ -156,7 +132,7 @@ public struct Entity<Model: ModelProtocol where Model.Field.RawValue == String>:
     }
 }
 
-public struct PersistedEntity<Model: ModelProtocol where Model.Field.RawValue == String>: PersistedEntityProtocol {
+public struct PersistedEntity<Model: ModelProtocol> : PersistedEntityProtocol where Model.Field.RawValue == String {
     public let model: Model
     public let primaryKey: Model.PrimaryKey
 
@@ -166,6 +142,6 @@ public struct PersistedEntity<Model: ModelProtocol where Model.Field.RawValue ==
     }
 }
 
-public func == <Model: ModelProtocol, Entity: PersistedEntityProtocol where Entity.Model == Model>(lhs: Entity, rhs: Entity) -> Bool {
+public func == <Model: ModelProtocol, Entity: PersistedEntityProtocol> (lhs: Entity, rhs: Entity) -> Bool where Entity.Model == Model {
     return "\(Model.Field.tableName).\(lhs.primaryKey.hashValue)" == "\(Model.Field.tableName).\(rhs.primaryKey.hashValue)"
 }

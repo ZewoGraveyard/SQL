@@ -1,28 +1,4 @@
-// ConnectionProtocol.swift
-//
-// The MIT License (MIT)
-//
-// Copyright (c) 2015 Formbound
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
-@_exported import URI
+import Core
 
 
 /**
@@ -35,17 +11,17 @@ public protocol ConnectionInfoProtocol {
     var databaseName: String { get }
     var username: String? { get }
     var password: String? { get }
-    
-    init?(uri: URI)
+
+    init?(uri: URL)
 }
 
 public protocol ConnectionProtocol: class {
     associatedtype InternalStatus
     associatedtype Result: ResultProtocol
-    associatedtype Error: ErrorProtocol, CustomStringConvertible
+    associatedtype ConnectionError: Error, CustomStringConvertible
     associatedtype ConnectionInfo: ConnectionInfoProtocol
     associatedtype QueryRenderer: QueryRendererProtocol
-    
+
     var connectionInfo: ConnectionInfo { get }
 
     func open() throws
@@ -53,7 +29,8 @@ public protocol ConnectionProtocol: class {
     func close()
 
     var internalStatus: InternalStatus { get }
-    
+
+    @discardableResult
     func execute(_ statement: String, parameters: [Value?]?) throws -> Result
 
     func begin() throws
@@ -69,13 +46,13 @@ public protocol ConnectionProtocol: class {
     func rollbackToSavePointNamed(_ name: String) throws
 
     init(info: ConnectionInfo)
-    
-    var mostRecentError: Error? { get }
+
+    var mostRecentError: ConnectionError? { get }
 }
 
 public extension ConnectionProtocol {
-    
-    public init?(uri: URI) {
+
+    public init?(uri: URL) {
         guard let info = ConnectionInfo(uri: uri) else {
             return nil
         }
@@ -84,7 +61,7 @@ public extension ConnectionProtocol {
 
     public func transaction<T>(handler: (Void) throws -> T) throws -> T {
         try begin()
-        
+
         do {
             let result = try handler()
             try commit()
@@ -109,31 +86,35 @@ public extension ConnectionProtocol {
             throw error
         }
     }
-    
+
+    @discardableResult
     func execute(_ statement: String) throws -> Result {
         return try execute(statement, parameters: nil)
     }
-    
+
     public func execute(_ query: Select) throws -> Result {
         return try execute(QueryRenderer.renderStatement(query), parameters: query.sqlParameters)
     }
-    
+
+    @discardableResult
     public func execute(_ query: Update) throws -> Result {
         return try execute(QueryRenderer.renderStatement(query), parameters: query.sqlParameters)
     }
-    
+
+    @discardableResult
     public func execute(_ query: Insert, returnInsertedRows: Bool = false) throws -> Result {
         return try execute(QueryRenderer.renderStatement(query, forReturningInsertedRows: returnInsertedRows), parameters: query.sqlParameters)
     }
-    
+
+    @discardableResult
     public func execute(_ query: Delete) throws -> Result {
         return try execute(QueryRenderer.renderStatement(query), parameters: query.sqlParameters)
     }
-    
+
     public func execute(_ statement: String, parameters: [ValueConvertible?]) throws -> Result {
         return try execute(statement, parameters: parameters.map { $0?.sqlValue })
     }
-    
+
     public func execute(_ statement: String, parameters: ValueConvertible?...) throws -> Result {
         return try execute(statement, parameters: parameters)
     }
