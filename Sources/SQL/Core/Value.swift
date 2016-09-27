@@ -22,13 +22,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import Core
+
 public enum Value {
-    public struct Error: ErrorProtocol {
-        let description: String
-    }
-    
     case string(String)
     case data(Data)
+}
+
+public struct ValueError: Error {
+	let description: String
 }
 
 public protocol ValueConvertible: ParameterConvertible {
@@ -47,7 +49,7 @@ extension ValueConvertible {
 extension Int: ValueConvertible {
     public init(rawSQLData data: Data) throws {
         guard let value = Int(try String(data: data)) else {
-            throw Value.Error(description: "Failed to convert data to Int")
+            throw ValueError(description: "Failed to convert data to Int")
         }
         self = value
     }
@@ -60,7 +62,7 @@ extension Int: ValueConvertible {
 extension UInt: ValueConvertible {
     public init(rawSQLData data: Data) throws {
         guard let value = UInt(try String(data: data)) else {
-            throw Value.Error(description: "Failed to convert data to UInt")
+            throw ValueError(description: "Failed to convert data to UInt")
         }
         self = value
     }
@@ -73,7 +75,7 @@ extension UInt: ValueConvertible {
 extension Float: ValueConvertible {
     public init(rawSQLData data: Data) throws {
         guard let value = Float(try String(data: data)) else {
-            throw Value.Error(description: "Failed to convert data to Float")
+            throw ValueError(description: "Failed to convert data to Float")
         }
         self = value
     }
@@ -86,7 +88,7 @@ extension Float: ValueConvertible {
 extension Double: ValueConvertible {
     public init(rawSQLData data: Data) throws {
         guard let value = Double(try String(data: data)) else {
-            throw Value.Error(description: "Failed to convert data to Double")
+            throw ValueError(description: "Failed to convert data to Double")
         }
         self = value
     }
