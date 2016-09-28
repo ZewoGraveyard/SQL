@@ -47,12 +47,10 @@ public extension EntityProtocol where Model.Field.RawValue == String {
             select.offset(by: offset)
         }
 
-        return try connection.execute(select).map {
-            row in
-
+        return try connection.execute(select).map { row in
             let tableRow = TableRow<Model, Connection.Result.Iterator.Element>(row: row)
 
-            return PersistedEntity(model: try Model.init(row: tableRow), primaryKey: try tableRow.value(Model.Field.primaryKey))
+            return try PersistedEntity(model: Model(row: tableRow), primaryKey: tableRow.value(Model.Field.primaryKey))
         }
     }
 
@@ -133,7 +131,7 @@ public struct Entity<Model: ModelProtocol> : EntityProtocol where Model.Field.Ra
 }
 
 public struct PersistedEntity<Model: ModelProtocol> : PersistedEntityProtocol where Model.Field.RawValue == String {
-    public let model: Model
+    public var model: Model
     public let primaryKey: Model.PrimaryKey
 
     public init(model: Model, primaryKey: Model.PrimaryKey) {

@@ -117,10 +117,10 @@ public struct TableRow<Table: TableProtocol, Row: RowProtocol>: RowProtocol {
 
 extension TableRow where Table.Field.RawValue == String {
     public func value<T: ValueConvertible>(_ field: Table.Field) throws -> T {
-        return try value(field)
+        return try value(field.qualifiedField)
     }
 
     public func value<T: ValueConvertible>(_ field: Table.Field) throws -> T? {
-        return try value(field)
+        return try value(field.qualifiedField)
     }
 }

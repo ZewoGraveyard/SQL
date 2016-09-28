@@ -8,7 +8,7 @@ public extension TableField {
     }
 
     public var qualifiedField: QualifiedField {
-        return QualifiedField("\(Self.tableName).\(self.rawValue)", alias: "\(Self.tableName)__\(self.rawValue)")
+        return QualifiedField("\(Self.tableName).\(self.rawValue)")
     }
 }
 
