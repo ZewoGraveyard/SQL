@@ -180,5 +180,5 @@ This project is released under the MIT license. See [LICENSE](LICENSE) for detai
 [slack-url]: http://slack.zewo.io
 [travis-badge]: https://travis-ci.org/Zewo/SQL.svg?branch=master
 [travis-url]: https://travis-ci.org/Zewo/SQL
-[codebeat-badge]: https://codebeat.co/badges/13196ddb-e30d-4a6a-bd41-3227cd965b80
+[codebeat-badge]: https://codebeat.co/badges/2548b359-daf1-404b-b5ae-687b98c02101
 [codebeat-url]: https://codebeat.co/projects/github-com-zewo-sql
