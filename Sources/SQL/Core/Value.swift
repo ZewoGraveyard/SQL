@@ -1,8 +1,8 @@
-import Core
+import Axis
 
 public enum Value {
     case string(String)
-    case data(Data)
+    case buffer(Buffer)
 }
 
 public struct ValueError: Error {
@@ -12,7 +12,7 @@ public struct ValueError: Error {
 public protocol ValueConvertible: ParameterConvertible {
     var sqlValue: Value { get }
 
-    init(rawSQLData: Data) throws
+    init(rawSQLData: Buffer) throws
 }
 
 extension ValueConvertible {
@@ -23,8 +23,8 @@ extension ValueConvertible {
 
 
 extension Int: ValueConvertible {
-    public init(rawSQLData data: Data) throws {
-        guard let value = Int(try String(data: data)) else {
+    public init(rawSQLData buffer: Buffer) throws {
+        guard let value = Int(try String(buffer: buffer)) else {
             throw ValueError(description: "Failed to convert data to Int")
         }
         self = value
@@ -36,8 +36,8 @@ extension Int: ValueConvertible {
 }
 
 extension UInt: ValueConvertible {
-    public init(rawSQLData data: Data) throws {
-        guard let value = UInt(try String(data: data)) else {
+    public init(rawSQLData buffer: Buffer) throws {
+        guard let value = UInt(try String(buffer: buffer)) else {
             throw ValueError(description: "Failed to convert data to UInt")
         }
         self = value
@@ -49,8 +49,8 @@ extension UInt: ValueConvertible {
 }
 
 extension Float: ValueConvertible {
-    public init(rawSQLData data: Data) throws {
-        guard let value = Float(try String(data: data)) else {
+    public init(rawSQLData buffer: Buffer) throws {
+        guard let value = Float(try String(buffer: buffer)) else {
             throw ValueError(description: "Failed to convert data to Float")
         }
         self = value
@@ -62,8 +62,8 @@ extension Float: ValueConvertible {
 }
 
 extension Double: ValueConvertible {
-    public init(rawSQLData data: Data) throws {
-        guard let value = Double(try String(data: data)) else {
+    public init(rawSQLData buffer: Buffer) throws {
+        guard let value = Double(try String(buffer: buffer)) else {
             throw ValueError(description: "Failed to convert data to Double")
         }
         self = value
@@ -75,8 +75,8 @@ extension Double: ValueConvertible {
 }
 
 extension String: ValueConvertible {
-    public init(rawSQLData data: Data) throws {
-        try self.init(data: data)
+    public init(rawSQLData buffer: Buffer) throws {
+        try self.init(buffer: buffer)
     }
 
     public var sqlValue: Value {
@@ -84,12 +84,12 @@ extension String: ValueConvertible {
     }
 }
 
-extension Data: ValueConvertible {
-    public init(rawSQLData data: Data) throws {
-        self = data
+extension Buffer: ValueConvertible {
+    public init(rawSQLData buffer: Buffer) throws {
+        self = buffer
     }
 
     public var sqlValue: Value {
-        return .data(self)
+        return .buffer(self)
     }
 }

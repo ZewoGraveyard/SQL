@@ -1,4 +1,4 @@
-import Core
+import Axis
 
 public protocol RowConvertible {
     init<T: RowProtocol>(row: T) throws
@@ -10,7 +10,7 @@ public protocol RowProtocol {
     var result: Result { get }
     var index: Int { get }
 
-    func data(_ field: QualifiedField) throws -> Data?
+    func data(_ field: QualifiedField) throws -> Buffer?
 }
 
 public enum RowProtocolError: Error {
@@ -20,7 +20,7 @@ public enum RowProtocolError: Error {
 
 public extension RowProtocol {
 
-    public func data(_ field: QualifiedField) throws -> Data? {
+    public func data(_ field: QualifiedField) throws -> Buffer? {
 
         let fieldName: String
 
@@ -39,44 +39,44 @@ public extension RowProtocol {
         return result.data(atRow: index, forFieldIndex: fieldIndex)
     }
 
-    public func data(_ field: QualifiedField) throws -> Data {
-        guard let data: Data = try data(field) else {
+    public func data(_ field: QualifiedField) throws -> Buffer {
+        guard let buffer: Buffer = try data(field) else {
             throw RowProtocolError.unexpectedNilValue(field)
         }
 
-        return data
+        return buffer
     }
 
-    public func data(_ field: String) throws -> Data {
+    public func data(_ field: String) throws -> Buffer {
         let field = QualifiedField(field)
-        guard let data: Data = try data(field) else {
+        guard let buffer: Buffer = try data(field) else {
             throw RowProtocolError.unexpectedNilValue(field)
         }
 
-        return data
+        return buffer
     }
 
     // MARK: - ValueConvertible
 
     public func value<T: ValueConvertible>(_ field: QualifiedField) throws -> T? {
-        guard let data: Data = try data(field) else {
+        guard let buffer: Buffer = try data(field) else {
             return nil
         }
 
-        return try T(rawSQLData: data)
+        return try T(rawSQLData: buffer)
     }
 
     public func value<T: ValueConvertible>(_ field: QualifiedField) throws -> T {
-        guard let data: Data = try data(field) else {
+        guard let buffer: Buffer = try data(field) else {
             throw RowProtocolError.unexpectedNilValue(field)
         }
 
-        return try T(rawSQLData: data)
+        return try T(rawSQLData: buffer)
     }
 
     // MARK - String support
 
-    public func data(field: String) throws -> Data? {
+    public func data(field: String) throws -> Buffer? {
         return try data(QualifiedField(field))
     }
 
@@ -102,7 +102,7 @@ extension TableRowConvertible {
 public struct TableRow<Table: TableProtocol, Row: RowProtocol>: RowProtocol {
     public var result: Row.Result
     public var index: Int
-    private let _data: (QualifiedField) throws -> Data?
+    private let _data: (QualifiedField) throws -> Buffer?
 
     public init(row: Row) {
         self.result = row.result
@@ -110,7 +110,7 @@ public struct TableRow<Table: TableProtocol, Row: RowProtocol>: RowProtocol {
         self._data = row.data
     }
 
-    public func data(_ field: QualifiedField) throws -> Data? {
+    public func data(_ field: QualifiedField) throws -> Buffer? {
         return try self._data(field)
     }
 }

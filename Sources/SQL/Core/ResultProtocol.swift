@@ -1,4 +1,4 @@
-import Core
+import Axis
 
 public protocol ResultStatus {
     var successful: Bool { get }
@@ -15,7 +15,7 @@ public protocol ResultProtocol: Collection {
 
     var count: Int { get }
 
-    func data(atRow rowIndex: Int, forFieldIndex fieldIndex: Int) -> Data?
+    func data(atRow rowIndex: Int, forFieldIndex fieldIndex: Int) -> Buffer?
 }
 
 extension ResultProtocol {
