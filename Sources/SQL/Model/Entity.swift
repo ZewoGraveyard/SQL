@@ -141,5 +141,5 @@ public struct PersistedEntity<Model: ModelProtocol> : PersistedEntityProtocol wh
 }
 
 public func == <Model: ModelProtocol, Entity: PersistedEntityProtocol> (lhs: Entity, rhs: Entity) -> Bool where Entity.Model == Model {
-    return "\(Model.Field.tableName).\(lhs.primaryKey.hashValue)" == "\(Model.Field.tableName).\(rhs.primaryKey.hashValue)"
+    return lhs.primaryKey == rhs.primaryKey
 }
