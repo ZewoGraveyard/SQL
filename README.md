@@ -38,7 +38,9 @@ Use this package with one of the supported drivers listed above.
 ### Connecting to a database
 
 ```swift
-let connection = try PostgreSQL.Connection(URI("postgres://localhost:5432/database_name"))
+let info = Connection.ConnectionInfo(uri: URL("postgres://localhost:5432/database_name")!)!
+let connection = PostgreSQL.Connection(info: info)
+try connection.open()
 ```
 
 ### Executing raw queries
@@ -53,8 +55,8 @@ let result = try connection.execute("SELECT * FROM artists WHERE name = %@", par
 let result = try connection.execute("SELECT * FROM artists")
 
 for row in result {
-	let name: String = try result.value("name")
-	let genre: String? = try result.value("genre")
+	let name: String = try row.value("name")
+	let genre: String? = try row.value("genre")
 	print(name)
 }
 ```
