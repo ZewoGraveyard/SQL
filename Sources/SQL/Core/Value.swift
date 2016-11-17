@@ -7,7 +7,7 @@ public enum Value {
 }
 
 public struct ValueError: Error {
-	let description: String
+    let description: String
 }
 
 public protocol ValueConvertible: ParameterConvertible {
@@ -205,5 +205,20 @@ extension UInt64: ValueConvertible {
 
     public var sqlValue: Value {
         return .string(String(self))
+    }
+}
+
+extension Bool: ValueConvertible {
+    public init(rawSQLData buffer: Buffer) throws {
+        let stringValue = try String(buffer: buffer)
+        guard stringValue == "1" || stringValue == "0" else {
+            throw ValueError(description: "Failed to convert data to Bool")
+        }
+
+        self = stringValue == "1" ? true : false
+    }
+
+    public var sqlValue: Value {
+        return .string(String(self ? "1" : "0"))
     }
 }
