@@ -4,6 +4,7 @@ import XCTest
 struct User {
     let username: String
     let password: String
+    let isAdmin: Bool
 }
 
 extension User: ModelProtocol {
@@ -13,6 +14,7 @@ extension User: ModelProtocol {
         case username
         case password
         case id
+        case isAdmin
 
         static let tableName: String = "users"
         static let primaryKey: Field = .id
@@ -21,13 +23,15 @@ extension User: ModelProtocol {
     func serialize() -> [Field : ValueConvertible?] {
         return [
             .username: username,
-            .password: password
+            .password: password,
+            .isAdmin: isAdmin
         ]
     }
 
     init<Row: RowProtocol>(row: TableRow<User, Row>) throws {
         username = try row.value(.username)
         password = try row.value(.password)
+        isAdmin = try row.value(.isAdmin)
     }
 }
 
