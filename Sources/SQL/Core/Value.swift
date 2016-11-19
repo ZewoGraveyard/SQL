@@ -210,14 +210,13 @@ extension UInt64: ValueConvertible {
 
 extension Bool: ValueConvertible {
     public init(rawSQLData buffer: Buffer) throws {
-        let intValue = UInt8(try String(buffer: buffer))
-        switch intValue {
-        case .some(0):
-            self = false
-        case .some(1):
-            self = true
-        default:
-            throw ValueError(description: "Failed to convert data to Bool")
+        // read int, 0 = false, 1 = true
+        let value = try Int(rawSQLData: buffer)
+
+        switch value {
+        case 0: self = false
+        case 1: self = true
+        default: throw ValueError(description: "Failed to convert data to Bool. Excepted 0/1, got \(value).")
         }
     }
 
