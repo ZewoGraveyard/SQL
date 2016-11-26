@@ -31,7 +31,7 @@ public extension TableProtocol where Self.Field.RawValue == String {
         return Select("*", from: Field.tableName)
     }
 
-    public static func update(_ dict: [Field: ValueConvertible?]) -> Update {
+    public static func update(_ dict: [Field: ValueConvertible?], where predicate: Predicate? = nil) -> Update {
         var translated = [QualifiedField: ValueConvertible?]()
 
         for (key, value) in dict {
@@ -40,6 +40,10 @@ public extension TableProtocol where Self.Field.RawValue == String {
 
         var update = Update(Field.tableName)
         update.set(translated)
+
+        if let predicate = predicate {
+            update.filter(predicate)
+        }
 
         return update
     }

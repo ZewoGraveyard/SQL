@@ -108,7 +108,7 @@ public extension PersistedEntityProtocol where Model.Field.RawValue == String {
         try model.willSave()
         try model.willUpdate()
 
-        try connection.execute(Model.update(model.serialize()))
+        try connection.execute(Model.update(model.serialize(), where: Model.Field.primaryKey == self.primaryKey))
 
         let new = try refresh(connection: connection)
         new.model.didUpdate()
@@ -125,7 +125,7 @@ public extension PersistedEntityProtocol where Model.Field.RawValue == String {
         var serialized = model.serialize()
         serialized[Model.Field.primaryKey] = newPrimaryKey
 
-        try connection.execute(Model.update(serialized))
+        try connection.execute(Model.update(serialized, where: Model.Field.primaryKey == self.primaryKey))
 
         var entity = self
         entity.primaryKey = newPrimaryKey
