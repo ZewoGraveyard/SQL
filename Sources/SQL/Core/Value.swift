@@ -211,7 +211,7 @@ extension UInt64: ValueConvertible {
 extension Bool: ValueConvertible {
     public init(rawSQLData buffer: Buffer) throws {
         // read int, 0 = false, 1 = true
-        let value = try Int(rawSQLData: buffer)
+        let value = try Int(rawSQLData: Bool.sanitizedBooleanBuffer(rawBuffer: buffer))
 
         switch value {
         case 0: self = false
@@ -222,5 +222,27 @@ extension Bool: ValueConvertible {
 
     public var sqlValue: Value {
         return (self ? 1 : 0).sqlValue
+    }
+
+    private static func sanitizedBooleanBuffer(rawBuffer: Buffer) -> Buffer {
+        guard let bufferPrefix = rawBuffer.first else {
+            return rawBuffer
+        }
+        let hex0: UInt8 = 0x30
+        let hex1: UInt8 = 0x31
+        let hexLowercaseT: UInt8 = 0x74
+        let hexLowercaseF: UInt8 = 0x66
+
+        switch bufferPrefix {
+        case hexLowercaseT:
+            return Buffer("1")
+        case hexLowercaseF:
+            return Buffer("0")
+        case hex0, hex1:
+            break
+        default:
+            break
+        }
+        return rawBuffer
     }
 }
