@@ -15,7 +15,7 @@ public struct Update: PredicatedQuery {
 
     public mutating func set(_ dict: [QualifiedField: ValueConvertible?]) {
         for (key, value) in dict {
-            valuesByField[key] = value?.sqlValue
+            valuesByField[key] = value?.sqlValue ?? Optional<Value>.none
         }
     }
 }
