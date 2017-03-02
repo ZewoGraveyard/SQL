@@ -90,12 +90,12 @@ public extension RowProtocol {
 }
 
 public protocol TableRowConvertible: TableProtocol, RowConvertible {
-    init<Row: RowProtocol>(row: TableRow<Self, Row>) throws
+    init<Row: RowProtocol>(tableRow: TableRow<Self, Row>) throws
 }
 
 extension TableRowConvertible {
     public init<Row: RowProtocol>(row: Row) throws {
-        try self.init(row: TableRow(row: row))
+        try self.init(tableRow: TableRow<Self, Row>(row: row))
     }
 }
 
